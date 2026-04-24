@@ -92,9 +92,9 @@ function Veridianhub:CreateWindow(HubName)
         isWindowOpen = state
         if state then
             MainFrame.Visible = true
-            CreateTween(MainFrame, {Size = UDim2.new(0, 508, 0, 264), GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            CreateTween(MainFrame, {Size = UDim2.new(0, 508, 0, 264), BackgroundTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         else
-            local t = CreateTween(MainFrame, {Size = UDim2.new(0, 450, 0, 200), GroupTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+            local t = CreateTween(MainFrame, {Size = UDim2.new(0, 450, 0, 200), BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
             t.Completed:Connect(function() if not isWindowOpen then MainFrame.Visible = false end end)
         end
     end
@@ -227,7 +227,7 @@ end)
     function WindowAPI:CreateTab(name, target, isAuto)
         local TabPage = Instance.new("ScrollingFrame", PageArea)
         TabPage.Size = UDim2.new(1, 0, 1, 0); TabPage.Position = UDim2.new(0, 20, 0, 0); TabPage.BackgroundTransparency = 1; TabPage.Visible = false; TabPage.ScrollBarThickness = 3; TabPage.AutomaticCanvasSize = "Y"
-        TabPage.ZIndex = 11; TabPage.GroupTransparency = 1
+        TabPage.ZIndex = 11; TabPage.BackgroundTransparency = 1
         Instance.new("UIListLayout", TabPage).Padding = UDim.new(0, 8)
 
         local b = Instance.new("TextButton", NavArea)
@@ -314,16 +314,16 @@ end)
         local function OpenTab()
             SearchBox.Text = ""
             for _, v in pairs(PageArea:GetChildren()) do 
-                if v.Visible then CreateTween(v, {GroupTransparency = 1, Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) end
+                if v.Visible then CreateTween(v, {BackgroundTransparency = 1, Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) end
             end
             TabPage.Visible = true
-            CreateTween(TabPage, {GroupTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
+            CreateTween(TabPage, {BackgroundTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
             
             if not TabPage:FindFirstChild("HasRan") then
                 if type(target) == "function" then target(TabPage, TabAPI)
                 elseif type(target) == "string" and target:find("http") then
                     local lb = Instance.new("TextButton", TabPage); lb.Size = UDim2.new(0.95, 0, 0, 40); lb.BackgroundColor3 = Color3.fromRGB(60, 60, 65); lb.Text = "🐾 Load: " .. name; lb.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", lb); lb.ZIndex = 15
-                    lb.MouseButton1Click:Connect(function() pcall(loadstring(game:HttpGet(target))) end)
+                    lb.MouseButton1Click:Connect(function() pcall(function() loadstring(game:HttpGet(target))() end) end)
                 end
                 Instance.new("BoolValue", TabPage).Name = "HasRan"
             end
@@ -333,7 +333,7 @@ end)
         return TabAPI
     end
 
-    local SettingPage = Instance.new("ScrollingFrame", PageArea); SettingPage.Size = UDim2.new(1, 0, 1, 0); SettingPage.Position = UDim2.new(0, 20, 0, 0); SettingPage.BackgroundTransparency = 1; SettingPage.Visible = false; SettingPage.ScrollBarThickness = 3; SettingPage.AutomaticCanvasSize = "Y"; SettingPage.ZIndex = 11; SettingPage.GroupTransparency = 1
+    local SettingPage = Instance.new("ScrollingFrame", PageArea); SettingPage.Size = UDim2.new(1, 0, 1, 0); SettingPage.Position = UDim2.new(0, 20, 0, 0); SettingPage.BackgroundTransparency = 1; SettingPage.Visible = false; SettingPage.ScrollBarThickness = 3; SettingPage.AutomaticCanvasSize = "Y"; SettingPage.ZIndex = 11; SettingPage.BackgroundTransparency = 1
     local function RenderSettings()
         local l = Instance.new("TextLabel", SettingPage); l.Size = UDim2.new(1, 0, 0, 30); l.Text = "Control Panel"; l.BackgroundTransparency = 1; l.TextColor3 = Color3.new(1,1,1); l.Font = "GothamBold"; l.ZIndex = 15
         local kb = Instance.new("TextButton", SettingPage); kb.Size = UDim2.new(0.95, 0, 0, 40); kb.BackgroundColor3 = CONFIG.KeybindEnabled and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(231, 76, 60); kb.Text = "Keybind (K): " .. (CONFIG.KeybindEnabled and "ENABLED" or "DISABLED"); kb.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", kb); kb.ZIndex = 15
@@ -347,10 +347,10 @@ end)
     
     TopSettingBtn.MouseButton1Click:Connect(function() 
         for _, v in pairs(PageArea:GetChildren()) do 
-            if v.Visible then CreateTween(v, {GroupTransparency = 1, Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) end
+            if v.Visible then CreateTween(v, {BackgroundTransparency = 1, Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) end
         end
         SettingPage.Visible = true
-        CreateTween(SettingPage, {GroupTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
+        CreateTween(SettingPage, {BackgroundTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
     end)
 
     return WindowAPI
