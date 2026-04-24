@@ -70,9 +70,20 @@ UIStroke.Thickness = 2
 UIStroke.ZIndex = 5
 
 local TS = game:GetService("TweenService")
-local rainbowInfo = TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
-UIStroke.Color = Color3.fromHSV(0, 1, 1)
-TS:Create(UIStroke, rainbowInfo, {Color = Color3.fromHSV(0.99, 1, 1)}):Play()
+local info = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+
+local function startRainbow()
+    while true do
+        TS:Create(UIStroke, info, {Color = Color3.fromHSV(0.33, 1, 1)}):Play()
+        task.wait(2)
+        TS:Create(UIStroke, info, {Color = Color3.fromHSV(0.66, 1, 1)}):Play()
+        task.wait(2)
+        TS:Create(UIStroke, info, {Color = Color3.fromHSV(1, 1, 1)}):Play()
+        task.wait(2)
+    end
+end
+
+task.spawn(startRainbow)
 
     local function makeDraggable(gui, targetFrame)
         local dragging, dragInput, dragStart, startPos
