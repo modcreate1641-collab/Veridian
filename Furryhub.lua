@@ -65,9 +65,14 @@ function Veridianhub:CreateWindow(HubName)
     end
     ApplyAutoBackground()
 
-    local UIStroke = Instance.new("UIStroke", MainFrame)
-    UIStroke.Thickness = 2; UIStroke.ZIndex = 5
-    RunService.RenderStepped:Connect(function() UIStroke.Color = Color3.fromHSV(tick() % 5 / 5, 1, 1) end)
+local UIStroke = Instance.new("UIStroke", MainFrame)
+UIStroke.Thickness = 2
+UIStroke.ZIndex = 5
+
+local TS = game:GetService("TweenService")
+local rainbowInfo = TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
+UIStroke.Color = Color3.fromHSV(0, 1, 1)
+TS:Create(UIStroke, rainbowInfo, {Color = Color3.fromHSV(0.99, 1, 1)}):Play()
 
     local function makeDraggable(gui, targetFrame)
         local dragging, dragInput, dragStart, startPos
