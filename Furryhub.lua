@@ -317,7 +317,7 @@ end)
                 if v.Visible then CreateTween(v, {BackgroundTransparency = 1, Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) end
             end
             TabPage.Visible = true
-            CreateTween(TabPage, {BackgroundTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
+            CreateTween(TabPage, {BackgroundTransparency = 1, Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
             
             if not TabPage:FindFirstChild("HasRan") then
                 if type(target) == "function" then target(TabPage, TabAPI)
@@ -350,7 +350,7 @@ end)
             if v.Visible then CreateTween(v, {BackgroundTransparency = 1, Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) end
         end
         SettingPage.Visible = true
-        CreateTween(SettingPage, {BackgroundTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
+        CreateTween(SettingPage, {BackgroundTransparency = 0.8, Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
     end)
 
     return WindowAPI
