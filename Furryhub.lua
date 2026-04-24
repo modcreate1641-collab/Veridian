@@ -92,9 +92,11 @@ function Veridianhub:CreateWindow(HubName)
         isWindowOpen = state
         if state then
             MainFrame.Visible = true
-            CreateTween(MainFrame, {Size = UDim2.new(0, 508, 0, 264), BackgroundTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            -- เปลี่ยน BackgroundTransparency เป็น GroupTransparency
+            CreateTween(MainFrame, {Size = UDim2.new(0, 508, 0, 264), GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         else
-            local t = CreateTween(MainFrame, {Size = UDim2.new(0, 450, 0, 200), BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+            -- เปลี่ยน BackgroundTransparency เป็น GroupTransparency
+            local t = CreateTween(MainFrame, {Size = UDim2.new(0, 450, 0, 200), GroupTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
             t.Completed:Connect(function() if not isWindowOpen then MainFrame.Visible = false end end)
         end
     end
