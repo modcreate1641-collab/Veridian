@@ -363,22 +363,49 @@ end
         end
         function TabAPI:CreateToggle(cfg)
             local s = cfg.Default or false
-            local btn = Instance.new("TextButton", TabPage)
             local ColorOn = Color3.fromRGB(46, 204, 113)
-            local ColorOff = Color3.fromRGB(231, 76, 60)
-            btn.Size = UDim2.new(0.95, 0, 0, 35); btn.BackgroundColor3 = s and ColorOn or ColorOff
-            btn.Text = cfg.Name .. " : " .. (s and "ON" or "OFF"); btn.TextColor3 = Color3.new(1,1,1); btn.Font = "GothamBold"; Instance.new("UICorner", btn)
-            btn.ZIndex = 15; btn.Active = true
-            
-            btn.MouseButton1Down:Connect(function() CreateTween(btn, {Size = UDim2.new(0.92, 0, 0, 33)}) end)
-            btn.MouseButton1Up:Connect(function() CreateTween(btn, {Size = UDim2.new(0.95, 0, 0, 35)}) end)
+            local ColorOff = Color3.fromRGB(80, 80, 85)
+
+            local btn = Instance.new("TextButton", TabPage)
+            btn.Size = UDim2.new(0.95, 0, 0, 35)
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+            btn.Text = ""
+            btn.AutoButtonColor = false
+            Instance.new("UICorner", btn)
+            btn.ZIndex = 15
+
+            local title = Instance.new("TextLabel", btn)
+            title.Size = UDim2.new(1, -60, 1, 0)
+            title.Position = UDim2.new(0, 10, 0, 0)
+            title.BackgroundTransparency = 1
+            title.Text = cfg.Name
+            title.TextColor3 = Color3.new(1, 1, 1)
+            title.Font = Enum.Font.GothamBold
+            title.TextXAlignment = Enum.TextXAlignment.Left
+            title.ZIndex = 16
+
+            local switchBg = Instance.new("Frame", btn)
+            switchBg.Size = UDim2.new(0, 40, 0, 20)
+            switchBg.Position = UDim2.new(1, -50, 0.5, -10)
+            switchBg.BackgroundColor3 = s and ColorOn or ColorOff
+            Instance.new("UICorner", switchBg).CornerRadius = UDim.new(1, 0)
+            switchBg.ZIndex = 16
+
+            local knob = Instance.new("Frame", switchBg)
+            knob.Size = UDim2.new(0, 16, 0, 16)
+            knob.Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            knob.BackgroundColor3 = Color3.new(1, 1, 1)
+            Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+            knob.ZIndex = 17
+
             btn.MouseButton1Click:Connect(function()
                 s = not s
-                CreateTween(btn, {BackgroundColor3 = s and ColorOn or ColorOff}, 0.2)
-                btn.Text = cfg.Name .. " : " .. (s and "ON" or "OFF")
+                CreateTween(switchBg, {BackgroundColor3 = s and ColorOn or ColorOff}, 0.2)
+                CreateTween(knob, {Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
                 pcall(cfg.Callback, s)
             end)
         end
+
         function TabAPI:CreateSlider(cfg)
             local dragging = false; local min, max = cfg.Min or 0, cfg.Max or 100; local val = cfg.Default or min
             local sf = Instance.new("Frame", TabPage); sf.Size = UDim2.new(0.95, 0, 0, 50); sf.BackgroundColor3 = Color3.fromRGB(50, 50, 55); Instance.new("UICorner", sf)
@@ -545,20 +572,46 @@ end
         l.TextSize = CONFIG.DefaultFontSize
         l.ZIndex = 15
 
+        local ColorOn = Color3.fromRGB(46, 204, 113)
+        local ColorOff = Color3.fromRGB(80, 80, 85)
+
         local kb = Instance.new("TextButton", SettingPage)
         kb.Size = UDim2.new(0.95, 0, 0, 40)
-        kb.BackgroundColor3 = CONFIG.KeybindEnabled and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(231, 76, 60)
-        kb.Text = "Keybind (K): " .. (CONFIG.KeybindEnabled and "ENABLED" or "DISABLED")
-        kb.TextColor3 = Color3.new(1, 1, 1)
-        kb.Font = Enum.Font.GothamBold
-        kb.TextSize = CONFIG.DefaultFontSize
+        kb.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+        kb.Text = ""
+        kb.AutoButtonColor = false
         Instance.new("UICorner", kb)
         kb.ZIndex = 15
 
-        kb.MouseButton1Click:Connect(function() 
+        local title = Instance.new("TextLabel", kb)
+        title.Size = UDim2.new(1, -60, 1, 0)
+        title.Position = UDim2.new(0, 10, 0, 0)
+        title.BackgroundTransparency = 1
+        title.Text = "Keybind (K)"
+        title.TextColor3 = Color3.new(1, 1, 1)
+        title.Font = Enum.Font.GothamBold
+        title.TextSize = CONFIG.DefaultFontSize
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.ZIndex = 16
+
+        local switchBg = Instance.new("Frame", kb)
+        switchBg.Size = UDim2.new(0, 40, 0, 20)
+        switchBg.Position = UDim2.new(1, -50, 0.5, -10)
+        switchBg.BackgroundColor3 = CONFIG.KeybindEnabled and ColorOn or ColorOff
+        Instance.new("UICorner", switchBg).CornerRadius = UDim.new(1, 0)
+        switchBg.ZIndex = 16
+
+        local knob = Instance.new("Frame", switchBg)
+        knob.Size = UDim2.new(0, 16, 0, 16)
+        knob.Position = CONFIG.KeybindEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+        knob.BackgroundColor3 = Color3.new(1, 1, 1)
+        Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+        knob.ZIndex = 17
+
+        kb.MouseButton1Click:Connect(function()
             CONFIG.KeybindEnabled = not CONFIG.KeybindEnabled
-            CreateTween(kb, {BackgroundColor3 = CONFIG.KeybindEnabled and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(231, 76, 60)}, 0.2)
-            kb.Text = "Keybind (K): " .. (CONFIG.KeybindEnabled and "ENABLED" or "DISABLED") 
+            CreateTween(switchBg, {BackgroundColor3 = CONFIG.KeybindEnabled and ColorOn or ColorOff}, 0.2)
+            CreateTween(knob, {Position = CONFIG.KeybindEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         end)
 
         local HttpService = game:GetService("HttpService")
