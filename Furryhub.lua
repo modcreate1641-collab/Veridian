@@ -180,13 +180,37 @@ ResizeBtn.InputBegan:Connect(function(input)
     end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if isResizing and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - resStartPos
-        local newWidth = math.max(400, resStartSize.X.Offset + delta.X)
-        local newHeight = math.max(250, resStartSize.Y.Offset + delta.Y)
-        MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
-        currentSize = MainFrame.Size
+local dragConnection = nil
+
+ResizeBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isResizing = true
+        resStartPos = input.Position
+        resStartSize = MainFrame.Size
+        
+        if dragConnection then dragConnection:Disconnect() end
+        
+        dragConnection = UserInputService.InputChanged:Connect(function(changedInput)
+            if isResizing and (changedInput.UserInputType == Enum.UserInputType.MouseMovement or changedInput.UserInputType == Enum.UserInputType.Touch) then
+                if changedInput.UserInputType == Enum.UserInputType.Touch and changedInput.Identifier ~= input.Identifier then return end
+                
+                local delta = changedInput.Position - resStartPos
+                local newWidth = math.max(400, resStartSize.X.Offset + delta.X)
+                local newHeight = math.max(250, resStartSize.Y.Offset + delta.Y)
+                MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+                currentSize = MainFrame.Size
+            end
+        end)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isResizing = false
+        if dragConnection then
+            dragConnection:Disconnect()
+            dragConnection = nil
+        end
     end
 end)
 
