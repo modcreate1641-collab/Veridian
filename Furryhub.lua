@@ -139,24 +139,49 @@ task.spawn(startRainbow)
     end
 end)
 
+-- Modern Sleek Toggle Button Setup
 local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Size = UDim2.new(0, 90, 0, 40)
+ToggleBtn.Size = UDim2.new(0, 105, 0, 36) -- Sleeker aspect ratio
 ToggleBtn.Position = UDim2.new(0, 335, 0, 25)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 114, 255)
-ToggleBtn.Text = "🐾On/Off :3"
-ToggleBtn.TextColor3 = Color3.new(1,1,1)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 30) -- Dark sleek base
+ToggleBtn.Text = "🐾 On/Off :3"
+ToggleBtn.TextColor3 = Color3.fromRGB(245, 245, 245)
 ToggleBtn.Font = Enum.Font.GothamBold
-Instance.new("UICorner", ToggleBtn)
+ToggleBtn.TextSize = 12
+
+local ToggleCorner = Instance.new("UICorner", ToggleBtn)
+ToggleCorner.CornerRadius = UDim.new(0, 8)
+
+-- Glow border that syncs with your theme
+local ToggleStroke = Instance.new("UIStroke", ToggleBtn)
+ToggleStroke.Thickness = 1.5
+ToggleStroke.Color = CONFIG.NavBtnColor
+ToggleStroke.Transparency = 0.3
 
 makeDraggable(ToggleBtn)
 makeDraggable(MainFrame)
 
+-- Modern Responsive Hover Effects
 ToggleBtn.MouseEnter:Connect(function() 
-    CreateTween(ToggleBtn, {Size = UDim2.new(0, 95, 0, 45), BackgroundColor3 = Color3.fromRGB(220, 134, 255)}) 
+    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}, 0.2)
+    CreateTween(ToggleStroke, {Transparency = 0, Thickness = 2}, 0.2) 
 end)
+
 ToggleBtn.MouseLeave:Connect(function() 
-    CreateTween(ToggleBtn, {Size = UDim2.new(0, 90, 0, 40), BackgroundColor3 = Color3.fromRGB(200, 114, 255)}) 
+    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(25, 25, 30)}, 0.2)
+    -- Fixed: Dynamically updates to current theme color on mouse leave
+    CreateTween(ToggleStroke, {Color = CONFIG.NavBtnColor, Transparency = 0.3, Thickness = 1.5}, 0.2) 
 end)
+
+-- Tactile Click Compression (Feels way more premium)
+ToggleBtn.MouseButton1Down:Connect(function()
+    CreateTween(ToggleBtn, {Size = UDim2.new(0, 100, 0, 32)}, 0.1)
+end)
+
+ToggleBtn.MouseButton1Up:Connect(function()
+    CreateTween(ToggleBtn, {Size = UDim2.new(0, 105, 0, 36)}, 0.1)
+end)
+
 ToggleBtn.MouseButton1Click:Connect(function() 
     ToggleWindow(not isWindowOpen) 
 end)
@@ -270,8 +295,11 @@ function WindowAPI:UpdateTheme(newColor)
     CONFIG.NavBtnColor = MutedColor
     CONFIG.HoverColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.15)
 
+    -- Update config dynamically to prevent color snapping on FocusLost
+    CONFIG.SearchBgColor = DeepOverlay 
+
     -- [[ 2. Top Bar & Global Controls ]]
-    if HubLabel then CreateTween(HubLabel, {TextColor3 = HighlightColor}, 0.3) end
+    if HubLabel then CreateTween(HubLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.3) end
     if ToggleBtn then CreateTween(ToggleBtn, {BackgroundColor3 = MutedColor}, 0.3) end
     if SearchBox then 
         CreateTween(SearchBox, {BackgroundColor3 = DeepOverlay, TextColor3 = Color3.new(0.9, 0.9, 0.9)}, 0.3) 
