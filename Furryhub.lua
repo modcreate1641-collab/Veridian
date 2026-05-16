@@ -17,6 +17,14 @@ local CONFIG = {
     BgFolder = "furlogo"
 }
 
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if not gpe and CONFIG.KeybindEnabled then
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == CONFIG.ToggleKey then
+            ToggleWindow(not isWindowOpen)
+        end
+    end
+end)
+
 local folderName = CONFIG.BgFolder
 local fileName = folderName .. "/Cool background.png"
 local imageUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
@@ -40,22 +48,29 @@ function Veridianhub:CreateWindow(HubName)
 
     -- Switched to CanvasGroup to fix GroupTransparency errors
     local MainFrame = Instance.new("CanvasGroup", ScreenGui)
-    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    MainFrame.Size = UDim2.new(0, 508, 0, 264)
-    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.BackgroundColor3 = CONFIG.MainBgColor
-    MainFrame.ClipsDescendants = true
-    MainFrame.GroupTransparency = 0
-    Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Size = UDim2.new(0, 508, 0, 264)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.BackgroundColor3 = CONFIG.MainBgColor
+MainFrame.ClipsDescendants = true
+MainFrame.GroupTransparency = 0
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
-    local BgImage = Instance.new("ImageLabel", MainFrame)
-    BgImage.Size = UDim2.new(1, 0, 1, 0); BgImage.BackgroundTransparency = 1; BgImage.ZIndex = 0; BgImage.ScaleType = Enum.ScaleType.Crop
-    local BgCorner = Instance.new("UICorner", BgImage)
-    BgCorner.CornerRadius = UDim.new(0, 10)
-    
-    local DarkOverlay = Instance.new("Frame", MainFrame)
-    DarkOverlay.Size = UDim2.new(1, 0, 1, 0); DarkOverlay.BackgroundColor3 = Color3.new(0,0,0); DarkOverlay.BackgroundTransparency = 0.5; DarkOverlay.ZIndex = 1; DarkOverlay.Visible = false
-    Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
+local BgImage = Instance.new("ImageLabel", MainFrame)
+BgImage.Size = UDim2.new(1, 0, 1, 0)
+BgImage.BackgroundTransparency = 1
+BgImage.ZIndex = 0
+BgImage.ScaleType = Enum.ScaleType.Crop
+local BgCorner = Instance.new("UICorner", BgImage)
+BgCorner.CornerRadius = UDim.new(0, 10)
+
+local DarkOverlay = Instance.new("Frame", MainFrame)
+DarkOverlay.Size = UDim2.new(1, 0, 1, 0)
+DarkOverlay.BackgroundColor3 = Color3.new(0,0,0)
+DarkOverlay.BackgroundTransparency = 0.5
+DarkOverlay.ZIndex = 1
+DarkOverlay.Visible = false
+Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
 
 local function ApplyAutoBackground(fileName)
     local asset = (getcustomasset or getsynasset)
@@ -80,7 +95,6 @@ end
 
 ApplyAutoBackground()
 
-
 local UIStroke = Instance.new("UIStroke", MainFrame)
 UIStroke.Thickness = 2
 UIStroke.ZIndex = 5
@@ -101,41 +115,84 @@ end
 
 task.spawn(startRainbow)
 
-    local function makeDraggable(gui, targetFrame)
-        local dragging, dragInput, dragStart, startPos
-        gui.InputBegan:Connect(function(input)
-            if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UserInputService:GetFocusedTextBox() then
-                dragging = true; dragStart = input.Position; startPos = targetFrame and targetFrame.Position or gui.Position
-                input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
-            end
-        end)
-        gui.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end end)
-        UserInputService.InputChanged:Connect(function(input)
-            if input == dragInput and dragging then
-                local delta = input.Position - dragStart
-                local target = targetFrame or gui
-                CreateTween(target, {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}, 0.05, Enum.EasingStyle.Linear)
-            end
-        end)
-    end
-
-    local isWindowOpen = true
-    local function ToggleWindow(state)
-        isWindowOpen = state
-        if state then
-            MainFrame.Visible = true
-            -- เปลี่ยน BackgroundTransparency เป็น GroupTransparency
-            CreateTween(MainFrame, {Size = UDim2.new(0, 508, 0, 264), GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-        else
-            -- เปลี่ยน BackgroundTransparency เป็น GroupTransparency
-            local t = CreateTween(MainFrame, {Size = UDim2.new(0, 450, 0, 200), GroupTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-            t.Completed:Connect(function() if not isWindowOpen then MainFrame.Visible = false end end)
+local function makeDraggable(gui, targetFrame)
+    local dragging, dragInput, dragStart, startPos
+    gui.InputBegan:Connect(function(input)
+        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UserInputService:GetFocusedTextBox() then
+            dragging = true
+            dragStart = input.Position
+            startPos = targetFrame and targetFrame.Position or gui.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
         end
-    end
+    end)
+    gui.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            local target = targetFrame or gui
+            CreateTween(target, {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}, 0.05, Enum.EasingStyle.Linear)
+        end
+    end)
+end
 
-    UserInputService.InputBegan:Connect(function(input, gpe)
+local isWindowOpen = true
+local currentSize = UDim2.new(0, 508, 0, 264)
+
+local function ToggleWindow(state)
+    isWindowOpen = state
+    if state then
+        MainFrame.Visible = true
+        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    else
+        currentSize = MainFrame.Size
+        local shrinkW = math.max(200, currentSize.X.Offset - 58)
+        local shrinkH = math.max(100, currentSize.Y.Offset - 64)
+        local t = CreateTween(MainFrame, {Size = UDim2.new(0, shrinkW, 0, shrinkH), GroupTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        t.Completed:Connect(function() if not isWindowOpen then MainFrame.Visible = false end end)
+    end
+end
+
+UserInputService.InputBegan:Connect(function(input, gpe)
     if not gpe and CONFIG.KeybindEnabled and input.KeyCode == CONFIG.ToggleKey then 
         ToggleWindow(not isWindowOpen) 
+    end
+end)
+
+local ResizeBtn = Instance.new("TextButton", MainFrame)
+ResizeBtn.Size = UDim2.new(0, 16, 0, 16)
+ResizeBtn.Position = UDim2.new(1, -16, 1, -16)
+ResizeBtn.BackgroundTransparency = 1
+ResizeBtn.Text = "◢"
+ResizeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+ResizeBtn.TextSize = 14
+ResizeBtn.Font = Enum.Font.GothamBold
+ResizeBtn.ZIndex = 20
+
+local isResizing = false
+local resStartPos = nil
+local resStartSize = nil
+
+ResizeBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isResizing = true
+        resStartPos = input.Position
+        resStartSize = MainFrame.Size
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if isResizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - resStartPos
+        local newWidth = math.max(400, resStartSize.X.Offset + delta.X)
+        local newHeight = math.max(250, resStartSize.Y.Offset + delta.Y)
+        MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+        currentSize = MainFrame.Size
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isResizing = false
     end
 end)
 
@@ -615,17 +672,21 @@ end
         title.Size = UDim2.new(1, -60, 1, 0)
         title.Position = UDim2.new(0, 10, 0, 0)
         title.BackgroundTransparency = 1
-        title.Text = "Keybind (K)"
+        -- Dynamic text based on current configuration
+        title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")"
         title.TextColor3 = Color3.new(1, 1, 1)
         title.Font = Enum.Font.GothamBold
         title.TextSize = CONFIG.DefaultFontSize
         title.TextXAlignment = Enum.TextXAlignment.Left
         title.ZIndex = 16
 
-        local switchBg = Instance.new("Frame", kb)
+        -- Transformed from Frame to TextButton to isolate toggle clicks
+        local switchBg = Instance.new("TextButton", kb)
         switchBg.Size = UDim2.new(0, 40, 0, 20)
         switchBg.Position = UDim2.new(1, -50, 0.5, -10)
         switchBg.BackgroundColor3 = CONFIG.KeybindEnabled and ColorOn or ColorOff
+        switchBg.Text = ""
+        switchBg.AutoButtonColor = false
         Instance.new("UICorner", switchBg).CornerRadius = UDim.new(1, 0)
         switchBg.ZIndex = 16
 
@@ -636,11 +697,44 @@ end
         Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
         knob.ZIndex = 17
 
-        kb.MouseButton1Click:Connect(function()
+        -- Independent Master Toggle Event Listener
+        switchBg.MouseButton1Click:Connect(function()
             CONFIG.KeybindEnabled = not CONFIG.KeybindEnabled
             CreateTween(switchBg, {BackgroundColor3 = CONFIG.KeybindEnabled and ColorOn or ColorOff}, 0.2)
             CreateTween(knob, {Position = CONFIG.KeybindEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         end)
+
+        -- Premium Garbage-Cleaned Keybind Selector Logic
+       local bindConnection = nil
+local isListening = false
+
+kb.MouseButton1Click:Connect(function()
+    if isListening then return end
+    isListening = true
+    title.Text = "Press any key..."
+
+    if bindConnection then
+        bindConnection:Disconnect()
+        bindConnection = nil
+    end
+
+    bindConnection = UserInputService.InputBegan:Connect(function(input, gpe)
+        if not gpe and input.UserInputType == Enum.UserInputType.Keyboard then
+            if input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode ~= Enum.KeyCode.Escape then
+                CONFIG.ToggleKey = input.KeyCode
+                title.Text = "Keybind (" .. input.KeyCode.Name .. ")"
+            else
+                title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")"
+            end
+            
+            isListening = false
+            if bindConnection then
+                bindConnection:Disconnect()
+                bindConnection = nil
+            end
+        end
+    end)
+end)
 
         local HttpService = game:GetService("HttpService")
         local extThemes = {["Default"] = CONFIG.NavBtnColor}
