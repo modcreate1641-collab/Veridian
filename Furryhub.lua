@@ -188,7 +188,7 @@ ResizeBtn.InputBegan:Connect(function(input)
         
         dragConnection = UserInputService.InputChanged:Connect(function(changedInput)
             if isResizing and (changedInput.UserInputType == Enum.UserInputType.MouseMovement or changedInput.UserInputType == Enum.UserInputType.Touch) then
-                if changedInput.UserInputType == Enum.UserInputType.Touch and changedInput.Identifier ~= input.Identifier then 
+                if changedInput.UserInputType == Enum.UserInputType.Touch and changedInput.UserInputIndex ~= input.UserInputIndex then 
                     return 
                 end
                 
