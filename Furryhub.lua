@@ -160,26 +160,20 @@ end)
 
 local ResizeBtn = Instance.new("TextButton", MainFrame)
 ResizeBtn.Size = UDim2.new(0, 32, 0, 32)
-ResizeBtn.Position = UDim2.new(1, -16, 1, -16)
+ResizeBtn.Position = UDim2.new(1, -32, 1, -32)
 ResizeBtn.BackgroundTransparency = 0.8
 ResizeBtn.Text = "◢"
 ResizeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 ResizeBtn.TextSize = 14
 ResizeBtn.Font = Enum.Font.GothamBold
-ResizeBtn.ZIndex = 20
+ResizeBtn.TextXAlignment = Enum.TextXAlignment.Right
+ResizeBtn.TextYAlignment = Enum.TextYAlignment.Bottom
+ResizeBtn.ZIndex = 99
+ResizeBtn.Active = true
 
 local isResizing = false
 local resStartPos = nil
 local resStartSize = nil
-
-ResizeBtn.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isResizing = true
-        resStartPos = input.Position
-        resStartSize = MainFrame.Size
-    end
-end)
-
 local dragConnection = nil
 
 ResizeBtn.InputBegan:Connect(function(input)
@@ -188,11 +182,15 @@ ResizeBtn.InputBegan:Connect(function(input)
         resStartPos = input.Position
         resStartSize = MainFrame.Size
         
-        if dragConnection then dragConnection:Disconnect() end
+        if dragConnection then 
+            dragConnection:Disconnect() 
+        end
         
         dragConnection = UserInputService.InputChanged:Connect(function(changedInput)
             if isResizing and (changedInput.UserInputType == Enum.UserInputType.MouseMovement or changedInput.UserInputType == Enum.UserInputType.Touch) then
-                if changedInput.UserInputType == Enum.UserInputType.Touch and changedInput.Identifier ~= input.Identifier then return end
+                if changedInput.UserInputType == Enum.UserInputType.Touch and changedInput.Identifier ~= input.Identifier then 
+                    return 
+                end
                 
                 local delta = changedInput.Position - resStartPos
                 local newWidth = math.max(400, resStartSize.X.Offset + delta.X)
