@@ -159,9 +159,9 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 end)
 
 local ResizeBtn = Instance.new("TextButton", MainFrame)
-ResizeBtn.Size = UDim2.new(0, 16, 0, 16)
+ResizeBtn.Size = UDim2.new(0, 32, 0, 32)
 ResizeBtn.Position = UDim2.new(1, -16, 1, -16)
-ResizeBtn.BackgroundTransparency = 1
+ResizeBtn.BackgroundTransparency = 0.8
 ResizeBtn.Text = "◢"
 ResizeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 ResizeBtn.TextSize = 14
