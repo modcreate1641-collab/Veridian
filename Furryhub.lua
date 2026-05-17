@@ -214,7 +214,6 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- Modern Sleek Toggle Button Setup
 -- Modern Sleek Toggle Button Setup (Pure On/Off Toggle)
 local ToggleBtn = Instance.new("TextButton", ScreenGui)
 ToggleBtn.Size = UDim2.new(0, 105, 0, 36)
@@ -224,6 +223,7 @@ ToggleBtn.Text = "🐾 On/Off :3"
 ToggleBtn.TextColor3 = Color3.fromRGB(245, 245, 245)
 ToggleBtn.Font = Enum.Font.GothamBold
 ToggleBtn.TextSize = 12
+ToggleBtn.Active = true
 
 local ToggleCorner = Instance.new("UICorner", ToggleBtn)
 ToggleCorner.CornerRadius = UDim.new(0, 8)
@@ -235,7 +235,6 @@ ToggleStroke.Transparency = 0.3
 
 makeDraggable(ToggleBtn)
 
--- Animation when pressing down
 ToggleBtn.MouseButton1Down:Connect(function()
     CreateTween(ToggleBtn, {Size = UDim2.new(0, 100, 0, 32)}, 0.1)
 end)
@@ -244,8 +243,7 @@ ToggleBtn.MouseButton1Up:Connect(function()
     CreateTween(ToggleBtn, {Size = UDim2.new(0, 105, 0, 36)}, 0.1)
 end)
 
--- Pure Visibility Toggle Logic (แยกเอกราช ไม่พึ่งพาฟังก์ชันอื่น)
-ToggleBtn.MouseButton1Click:Connect(function() 
+ToggleBtn.Activated:Connect(function() 
     if MainFrame then
         MainFrame.Visible = not MainFrame.Visible
     end
@@ -261,20 +259,6 @@ ToggleBtn.MouseLeave:Connect(function()
     CreateTween(ToggleStroke, {Color = CONFIG.NavBtnColor, Transparency = 0.3, Thickness = 1.5}, 0.2) 
 end)
 
-
--- Modern Responsive Hover Effects
-ToggleBtn.MouseEnter:Connect(function() 
-    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}, 0.2)
-    CreateTween(ToggleStroke, {Transparency = 0, Thickness = 2}, 0.2) 
-end)
-
-ToggleBtn.MouseLeave:Connect(function() 
-    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(25, 25, 30)}, 0.2)
-    -- Fixed: Dynamically updates to current theme color on mouse leave
-    CreateTween(ToggleStroke, {Color = CONFIG.NavBtnColor, Transparency = 0.3, Thickness = 1.5}, 0.2) 
-end)
-
--- Tactile Click Compression (Feels way more premium)
 local destroyStage = 0
 
 local TopBar = Instance.new("Frame", MainFrame)
@@ -298,6 +282,7 @@ ClosedBtn.BackgroundColor3 = Color3.fromRGB(129, 129, 129)
 ClosedBtn.Text = "💥 Destroy"
 ClosedBtn.TextColor3 = Color3.new(1,1,1)
 ClosedBtn.Font = Enum.Font.GothamBold
+ClosedBtn.Active = true
 Instance.new("UICorner", ClosedBtn)
 
 ClosedBtn.MouseEnter:Connect(function() 
@@ -307,21 +292,41 @@ ClosedBtn.MouseEnter:Connect(function()
 end)
 
 ClosedBtn.MouseLeave:Connect(function() 
-    destroyStage = 0
-    ClosedBtn.Text = "💥 Destroy"
-    CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
+    if destroyStage == 0 then
+        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
+    end
 end)
 
-ClosedBtn.MouseButton1Click:Connect(function() 
+ClosedBtn.Activated:Connect(function() 
     destroyStage = destroyStage + 1
     if destroyStage == 1 then
         ClosedBtn.Text = "⚠️ Sure? (1/2)"
         CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(210, 100, 40)}, 0.1)
+        
+        task.delay(3, function()
+            if destroyStage == 1 then
+                destroyStage = 0
+                ClosedBtn.Text = "💥 Destroy"
+                CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
+            end
+        end)
+        
     elseif destroyStage == 2 then
         ClosedBtn.Text = "🔥 REALLY? (2/2)"
         CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(230, 40, 40)}, 0.1)
+        
+        task.delay(3, function()
+            if destroyStage == 2 then
+                destroyStage = 0
+                ClosedBtn.Text = "💥 Destroy"
+                CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
+            end
+        end)
+        
     elseif destroyStage >= 3 then
-        ScreenGui:Destroy()
+        if ScreenGui then
+            ScreenGui:Destroy()
+        end
     end
 end)
 
