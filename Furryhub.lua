@@ -188,10 +188,6 @@ ResizeBtn.InputBegan:Connect(function(input)
         
         dragConnection = UserInputService.InputChanged:Connect(function(changedInput)
             if isResizing and (changedInput.UserInputType == Enum.UserInputType.MouseMovement or changedInput.UserInputType == Enum.UserInputType.Touch) then
-                if changedInput.UserInputType == Enum.UserInputType.Touch and changedInput.UserInputIndex ~= input.UserInputIndex then 
-                    return 
-                end
-                
                 local delta = changedInput.Position - resStartPos
                 local newWidth = math.max(400, resStartSize.X.Offset + delta.X)
                 local newHeight = math.max(250, resStartSize.Y.Offset + delta.Y)
