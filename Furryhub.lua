@@ -251,27 +251,6 @@ end)
 -- Tactile Click Compression (Feels way more premium)
 local destroyStage = 0
 
-ToggleBtn.MouseButton1Down:Connect(function()
-    CreateTween(ToggleBtn, {Size = UDim2.new(0, 100, 0, 32)}, 0.1)
-end)
-
-ToggleBtn.MouseButton1Up:Connect(function()
-    CreateTween(ToggleBtn, {Size = UDim2.new(0, 105, 0, 36)}, 0.1)
-end)
-
-ToggleBtn.MouseButton1Click:Connect(function() 
-    destroyStage = destroyStage + 1
-    if destroyStage == 1 then
-        ToggleBtn.Text = "⚠️ Sure? (1/2)"
-        CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(180, 70, 70)}, 0.2)
-    elseif destroyStage == 2 then
-        ToggleBtn.Text = "🔥 REALLY? (2/2)"
-        CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(230, 40, 40)}, 0.2)
-    elseif destroyStage >= 3 then
-        ScreenGui:Destroy()
-    end
-end)
-
 local TopBar = Instance.new("Frame", MainFrame)
 TopBar.Size = UDim2.new(1, -6, 0, 45)
 TopBar.Position = UDim2.new(0, 3, 0, 3)
@@ -287,19 +266,42 @@ HubLabel.Font = Enum.Font.GothamBold
 Instance.new("UICorner", HubLabel)
 
 local ClosedBtn = Instance.new("TextButton", TopBar)
-ClosedBtn.Size = UDim2.new(0, 60, 1, 0)
-ClosedBtn.Position = UDim2.new(1, -60, 0, 0)
+ClosedBtn.Size = UDim2.new(0, 80, 1, 0)
+ClosedBtn.Position = UDim2.new(1, -80, 0, 0)
 ClosedBtn.BackgroundColor3 = Color3.fromRGB(129, 129, 129)
-ClosedBtn.Text = "Closed"
+ClosedBtn.Text = "💥 Destroy"
 ClosedBtn.TextColor3 = Color3.new(1,1,1)
+ClosedBtn.Font = Enum.Font.GothamBold
 Instance.new("UICorner", ClosedBtn)
-ClosedBtn.MouseEnter:Connect(function() CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(231, 76, 60)}) end)
-ClosedBtn.MouseLeave:Connect(function() CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}) end)
-ClosedBtn.MouseButton1Click:Connect(function() ToggleWindow(false) end)
+
+ClosedBtn.MouseEnter:Connect(function() 
+    if destroyStage == 0 then
+        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(180, 50, 50)}, 0.2) 
+    end
+end)
+
+ClosedBtn.MouseLeave:Connect(function() 
+    destroyStage = 0
+    ClosedBtn.Text = "💥 Destroy"
+    CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
+end)
+
+ClosedBtn.MouseButton1Click:Connect(function() 
+    destroyStage = destroyStage + 1
+    if destroyStage == 1 then
+        ClosedBtn.Text = "⚠️ Sure? (1/2)"
+        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(210, 100, 40)}, 0.1)
+    elseif destroyStage == 2 then
+        ClosedBtn.Text = "🔥 REALLY? (2/2)"
+        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(230, 40, 40)}, 0.1)
+    elseif destroyStage >= 3 then
+        ScreenGui:Destroy()
+    end
+end)
 
 local TopSettingBtn = Instance.new("TextButton", TopBar)
 TopSettingBtn.Size = UDim2.new(0, 60, 1, 0)
-TopSettingBtn.Position = UDim2.new(1, -126, 0, 0)
+TopSettingBtn.Position = UDim2.new(1, -146, 0, 0)
 TopSettingBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
 TopSettingBtn.Text = "⚙️"
 TopSettingBtn.TextColor3 = Color3.new(1,1,1)
@@ -308,7 +310,7 @@ TopSettingBtn.MouseEnter:Connect(function() CreateTween(TopSettingBtn, {Backgrou
 TopSettingBtn.MouseLeave:Connect(function() CreateTween(TopSettingBtn, {BackgroundColor3 = Color3.fromRGB(100, 100, 120)}) end)
 
 local SearchBox = Instance.new("TextBox", TopBar)
-SearchBox.Size = UDim2.new(1, -238, 1, 0)
+SearchBox.Size = UDim2.new(1, -258, 1, 0)
 SearchBox.Position = UDim2.new(0, 106, 0, 0)
 SearchBox.BackgroundColor3 = CONFIG.SearchBgColor
 SearchBox.PlaceholderText = "Search..."
@@ -324,49 +326,30 @@ SearchBox.FocusLost:Connect(function()
     CreateTween(SearchBox, {BackgroundColor3 = CONFIG.SearchBgColor}, 0.2) 
 end)
 
--- Modern Sleek Toggle Button Setup
-local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Size = UDim2.new(0, 105, 0, 36)
-ToggleBtn.Position = UDim2.new(0, 335, 0, 25)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-ToggleBtn.Text = "💥 Destroy UI"
-ToggleBtn.TextColor3 = Color3.fromRGB(245, 245, 245)
-ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 12
-
-local ToggleCorner = Instance.new("UICorner", ToggleBtn)
-ToggleCorner.CornerRadius = UDim.new(0, 8)
-
-local ToggleStroke = Instance.new("UIStroke", ToggleBtn)
-ToggleStroke.Thickness = 1.5
-ToggleStroke.Color = CONFIG.NavBtnColor
-ToggleStroke.Transparency = 0.3
-
-makeDraggable(ToggleBtn)
 makeDraggable(MainFrame)
 
-ToggleBtn.MouseEnter:Connect(function() 
-    if destroyStage == 0 then
-        CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}, 0.2)
-    end
-    CreateTween(ToggleStroke, {Transparency = 0, Thickness = 2}, 0.2) 
-end)
-
-ToggleBtn.MouseLeave:Connect(function() 
-    destroyStage = 0
-    ToggleBtn.Text = "💥 Destroy UI"
-    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(25, 25, 30)}, 0.2)
-    CreateTween(ToggleStroke, {Color = CONFIG.NavBtnColor, Transparency = 0.3, Thickness = 1.5}, 0.2) 
-end)
-
 local NavSidePanel = Instance.new("Frame", MainFrame)
-NavSidePanel.Size = UDim2.new(0, 105, 1, -55); NavSidePanel.Position = UDim2.new(0, 3, 0, 55); NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor; NavSidePanel.BackgroundTransparency = 0.2; NavSidePanel.ZIndex = 2; Instance.new("UICorner", NavSidePanel)
+NavSidePanel.Size = UDim2.new(0, 105, 1, -55)
+NavSidePanel.Position = UDim2.new(0, 3, 0, 55)
+NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
+NavSidePanel.BackgroundTransparency = 0.2
+NavSidePanel.ZIndex = 2
+Instance.new("UICorner", NavSidePanel)
+
 local NavArea = Instance.new("ScrollingFrame", NavSidePanel)
-NavArea.Size = UDim2.new(1, -4, 1, -4); NavArea.Position = UDim2.new(0, 2, 0, 2); NavArea.BackgroundTransparency = 1; NavArea.ZIndex = 3; NavArea.ScrollBarThickness = 0; NavArea.AutomaticCanvasSize = "Y"
+NavArea.Size = UDim2.new(1, -4, 1, -4)
+NavArea.Position = UDim2.new(0, 2, 0, 2)
+NavArea.BackgroundTransparency = 1
+NavArea.ZIndex = 3
+NavArea.ScrollBarThickness = 0
+NavArea.AutomaticCanvasSize = "Y"
 Instance.new("UIListLayout", NavArea).Padding = UDim.new(0, 5)
 
 local PageArea = Instance.new("Frame", MainFrame)
-PageArea.Size = UDim2.new(1, -115, 1, -55); PageArea.Position = UDim2.new(0, 110, 0, 55); PageArea.BackgroundTransparency = 1; PageArea.ZIndex = 3
+PageArea.Size = UDim2.new(1, -115, 1, -55)
+PageArea.Position = UDim2.new(0, 110, 0, 55)
+PageArea.BackgroundTransparency = 1
+PageArea.ZIndex = 3
 
 SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     local input = SearchBox.Text:lower()
