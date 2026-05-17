@@ -215,10 +215,11 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 -- Modern Sleek Toggle Button Setup
+-- Modern Sleek Toggle Button Setup (Pure On/Off Toggle)
 local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Size = UDim2.new(0, 105, 0, 36) -- Sleeker aspect ratio
+ToggleBtn.Size = UDim2.new(0, 105, 0, 36)
 ToggleBtn.Position = UDim2.new(0, 335, 0, 25)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 30) -- Dark sleek base
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 ToggleBtn.Text = "🐾 On/Off :3"
 ToggleBtn.TextColor3 = Color3.fromRGB(245, 245, 245)
 ToggleBtn.Font = Enum.Font.GothamBold
@@ -227,14 +228,39 @@ ToggleBtn.TextSize = 12
 local ToggleCorner = Instance.new("UICorner", ToggleBtn)
 ToggleCorner.CornerRadius = UDim.new(0, 8)
 
--- Glow border that syncs with your theme
 local ToggleStroke = Instance.new("UIStroke", ToggleBtn)
 ToggleStroke.Thickness = 1.5
 ToggleStroke.Color = CONFIG.NavBtnColor
 ToggleStroke.Transparency = 0.3
 
 makeDraggable(ToggleBtn)
-makeDraggable(MainFrame)
+
+-- Animation when pressing down
+ToggleBtn.MouseButton1Down:Connect(function()
+    CreateTween(ToggleBtn, {Size = UDim2.new(0, 100, 0, 32)}, 0.1)
+end)
+
+ToggleBtn.MouseButton1Up:Connect(function()
+    CreateTween(ToggleBtn, {Size = UDim2.new(0, 105, 0, 36)}, 0.1)
+end)
+
+-- Pure Visibility Toggle Logic (แยกเอกราช ไม่พึ่งพาฟังก์ชันอื่น)
+ToggleBtn.MouseButton1Click:Connect(function() 
+    if MainFrame then
+        MainFrame.Visible = not MainFrame.Visible
+    end
+end)
+
+ToggleBtn.MouseEnter:Connect(function() 
+    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}, 0.2)
+    CreateTween(ToggleStroke, {Transparency = 0, Thickness = 2}, 0.2) 
+end)
+
+ToggleBtn.MouseLeave:Connect(function() 
+    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(25, 25, 30)}, 0.2)
+    CreateTween(ToggleStroke, {Color = CONFIG.NavBtnColor, Transparency = 0.3, Thickness = 1.5}, 0.2) 
+end)
+
 
 -- Modern Responsive Hover Effects
 ToggleBtn.MouseEnter:Connect(function() 
