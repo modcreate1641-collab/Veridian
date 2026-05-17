@@ -29,11 +29,18 @@ local folderName = CONFIG.BgFolder
 local fileName = folderName .. "/Cool background.png"
 local imageUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
 
-if not isfolder(folderName) then makefolder(folderName) end
-if not isfile(fileName) then
-    local s, content = pcall(game.HttpGet, game, imageUrl)
-    if s then writefile(fileName, content) end
-end
+pcall(function()
+    if isfolder and not isfolder(folderName) then 
+        makefolder(folderName) 
+    end
+    
+    if isfile and not isfile(fileName) then
+        local content = game:HttpGet(imageUrl)
+        if writefile then
+            writefile(fileName, content)
+        end
+    end
+end)
 
 local function CreateTween(instance, properties, time, style, direction)
     local info = TweenService:Create(instance, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quad, direction or Enum.EasingDirection.Out), properties)
@@ -42,11 +49,18 @@ local function CreateTween(instance, properties, time, style, direction)
 end
 
 function Veridianhub:CreateWindow(HubName)
-    local ScreenGui = Instance.new("ScreenGui", CoreGui)
+    local Success, TargetGui = pcall(function()
+        return CoreGui
+    end)
+    
+    if not Success or not TargetGui then
+        TargetGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    end
+
+    local ScreenGui = Instance.new("ScreenGui", TargetGui)
     ScreenGui.Name = "VeridianHub_Official_Full"
     ScreenGui.IgnoreGuiInset = true
 
-    -- Switched to CanvasGroup to fix GroupTransparency errors
     local MainFrame = Instance.new("CanvasGroup", ScreenGui)
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Size = UDim2.new(0, 508, 0, 264)
@@ -72,25 +86,27 @@ DarkOverlay.ZIndex = 1
 DarkOverlay.Visible = false
 Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
 
-local function ApplyAutoBackground(fileName)
-    local asset = (getcustomasset or getsynasset)
-    if not asset then return end
+local function ApplyAutoBackground(bgFileName)
+    local getAsset = getcustomasset or getsynasset
+    if not getAsset then return end
 
-    if fileName and isfile(CONFIG.BgFolder .. "/" .. fileName) then
-        BgImage.Image = asset(CONFIG.BgFolder .. "/" .. fileName)
-        DarkOverlay.Visible = true
-        MainFrame.BackgroundTransparency = 1
-    elseif isfolder(CONFIG.BgFolder) then
-        for _, f in pairs(listfiles(CONFIG.BgFolder)) do
-            local ext = f:lower()
-            if ext:find(".png") or ext:find(".jpg") or ext:find(".jpeg") then
-                BgImage.Image = asset(f)
-                DarkOverlay.Visible = true
-                MainFrame.BackgroundTransparency = 1
-                break 
+    pcall(function()
+        if bgFileName and isfile and isfile(CONFIG.BgFolder .. "/" .. bgFileName) then
+            BgImage.Image = getAsset(CONFIG.BgFolder .. "/" .. bgFileName)
+            DarkOverlay.Visible = true
+            MainFrame.BackgroundTransparency = 1
+        elseif isfolder and isfolder(CONFIG.BgFolder) then
+            for _, f in pairs(listfiles(CONFIG.BgFolder)) do
+                local ext = f:lower()
+                if ext:find(".png") or ext:find(".jpg") or ext:find(".jpeg") then
+                    BgImage.Image = getAsset(f)
+                    DarkOverlay.Visible = true
+                    MainFrame.BackgroundTransparency = 1
+                    break 
+                end
             end
         end
-    end
+    end)
 end
 
 ApplyAutoBackground()
@@ -104,11 +120,15 @@ local info = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOu
 
 local function startRainbow()
     while true do
-        TS:Create(UIStroke, info, {Color = Color3.fromHSV(0.33, 1, 1)}):Play()
-        task.wait(2)
-        TS:Create(UIStroke, info, {Color = Color3.fromHSV(0.66, 1, 1)}):Play()
-        task.wait(2)
-        TS:Create(UIStroke, info, {Color = Color3.fromHSV(1, 1, 1)}):Play()
+        pcall(function()
+            if UIStroke and UIStroke.Parent then
+                TS:Create(UIStroke, info, {Color = Color3.fromHSV(0.33, 1, 1)}):Play()
+                task.wait(2)
+                TS:Create(UIStroke, info, {Color = Color3.fromHSV(0.66, 1, 1)}):Play()
+                task.wait(2)
+                TS:Create(UIStroke, info, {Color = Color3.fromHSV(1, 1, 1)}):Play()
+            end
+        end)
         task.wait(2)
     end
 end
