@@ -32,7 +32,6 @@ local subFolders = {
     Icons = "Icons"
 }
 
-pcall(function()
     if isfolder and not isfolder(baseFolder) then 
         makefolder(baseFolder) 
     end
