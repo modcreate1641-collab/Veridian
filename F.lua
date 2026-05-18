@@ -66,11 +66,15 @@ local function GetImg(fileName)
     end
 
     local path = baseFolder .. "/" .. targetFolder .. "/" .. fileName
-    pcall(function()
-        if isfile and not isfile(path) and url ~= "" then 
-            writefile(path, game:HttpGet(url)) 
+    
+    if isfile and not isfile(path) and url ~= "" then
+        local success, content = pcall(game.HttpGet, game, url)
+        if success and type(content) == "string" and #content > 5000 then
+            pcall(function()
+                writefile(path, content)
+            end)
         end
-    end)
+    end
     return getcustomasset and getcustomasset(path) or url
 end
 
