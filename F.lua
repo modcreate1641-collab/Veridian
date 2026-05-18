@@ -55,26 +55,22 @@ local links = {
     }
 }
 
-local function GetImg(fileName)
-    local targetFolder = subFolders.BgAsset
-    local asset = links[fileName]
-    local url = asset and asset.url or ""
+local function GetImg(fileName, url)
+    local getAsset = getcustomasset or getsynasset
+    if not getAsset then return url end
     
-    if asset then
-        targetFolder = asset.folder
-    end
-
-    local path = baseFolder .. "/" .. targetFolder .. "/" .. fileName
+    local folderName = CONFIG.BgFolder
+    local subFolder = "BgAsset"
+    local fullPath = folderName .. "/" .. subFolder .. "/" .. fileName
     
-    if isfile and not isfile(path) and url ~= "" then
-        local success, content = pcall(game.HttpGet, game, url)
-        if success and type(content) == "string" and #content > 5000 then
-            pcall(function()
-                writefile(path, content)
-            end)
+    if isfile and not isfile(fullPath) and url then
+        local content = game:HttpGet(url)
+        if type(content) == "string" and #content > 5000 then
+            writefile(fullPath, content)
         end
     end
-    return getcustomasset and getcustomasset(path) or url
+    
+    return getAsset(fullPath)
 end
 
 local function CreateTween(instance, properties, time, style, direction)
