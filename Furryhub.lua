@@ -332,7 +332,7 @@ local function makeToggleDraggable(gui)
     local dragging, dragInput, dragStart, startPos
     
     local function startDrag(input)
-        ---[[ ตัดการลากทันทีถ้าสถานะคือล็อค ]]---
+        ---[[ INTERCEPT DRAG IF GLOBAL LOCK IS ACTIVE ]]---
         if _G.MainFrameLocked then return end
         
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
@@ -346,7 +346,7 @@ local function makeToggleDraggable(gui)
     
     gui.InputBegan:Connect(startDrag)
     
-    ---[[ ดักปุ่มลูกทั้งหมดไม่ให้กิน Input ]]---
+    ---[[ PREVENT CHILD ELEMENTS FROM SINKING DRAG INPUT ]]---
     for _, child in pairs(gui:GetChildren()) do
         if child:IsA("TextButton") or child:IsA("ImageButton") then
             child.InputBegan:Connect(startDrag)
@@ -364,13 +364,11 @@ local function makeToggleDraggable(gui)
             if _G.MainFrameLocked then dragging = false return end
             
             local delta = input.Position - dragStart
-            ---[[ เลื่อนแบบ Offset ล้วนๆ สไตล์ makeDraggable ตัวดั้งเดิมของมึง ]]---
             gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 end
 
--- เปิดลากเฉพาะปุ่มเปิดปิด (ไม่ไปเสือกกับ MainFrame แล้วสัส!)
 makeToggleDraggable(ToggleContainer)
 
 -- =================== BUTTONS LOGIC ===================
@@ -382,8 +380,12 @@ ToggleBtn.MouseButton1Up:Connect(function()
 	TweenService:Create(ToggleContainer, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 140, 0, 36)}):Play()
 end)
 
+---[[ REDIRECT TOUCH ACTIVATION TO THE ANIMATED TOGGLE FUNCTION ]]---
 ToggleBtn.Activated:Connect(function()
-	if MainFrame then
+	if typeof(ToggleWindow) == "function" then
+		ToggleWindow(not isWindowOpen)
+	elseif MainFrame then
+		---[[ FALLBACK IF GLOBAL FUNCTION IS NOT FULLY IN SCOPE ]]---
 		MainFrame.Visible = not MainFrame.Visible
 	end
 end)
@@ -402,7 +404,7 @@ LockBtn.Activated:Connect(function()
 	end
 end)
 
----[[ แก้บั๊ก Hover ให้ใช้ TweenService ตรงๆ และแก้ชื่อตัวแปรให้ตรง ]]---
+---[[ SYSTEM HOVER ACTIONS WITH TWEEN SERVICE ]]---
 ToggleBtn.MouseEnter:Connect(function() 
     TweenService:Create(ToggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}):Play()
     TweenService:Create(ContainerStroke, TweenInfo.new(0.2), {Transparency = 0, Thickness = 2}):Play()
