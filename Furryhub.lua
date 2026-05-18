@@ -139,6 +139,9 @@ local function makeDraggable(gui, targetFrame)
     local dragging, dragInput, dragStart, startPos
     gui.InputBegan:Connect(function(input)
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UserInputService:GetFocusedTextBox() then
+            ---[[ INTERCEPT DRAG IF GLOBAL LOCK IS ACTIVE ]]---
+            if _G.MainFrameLocked then return end
+            
             dragging = true
             dragStart = input.Position
             startPos = targetFrame and targetFrame.Position or gui.Position
@@ -148,6 +151,12 @@ local function makeDraggable(gui, targetFrame)
     gui.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end end)
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
+            ---[[ FORCE BREAK DRAG STATE IF LOCK TOGGLED MIDWAY ]]---
+            if _G.MainFrameLocked then 
+                dragging = false 
+                return 
+            end
+            
             local delta = input.Position - dragStart
             local target = targetFrame or gui
             CreateTween(target, {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}, 0.05, Enum.EasingStyle.Linear)
