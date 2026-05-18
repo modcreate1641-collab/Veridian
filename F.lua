@@ -48,7 +48,13 @@ local function CreateTween(instance, properties, time, style, direction)
     return info
 end
 
-function Veridianhub:CreateWindow(HubName)
+function Veridianhub:CreateWindow(Config)
+    -- [[ FALLBACK CHECK IF USER SENDS ONLY STRING ]] --
+    local HubText = typeof(Config) == "table" and Config.Name or Config or "Veridian Hub"
+    local HubTextSize = typeof(Config) == "table" and Config.TextSize or 16
+    local HubFont = typeof(Config) == "table" and Config.Font or Enum.Font.GothamBold
+    local HubColor = typeof(Config) == "table" and Config.TextColor or Color3.fromRGB(220, 220, 220)
+
     local Success, TargetGui = pcall(function()
         return CoreGui
     end)
@@ -60,6 +66,12 @@ function Veridianhub:CreateWindow(HubName)
     local ScreenGui = Instance.new("ScreenGui", TargetGui)
     ScreenGui.Name = "VeridianHub_Official_Full"
     ScreenGui.IgnoreGuiInset = true
+    
+    -- [[ WHEN CREATING TITLETEXT IN SCRIPT, APPLY THE VARIABLES ]] --
+    -- TitleText.Text = HubText
+    -- TitleText.TextSize = HubTextSize
+    -- TitleText.Font = HubFont
+    -- TitleText.TextColor3 = HubColor
 
     local MainFrame = Instance.new("CanvasGroup", ScreenGui)
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -407,19 +419,35 @@ end)
 
 local destroyStage = 0
 
+-- [[ ======================================================= ]] --
+-- [[ MODERN FULL-WIDTH TOP NAVIGATION BAR ]] --
+-- [[ ======================================================= ]] --
 local TopBar = Instance.new("Frame", MainFrame)
-TopBar.Size = UDim2.new(1, -6, 0, 45)
-TopBar.Position = UDim2.new(0, 3, 0, 3)
-TopBar.BackgroundTransparency = 1
+TopBar.Name = "ModernTopNavigationBar"
+TopBar.Size = UDim2.new(1, -12, 0, 42) -- Spans fully from left to right with slight padding
+TopBar.Position = UDim2.new(0, 6, 0, 6) -- Clean offset from the main frame borders
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25) -- Solid sleek dark base
+TopBar.BackgroundTransparency = 0 -- Adjust this value whenever you want it semi-transparent
 TopBar.ZIndex = 10
 
+local TopBarCorner = Instance.new("UICorner", TopBar)
+TopBarCorner.CornerRadius = UDim.new(0, 8) -- Smooth rounded edges for top bar setup
+
+-- [[ ======================================================= ]] --
+-- [[ HUB TITLE LABEL SETUP (CLEAN TEXT-ONLY STYLE) ]] --
+-- [[ ======================================================= ]] --
 local HubLabel = Instance.new("TextLabel", TopBar)
-HubLabel.Size = UDim2.new(0, 100, 1, 0)
-HubLabel.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
-HubLabel.Text = HubName
-HubLabel.TextColor3 = Color3.new(1,1,1)
+HubLabel.Name = "HubTitleLabel"
+HubLabel.Size = UDim2.new(0, 150, 1, 0)
+HubLabel.Position = UDim2.new(0, 12, 0, 0) -- Clean indentation from the left edge
+HubLabel.BackgroundTransparency = 1 -- Removed the ugly green block background
+HubLabel.Text = HubName or "Veridian Hub"
+HubLabel.TextColor3 = Color3.fromRGB(245, 245, 245)
 HubLabel.Font = Enum.Font.GothamBold
-Instance.new("UICorner", HubLabel)
+HubLabel.TextSize = 14
+HubLabel.TextXAlignment = Enum.TextXAlignment.Left
+HubLabel.TextYAlignment = Enum.TextYAlignment.Center
+HubLabel.ZIndex = 11
 
 local ClosedBtn = Instance.new("TextButton", TopBar)
 ClosedBtn.Size = UDim2.new(0, 80, 1, 0)
