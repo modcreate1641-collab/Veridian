@@ -49,29 +49,25 @@ local function CreateTween(instance, properties, time, style, direction)
 end
 
 function Veridianhub:CreateWindow(Config)
-    -- [[ FALLBACK CHECK IF USER SENDS ONLY STRING ]] --
+    -- [[ CONFIGURATION PARSING WITH FALLBACK PROTECTION ]] --
     local HubText = typeof(Config) == "table" and Config.Name or Config or "Veridian Hub"
-    local HubTextSize = typeof(Config) == "table" and Config.TextSize or 16
+    local HubTextSize = typeof(Config) == "table" and Config.TextSize or 14
     local HubFont = typeof(Config) == "table" and Config.Font or Enum.Font.GothamBold
-    local HubColor = typeof(Config) == "table" and Config.TextColor or Color3.fromRGB(220, 220, 220)
+    local HubColor = typeof(Config) == "table" and Config.TextColor or Color3.fromRGB(245, 245, 245)
 
+    -- [[ ENVIRONMENT EXECUTOR GUI TARGET CHECK ]] --
     local Success, TargetGui = pcall(function()
-        return CoreGui
+        return game:GetService("CoreGui")
     end)
     
     if not Success or not TargetGui then
         TargetGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     end
 
+    -- [[ MAIN GUI CONTAINER LAYER ]] --
     local ScreenGui = Instance.new("ScreenGui", TargetGui)
     ScreenGui.Name = "VeridianHub_Official_Full"
     ScreenGui.IgnoreGuiInset = true
-    
-    -- [[ WHEN CREATING TITLETEXT IN SCRIPT, APPLY THE VARIABLES ]] --
-    -- TitleText.Text = HubText
-    -- TitleText.TextSize = HubTextSize
-    -- TitleText.Font = HubFont
-    -- TitleText.TextColor3 = HubColor
 
     local MainFrame = Instance.new("CanvasGroup", ScreenGui)
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
