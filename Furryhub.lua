@@ -179,38 +179,18 @@ end
 
 local isWindowOpen = true
 local currentSize = UDim2.new(0, 508, 0, 264)
-local currentPos
 
 local function ToggleWindow(state)
     isWindowOpen = state
-    
-    ---[[ FIND TOGGLE BUTTON POSITION FOR ANIMATION TARGET ]]---
-    local targetPos = UDim2.new(0, 0, 0, 0)
-    if typeof(ToggleContainer) ~= "nil" then
-        targetPos = ToggleContainer.Position
-    end
-    
     if state then
         MainFrame.Visible = true
-        CreateTween(MainFrame, {
-            Size = currentSize, 
-            Position = currentPos or MainFrame.Position, 
-            GroupTransparency = 0
-        }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     else
-        ---[[ SAVE CURRENT STATE BEFORE SHRINKING INTO THE BUTTON ]]---
         currentSize = MainFrame.Size
-        currentPos = MainFrame.Position
-        
-        local t = CreateTween(MainFrame, {
-            Size = UDim2.new(0, 0, 0, 0), 
-            Position = targetPos, 
-            GroupTransparency = 1
-        }, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-        
-        t.Completed:Connect(function() 
-            if not isWindowOpen then MainFrame.Visible = false end 
-        end)
+        local shrinkW = math.max(200, currentSize.X.Offset - 58)
+        local shrinkH = math.max(100, currentSize.Y.Offset - 64)
+        local t = CreateTween(MainFrame, {Size = UDim2.new(0, shrinkW, 0, shrinkH), GroupTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        t.Completed:Connect(function() if not isWindowOpen then MainFrame.Visible = false end end)
     end
 end
 
