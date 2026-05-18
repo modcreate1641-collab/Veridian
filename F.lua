@@ -360,6 +360,7 @@ end
 makeToggleDraggable(ToggleContainer)
 
 -- =================== BUTTONS LOGIC ===================
+-- =================== BUTTONS LOGIC ===================
 ToggleBtn.MouseButton1Down:Connect(function()
 	TweenService:Create(ToggleContainer, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 135, 0, 32)}):Play()
 end)
@@ -368,12 +369,10 @@ ToggleBtn.MouseButton1Up:Connect(function()
 	TweenService:Create(ToggleContainer, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 140, 0, 36)}):Play()
 end)
 
----[[ REDIRECT TOUCH ACTIVATION TO THE ANIMATED TOGGLE FUNCTION ]]---
 ToggleBtn.Activated:Connect(function()
 	if typeof(ToggleWindow) == "function" then
 		ToggleWindow(not isWindowOpen)
 	elseif MainFrame then
-		---[[ FALLBACK IF GLOBAL FUNCTION IS NOT FULLY IN SCOPE ]]---
 		MainFrame.Visible = not MainFrame.Visible
 	end
 end)
@@ -392,7 +391,7 @@ LockBtn.Activated:Connect(function()
 	end
 end)
 
----[[ SYSTEM HOVER ACTIONS WITH TWEEN SERVICE ]]---
+-- [[ SYSTEM HOVER ACTIONS WITH TWEEN SERVICE ]] --
 ToggleBtn.MouseEnter:Connect(function() 
     TweenService:Create(ToggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}):Play()
     TweenService:Create(ContainerStroke, TweenInfo.new(0.2), {Transparency = 0, Thickness = 2}):Play()
@@ -403,18 +402,9 @@ ToggleBtn.MouseLeave:Connect(function()
     TweenService:Create(ContainerStroke, TweenInfo.new(0.2), {Color = CONFIG.NavBtnColor, Transparency = 0.4, Thickness = 1.5}):Play()
 end)
 
-ToggleBtn.MouseEnter:Connect(function() 
-    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}, 0.2)
-    CreateTween(ToggleStroke, {Transparency = 0, Thickness = 2}, 0.2) 
-end)
-
-ToggleBtn.MouseLeave:Connect(function() 
-    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(25, 25, 30)}, 0.2)
-    CreateTween(ToggleStroke, {Color = CONFIG.NavBtnColor, Transparency = 0.3, Thickness = 1.5}, 0.2) 
-end)
+-- FIXED: Deleted the broken repetitive ToggleStroke hover loops that caused the Null Instance Error.
 
 local destroyStage = 0
-
 -- [[ ======================================================= ]] --
 -- [[ MODERN FULL-WIDTH TOP NAVIGATION BAR ]] --
 -- [[ ======================================================= ]] --
