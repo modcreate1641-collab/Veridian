@@ -14,7 +14,7 @@ local CONFIG = {
     DefaultFontSize = 12,
     KeybindEnabled = true,
     ToggleKey = Enum.KeyCode.K,
-    BgFolder = "furlogo"
+    BgFolder = "VeridianConfig"
 }
 
 UserInputService.InputBegan:Connect(function(input, gpe)
@@ -25,22 +25,38 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-local folderName = CONFIG.BgFolder
-local fileName = folderName .. "/Cool background.png"
-local imageUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
+local baseFolder = "VeridianConfig"
+local subFolders = {"BgAsset", "Theme"}
 
 pcall(function()
-    if isfolder and not isfolder(folderName) then 
-        makefolder(folderName) 
+    if isfolder and not isfolder(baseFolder) then 
+        makefolder(baseFolder) 
     end
     
-    if isfile and not isfile(fileName) then
-        local content = game:HttpGet(imageUrl)
-        if writefile then
-            writefile(fileName, content)
+    for _, folder in ipairs(subFolders) do
+        local path = baseFolder .. "/" .. folder
+        if isfolder and not isfolder(path) then 
+            makefolder(path) 
         end
     end
 end)
+
+local links = {
+    blue_bg = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/88aeb6b05f33363aa2a2872f050a91b9ab601d27d8f88b863e0e05e631f64fbe.0.png",
+    red_bg = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/ef7d38003d3705f52c75a7a5cebff73be471d0a6f769ae452ce9ead33b605d78.0.png",
+    loadingCircle = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/1778560175050.png",
+    furryLogo = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg"
+}
+
+local function GetImg(category, fileName, url)
+    local path = baseFolder .. "/" .. category .. "/" .. fileName
+    pcall(function()
+        if isfile and not isfile(path) then 
+            writefile(path, game:HttpGet(url)) 
+        end
+    end)
+    return getcustomasset and getcustomasset(path) or url
+end
 
 local function CreateTween(instance, properties, time, style, direction)
     local info = TweenService:Create(instance, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quad, direction or Enum.EasingDirection.Out), properties)
@@ -99,18 +115,29 @@ local function ApplyAutoBackground(bgFileName)
     if not getAsset then return end
 
     pcall(function()
-        if bgFileName and isfile and isfile(CONFIG.BgFolder .. "/" .. bgFileName) then
-            BgImage.Image = getAsset(CONFIG.BgFolder .. "/" .. bgFileName)
-            DarkOverlay.Visible = true
-            MainFrame.BackgroundTransparency = 1
-        elseif isfolder and isfolder(CONFIG.BgFolder) then
-            for _, f in pairs(listfiles(CONFIG.BgFolder)) do
-                local ext = f:lower()
-                if ext:find(".png") or ext:find(".jpg") or ext:find(".jpeg") then
-                    BgImage.Image = getAsset(f)
+        if isfolder and isfolder(CONFIG.BgFolder) then
+            local target = bgFileName
+            
+            if not target and isfile then
+                local validExts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tga"}
+                for _, f in pairs(listfiles(CONFIG.BgFolder)) do
+                    local ext = f:lower()
+                    for _, valid in ipairs(validExts) do
+                        if ext:sub(-#valid) == valid then
+                            target = f:sub(#CONFIG.BgFolder + 2)
+                            break
+                        end
+                    end
+                    if target then break end
+                end
+            end
+
+            if target then
+                local fullPath = CONFIG.BgFolder .. "/" .. target
+                if isfile and isfile(fullPath) then
+                    BgImage.Image = getAsset(fullPath)
                     DarkOverlay.Visible = true
                     MainFrame.BackgroundTransparency = 1
-                    break 
                 end
             end
         end
@@ -126,21 +153,26 @@ UIStroke.ZIndex = 5
 local TS = game:GetService("TweenService")
 local info = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
+local rainbowConnection
 local function startRainbow()
-    while true do
+    if rainbowConnection then 
+        rainbowConnection:Disconnect() 
+    end
+    
+    rainbowConnection = RunService.RenderStepped:Connect(function()
         pcall(function()
             if UIStroke and UIStroke.Parent then
-                TS:Create(UIStroke, info, {Color = Color3.fromHSV(0.33, 1, 1)}):Play()
-                task.wait(2)
-                TS:Create(UIStroke, info, {Color = Color3.fromHSV(0.66, 1, 1)}):Play()
-                task.wait(2)
-                TS:Create(UIStroke, info, {Color = Color3.fromHSV(1, 1, 1)}):Play()
+                local hue = (tick() * 0.05) % 1
+                UIStroke.Color = Color3.fromHSV(hue, 1, 1)
+            else
+                if rainbowConnection then 
+                    rainbowConnection:Disconnect() 
+                    rainbowConnection = nil
+                end
             end
         end)
-        task.wait(2)
-    end
+    end)
 end
-
 task.spawn(startRainbow)
 
 local function makeDraggable(gui, targetFrame)
@@ -1107,16 +1139,16 @@ end)
             for _, u in ipairs(urls) do
                 pcall(function()
                     local d = game:HttpGet(u)
-                    if u:match("%.json") then
-                        for k, v in pairs(HttpService:JSONDecode(d)) do 
-                            extThemes[k] = Color3.fromRGB(v[1], v[2], v[3]) 
-                        end
-                    else
-                        local f = loadstring(d)
-                        if f then
-                            local r = f()
-                            if type(r) == "table" then 
-                                for k, v in pairs(r) do extThemes[k] = v end 
+                    if d then
+                        local decoded = HttpService:JSONDecode(d)
+                        if type(decoded) == "table" then
+                            for k, v in pairs(decoded) do 
+                                extThemes[k] = Color3.fromRGB(v[1], v[2], v[3]) 
+                            end
+                            
+                            local themePath = CONFIG.BgFolder .. "/Theme/theme.json"
+                            if writefile and isfile and not isfile(themePath) then
+                                writefile(themePath, d)
                             end
                         end
                     end
@@ -1127,10 +1159,9 @@ end)
         local function BuildDrop(name, getOpts, cb)
             local open = false
             local itemHeight = 32
-            local maxDisplayItems = 2.5 -- Limit visible items to 2.5
+            local maxDisplayItems = 2.5
             local closedSize = UDim2.new(0.95, 0, 0, 35)
             
-            -- Main Container for Setting Dropdown
             local df = Instance.new("Frame", SettingPage)
             df.Name = "SettingDrop_" .. name
             df.Size = closedSize
@@ -1139,7 +1170,6 @@ end)
             df.ZIndex = 20
             Instance.new("UICorner", df)
             
-            -- Header Button
             local mb = Instance.new("TextButton", df)
             mb.Name = "MainBtn"
             mb.Size = UDim2.new(1, 0, 0, 35)
@@ -1151,7 +1181,6 @@ end)
             mb.TextXAlignment = Enum.TextXAlignment.Left
             mb.ZIndex = 21
             
-            -- Animated Arrow for Setting
             local Arrow = Instance.new("TextLabel", mb)
             Arrow.Name = "Arrow"
             Arrow.Size = UDim2.new(0, 35, 0, 35)
@@ -1162,7 +1191,6 @@ end)
             Arrow.TextSize = 10
             Arrow.ZIndex = 22
 
-            -- Scrolling Area for Setting Options
             local DropScroll = Instance.new("ScrollingFrame", df)
             DropScroll.Name = "DropScroll"
             DropScroll.Size = UDim2.new(1, -4, 1, -40)
@@ -1172,13 +1200,12 @@ end)
             DropScroll.ScrollBarImageColor3 = CONFIG.NavBtnColor
             DropScroll.ZIndex = 21
             DropScroll.Visible = false
-            DropScroll.CanvasSize = UDim2.new(0, 0, 0, 0) -- Will update dynamically
+            DropScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 
             local list = Instance.new("UIListLayout", DropScroll)
             list.Padding = UDim.new(0, 2)
             list.SortOrder = Enum.SortOrder.LayoutOrder
 
-            -- Function to Clear and Rebuild Options
             local function RefreshOptions()
                 for _, child in pairs(DropScroll:GetChildren()) do
                     if child:IsA("TextButton") then child:Destroy() end
@@ -1214,7 +1241,6 @@ end)
                 open = not open
                 local currentOptsCount = RefreshOptions()
                 
-                -- Calculate target height based on item count
                 local displayCount = math.min(currentOptsCount, maxDisplayItems)
                 local targetHeight = open and (35 + (displayCount * itemHeight) + 10) or 35
                 local targetSize = UDim2.new(0.95, 0, 0, targetHeight)
@@ -1230,7 +1256,6 @@ end)
             end)
         end
 
-        -- Build Dropdowns with the new system
         BuildDrop("Theme", function()
             local t = {}
             for k, _ in pairs(extThemes) do table.insert(t, k) end
@@ -1245,12 +1270,17 @@ end)
 
         BuildDrop("Background", function()
             local t = {"None"}
-            if isfolder and isfolder(CONFIG.BgFolder) then
-                for _, f in pairs(listfiles(CONFIG.BgFolder)) do
-                    local n = f:sub(#CONFIG.BgFolder + 2)
+            local targetFolder = CONFIG.BgFolder .. "/BgAsset"
+            if isfolder and isfolder(targetFolder) then
+                local validExts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tga"}
+                for _, f in pairs(listfiles(targetFolder)) do
+                    local n = f:sub(#targetFolder + 2)
                     local ext = n:lower()
-                    if ext:match("%.png") or ext:match("%.jpg") or ext:match("%.jpeg") then 
-                        table.insert(t, n) 
+                    for _, valid in ipairs(validExts) do
+                        if ext:sub(-#valid) == valid then
+                            table.insert(t, n)
+                            break
+                        end
                     end
                 end
             end
@@ -1261,13 +1291,11 @@ end)
                 if DarkOverlay then DarkOverlay.Visible = false end
                 if MainFrame then MainFrame.BackgroundTransparency = 0 end
             else 
-                -- Assuming ApplyAutoBackground is accessible in scope
                 pcall(function() ApplyAutoBackground(s) end)
             end
         end)
     end
     
-    -- Final Execution of Render
     RenderSettings()
     
     TopSettingBtn.MouseButton1Click:Connect(function() 
