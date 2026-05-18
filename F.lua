@@ -522,7 +522,7 @@ makeDraggable(MainFrame)
 
 local NavSidePanel = Instance.new("Frame", MainFrame)
 NavSidePanel.Size = UDim2.new(0, 105, 1, -55)
-NavSidePanel.Position = UDim2.new(1, -186, 0, 0)
+NavSidePanel.Position = UDim2.new(0, 3, 0, 55)
 NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
 NavSidePanel.BackgroundTransparency = 0.2
 NavSidePanel.ZIndex = 2
@@ -549,7 +549,7 @@ PageArea.ZIndex = 3
 local SearchBtn = Instance.new("ImageButton", TopBar)
 SearchBtn.Name = "SearchTriggerButton"
 SearchBtn.Size = UDim2.new(0, 26, 0, 26)
-SearchBtn.Position = UDim2.new(1, -40, 0.5, -13)
+SearchBtn.Position = UDim2.new(1, -185, 0.5, -13)
 SearchBtn.BackgroundTransparency = 1
 SearchBtn.Image = CachedSearchIcon
 SearchBtn.ZIndex = 15
