@@ -27,9 +27,9 @@ end)
 
 local baseFolder = CONFIG.BgFolder
 local subFolders = {
-    Bg = "BgAsset",
+    BgAsset = "BgAsset",
     Theme = "Theme",
-    Icon = "Icons"
+    Icons = "Icons"
 }
 
 pcall(function()
@@ -46,29 +46,32 @@ pcall(function()
 end)
 
 local links = {
-    loadingBg = {
+    ["Cool background.png"] = {
         url = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png",
-        name = "Cool background.png",
         folder = subFolders.BgAsset
     },
-    furryLogo = {
+    ["furryLogo.png"] = {
         url = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg",
-        name = "furryLogo.png",
         folder = subFolders.BgAsset
     }
 }
 
-local function GetImg(assetKey)
-    local asset = links[assetKey]
-    if not asset then return "" end
+local function GetImg(fileName)
+    local targetFolder = subFolders.BgAsset
+    local asset = links[fileName]
+    local url = asset and asset.url or ""
+    
+    if asset then
+        targetFolder = asset.folder
+    end
 
-    local path = baseFolder .. "/" .. asset.folder .. "/" .. asset.name
+    local path = baseFolder .. "/" .. targetFolder .. "/" .. fileName
     pcall(function()
-        if isfile and not isfile(path) then 
-            writefile(path, game:HttpGet(asset.url)) 
+        if isfile and not isfile(path) and url ~= "" then 
+            writefile(path, game:HttpGet(url)) 
         end
     end)
-    return getcustomasset and getcustomasset(path) or asset.url
+    return getcustomasset and getcustomasset(path) or url
 end
 
 local function CreateTween(instance, properties, time, style, direction)
@@ -128,16 +131,19 @@ local function ApplyAutoBackground(bgFileName)
     if not getAsset then return end
 
     pcall(function()
-        if isfolder and isfolder(CONFIG.BgFolder) then
+        local mainFolder = CONFIG.BgFolder
+        local subFolder = mainFolder .. "/BgAsset"
+        
+        if isfolder and isfolder(subFolder) then
             local target = bgFileName
             
             if not target and isfile then
                 local validExts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tga"}
-                for _, f in pairs(listfiles(CONFIG.BgFolder)) do
+                for _, f in pairs(listfiles(subFolder)) do
                     local ext = f:lower()
                     for _, valid in ipairs(validExts) do
                         if ext:sub(-#valid) == valid then
-                            target = f:sub(#CONFIG.BgFolder + 2)
+                            target = f:sub(#subFolder + 2)
                             break
                         end
                     end
@@ -146,7 +152,7 @@ local function ApplyAutoBackground(bgFileName)
             end
 
             if target then
-                local fullPath = CONFIG.BgFolder .. "/" .. target
+                local fullPath = subFolder .. "/" .. target
                 if isfile and isfile(fullPath) then
                     BgImage.Image = getAsset(fullPath)
                     DarkOverlay.Visible = true
