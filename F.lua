@@ -25,16 +25,20 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-local baseFolder = "VeridianConfig"
-local subFolders = {"BgAsset", "Theme"}
+local baseFolder = CONFIG.BgFolder
+local subFolders = {
+    Bg = "BgAsset",
+    Theme = "Theme",
+    Icon = "Icons"
+}
 
 pcall(function()
     if isfolder and not isfolder(baseFolder) then 
         makefolder(baseFolder) 
     end
     
-    for _, folder in ipairs(subFolders) do
-        local path = baseFolder .. "/" .. folder
+    for _, folderName in pairs(subFolders) do
+        local path = baseFolder .. "/" .. folderName
         if isfolder and not isfolder(path) then 
             makefolder(path) 
         end
@@ -42,20 +46,29 @@ pcall(function()
 end)
 
 local links = {
-    blue_bg = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/88aeb6b05f33363aa2a2872f050a91b9ab601d27d8f88b863e0e05e631f64fbe.0.png",
-    red_bg = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/ef7d38003d3705f52c75a7a5cebff73be471d0a6f769ae452ce9ead33b605d78.0.png",
-    loadingCircle = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/1778560175050.png",
-    furryLogo = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg"
+    loadingBg = {
+        url = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png",
+        name = "Cool background.png",
+        folder = subFolders.Bg
+    },
+    furryLogo = {
+        url = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg",
+        name = "furryLogo.png",
+        folder = subFolders.Bg
+    }
 }
 
-local function GetImg(category, fileName, url)
-    local path = baseFolder .. "/" .. category .. "/" .. fileName
+local function GetImg(assetKey)
+    local asset = links[assetKey]
+    if not asset then return "" end
+
+    local path = baseFolder .. "/" .. asset.folder .. "/" .. asset.name
     pcall(function()
         if isfile and not isfile(path) then 
-            writefile(path, game:HttpGet(url)) 
+            writefile(path, game:HttpGet(asset.url)) 
         end
     end)
-    return getcustomasset and getcustomasset(path) or url
+    return getcustomasset and getcustomasset(path) or asset.url
 end
 
 local function CreateTween(instance, properties, time, style, direction)
@@ -562,22 +575,19 @@ local function GetLocalAsset(fileName, url)
     local getAsset = getcustomasset or getsynasset
     if not getAsset then return url end
     
-    local folderName = "VeridianConfig"
-    if isfolder and not isfolder(folderName) then
-        makefolder(folderName)
-    end
+    local folderName = CONFIG.BgFolder
+    local subFolder = "Icons"
+    local fullPath = folderName .. "/" .. subFolder .. "/" .. fileName
     
-    local filePath = folderName .. "/" .. fileName
-    if isfile and not isfile(filePath) then
+    if isfile and not isfile(fullPath) then
         pcall(function()
-            writefile(filePath, game:HttpGet(url))
+            writefile(fullPath, game:HttpGet(url))
         end)
     end
     
-    return getAsset(filePath)
+    return getAsset(fullPath)
 end
 
--- Pre-loading and caching the search icon from GitHub asset link
 local CachedSearchIcon = GetLocalAsset("search_icon.png", "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/18458939117.png")
 
 -- [[ ======================================================= ]] --
