@@ -522,7 +522,7 @@ makeDraggable(MainFrame)
 
 local NavSidePanel = Instance.new("Frame", MainFrame)
 NavSidePanel.Size = UDim2.new(0, 105, 1, -55)
-NavSidePanel.Position = UDim2.new(0, 3, 0, 55)
+NavSidePanel.Position = UDim2.new(1, -186, 0, 0)
 NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
 NavSidePanel.BackgroundTransparency = 0.2
 NavSidePanel.ZIndex = 2
