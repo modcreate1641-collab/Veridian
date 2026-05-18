@@ -413,7 +413,7 @@ TopBar.Name = "ModernTopNavigationBar"
 TopBar.Size = UDim2.new(1, -12, 0, 42) -- Spans fully from left to right with slight padding
 TopBar.Position = UDim2.new(0, 6, 0, 6) -- Clean offset from the main frame borders
 TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25) -- Solid sleek dark base
-TopBar.BackgroundTransparency = 0 -- Adjust this value whenever you want it semi-transparent
+TopBar.BackgroundTransparency = 0.3 -- Adjust this value whenever you want it semi-transparent
 TopBar.ZIndex = 10
 
 local TopBarCorner = Instance.new("UICorner", TopBar)
@@ -436,13 +436,16 @@ HubLabel.TextYAlignment = Enum.TextYAlignment.Center
 HubLabel.ZIndex = 11
 
 local ClosedBtn = Instance.new("TextButton", TopBar)
+ClosedBtn.Name = "HubDestroyButton"
 ClosedBtn.Size = UDim2.new(0, 80, 1, 0)
 ClosedBtn.Position = UDim2.new(1, -80, 0, 0)
 ClosedBtn.BackgroundColor3 = Color3.fromRGB(129, 129, 129)
 ClosedBtn.Text = "💥 Destroy"
-ClosedBtn.TextColor3 = Color3.new(1,1,1)
+ClosedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ClosedBtn.Font = Enum.Font.GothamBold
+ClosedBtn.TextSize = 12
 ClosedBtn.Active = true
+ClosedBtn.ZIndex = 12 
 Instance.new("UICorner", ClosedBtn)
 
 ClosedBtn.MouseEnter:Connect(function() 
@@ -491,14 +494,28 @@ ClosedBtn.Activated:Connect(function()
 end)
 
 local TopSettingBtn = Instance.new("TextButton", TopBar)
+TopSettingBtn.Name = "TopSettingsNavigationButton"
 TopSettingBtn.Size = UDim2.new(0, 60, 1, 0)
 TopSettingBtn.Position = UDim2.new(1, -146, 0, 0)
 TopSettingBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
 TopSettingBtn.Text = "⚙️"
-TopSettingBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", TopSettingBtn)
-TopSettingBtn.MouseEnter:Connect(function() CreateTween(TopSettingBtn, {BackgroundColor3 = Color3.fromRGB(120, 120, 140)}) end)
-TopSettingBtn.MouseLeave:Connect(function() CreateTween(TopSettingBtn, {BackgroundColor3 = Color3.fromRGB(100, 100, 120)}) end)
+TopSettingBtn.TextColor3 = Color3.new(1, 1, 1)
+TopSettingBtn.TextSize = 14
+TopSettingBtn.Font = Enum.Font.GothamBold
+TopSettingBtn.ZIndex = 12 -- FIXED: Lifted up from layer 1 to layer 12 to prevent drowning behind background elements
+TopSettingBtn.Active = true
+
+local SettingBtnCorner = Instance.new("UICorner", TopSettingBtn)
+SettingBtnCorner.CornerRadius = UDim.new(0, 8)
+
+-- [[ SETTINGS BUTTON HOVER INTERACTION LOOPS ]] --
+TopSettingBtn.MouseEnter:Connect(function() 
+    CreateTween(TopSettingBtn, {BackgroundColor3 = Color3.fromRGB(120, 120, 140)}, 0.2) 
+end)
+
+TopSettingBtn.MouseLeave:Connect(function() 
+    CreateTween(TopSettingBtn, {BackgroundColor3 = Color3.fromRGB(100, 100, 120)}, 0.2) 
+end)
 
 -- [[ ======================================================= ]] --
 -- [[ FURRY CONFIG AND ASSET CACHE MANAGEMENT ]] --
