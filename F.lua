@@ -32,7 +32,7 @@ local bgName = targetFolder .. "/Cool background.png"
 local bgUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
 
 local logoName = targetFolder .. "/furryLogo.png"
-local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg"
+local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/1000109193-01.jpeg"
 
 pcall(function()
     if isfolder and not isfolder(baseFolder) then 
