@@ -26,52 +26,37 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 end)
 
 local baseFolder = CONFIG.BgFolder
-local subFolders = {
-    BgAsset = "BgAsset",
-    Theme = "Theme",
-    Icons = "Icons"
-}
+local targetFolder = baseFolder .. "/BgAsset"
 
+local bgName = targetFolder .. "/Cool background.png"
+local bgUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
+
+local logoName = targetFolder .. "/furryLogo.png"
+local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg"
+
+pcall(function()
     if isfolder and not isfolder(baseFolder) then 
         makefolder(baseFolder) 
     end
     
-    for _, folderName in pairs(subFolders) do
-        local path = baseFolder .. "/" .. folderName
-        if isfolder and not isfolder(path) then 
-            makefolder(path) 
+    if isfolder and not isfolder(targetFolder) then 
+        makefolder(targetFolder) 
+    end
+    
+    if isfile and not isfile(bgName) then
+        local content = game:HttpGet(bgUrl)
+        if writefile and type(content) == "string" and #content > 5000 then
+            writefile(bgName, content)
+        end
+    end
+    
+    if isfile and not isfile(logoName) then
+        local content = game:HttpGet(logoUrl)
+        if writefile and type(content) == "string" and #content > 5000 then
+            writefile(logoName, content)
         end
     end
 end)
-
-local links = {
-    ["Cool background.png"] = {
-        url = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png",
-        folder = subFolders.BgAsset
-    },
-    ["furryLogo.png"] = {
-        url = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg",
-        folder = subFolders.BgAsset
-    }
-}
-
-local function GetImg(fileName, url)
-    local getAsset = getcustomasset or getsynasset
-    if not getAsset then return url end
-    
-    local folderName = CONFIG.BgFolder
-    local subFolder = "BgAsset"
-    local fullPath = folderName .. "/" .. subFolder .. "/" .. fileName
-    
-    if isfile and not isfile(fullPath) and url then
-        local content = game:HttpGet(url)
-        if type(content) == "string" and #content > 5000 then
-            writefile(fullPath, content)
-        end
-    end
-    
-    return getAsset(fullPath)
-end
 
 local function CreateTween(instance, properties, time, style, direction)
     local info = TweenService:Create(instance, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quad, direction or Enum.EasingDirection.Out), properties)
