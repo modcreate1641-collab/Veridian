@@ -49,12 +49,12 @@ local links = {
     loadingBg = {
         url = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png",
         name = "Cool background.png",
-        folder = subFolders.Bg
+        folder = subFolders.BgAsset
     },
     furryLogo = {
         url = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg",
         name = "furryLogo.png",
-        folder = subFolders.Bg
+        folder = subFolders.BgAsset
     }
 }
 
