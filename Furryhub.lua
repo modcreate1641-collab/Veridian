@@ -137,21 +137,34 @@ task.spawn(startRainbow)
 
 local function makeDraggable(gui, targetFrame)
     local dragging, dragInput, dragStart, startPos
-    gui.InputBegan:Connect(function(input)
+    
+    local function startDrag(input)
+        ---[[ INTERCEPT DRAG IF GLOBAL LOCK IS ENABLED ]]---
+        if _G.MainFrameLocked then return end
+        
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UserInputService:GetFocusedTextBox() then
-            ---[[ INTERCEPT DRAG IF GLOBAL LOCK IS ACTIVE ]]---
-            if _G.MainFrameLocked then return end
-            
             dragging = true
             dragStart = input.Position
+            dragInput = input
             startPos = targetFrame and targetFrame.Position or gui.Position
             input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
         end
-    end)
+    end
+    
+    gui.InputBegan:Connect(startDrag)
+    
+    ---[[ PREVENT BUTTON SINKING AND PREVENT JUMPING TO ROBLOX TOP BAR ]]---
+    for _, child in pairs(gui:GetChildren()) do
+        if child:IsA("TextButton") or child:IsA("ImageButton") then
+            child.InputBegan:Connect(startDrag)
+        end
+    end
+    
     gui.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end end)
+    
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
-            ---[[ FORCE BREAK DRAG STATE IF LOCK TOGGLED MIDWAY ]]---
+            ---[[ BREAK DRAG IMMEDIATELY IF LOCK TOGGLED MIDWAY ]]---
             if _G.MainFrameLocked then 
                 dragging = false 
                 return 
@@ -294,69 +307,51 @@ LockBtn.ZIndex = 1000
 -- =================== GLOBAL LOCK STATE ===================
 _G.MainFrameLocked = false
 
--- =================== PERFECT DRAG ENGINE ===================
-local function initBulletproofDrag(frame)
-	local dragging = false
-	local dragStart, startPos
-
-	local function startDrag(input)
-		if _G.MainFrameLocked then return end -- ตัดการลากทันทีถ้าสถานะคือล็อค
-		dragging = true
-		dragStart = input.Position
-		startPos = frame.Position
-	end
-
-	-- ฟังเสียงคลิกจากตัวเฟรมหลัก
-	frame.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			startDrag(input)
-		end
-	end)
-
-	-- ดักจับปุ่มลูกทั้งหมดเพื่อไม่ให้ปุ่มมันกลืนกิน Input การลากลอยพัง
-	for _, child in pairs(frame:GetChildren()) do
-		if child:IsA("TextButton") or child:IsA("ImageButton") then
-			child.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-					startDrag(input)
-				end
-			end)
-		end
-	end
-
-	-- อัปเดตพิกัดตามนิ้วถูไถแบบกันหลุดขอบจอ (Anti-Screen Escape)
-	UserInputService.InputChanged:Connect(function(input)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			if _G.MainFrameLocked then 
-				dragging = false 
-				return 
-			end
-			local delta = input.Position - dragStart
-			local screenSize = ScreenGui.AbsoluteSize
-			local frameSize = frame.AbsoluteSize
-			
-			local newX = math.clamp(startPos.X.Offset + delta.X, 5, screenSize.X - frameSize.X - 5)
-			local newY = math.clamp(startPos.Y.Offset + delta.Y, 5, screenSize.Y - frameSize.Y - 5)
-			
-			frame.Position = UDim2.new(0, newX, 0, newY) -- รันตรงๆ ไม่ง้อ Tween เพื่อความลื่นไหลระดับโมบาย
-		end
-	end)
-
-	-- ปล่อยนิ้วปุ๊บตัดสถานะลากทันทีทั่วโลกป้องกัน Connection ค้าง
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-		end
-	end)
+-- =================== CLEAN DRAG ENGINE (NO CONFLICTS) ===================
+local function makeToggleDraggable(gui)
+    local dragging, dragInput, dragStart, startPos
+    
+    local function startDrag(input)
+        ---[[ ตัดการลากทันทีถ้าสถานะคือล็อค ]]---
+        if _G.MainFrameLocked then return end
+        
+        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+            dragging = true
+            dragStart = input.Position
+            dragInput = input
+            startPos = gui.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+        end
+    end
+    
+    gui.InputBegan:Connect(startDrag)
+    
+    ---[[ ดักปุ่มลูกทั้งหมดไม่ให้กิน Input ]]---
+    for _, child in pairs(gui:GetChildren()) do
+        if child:IsA("TextButton") or child:IsA("ImageButton") then
+            child.InputBegan:Connect(startDrag)
+        end
+    end
+    
+    gui.InputChanged:Connect(function(input) 
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then 
+            dragInput = input 
+        end 
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            if _G.MainFrameLocked then dragging = false return end
+            
+            local delta = input.Position - dragStart
+            ---[[ เลื่อนแบบ Offset ล้วนๆ สไตล์ makeDraggable ตัวดั้งเดิมของมึง ]]---
+            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
 end
 
--- เปิดใช้งานระบบลากมหาอุดให้ปุ่มเปิดปิด
-initBulletproofDrag(ToggleContainer)
-
--- [🔥 ทีเด็ดสยบเมนเฟรม]: มึงเอาฟังก์ชันนี้ไปครอบให้ MainFrame ของมึงด้วยสิสัส!
-if MainFrame then
-	initBulletproofDrag(MainFrame)
-end
+-- เปิดลากเฉพาะปุ่มเปิดปิด (ไม่ไปเสือกกับ MainFrame แล้วสัส!)
+makeToggleDraggable(ToggleContainer)
 
 -- =================== BUTTONS LOGIC ===================
 ToggleBtn.MouseButton1Down:Connect(function()
@@ -385,6 +380,17 @@ LockBtn.Activated:Connect(function()
 		LockBtn.TextColor3 = Color3.fromRGB(100, 240, 100)
 		TweenService:Create(ContainerStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Color = CONFIG.NavBtnColor, Transparency = 0.4}):Play()
 	end
+end)
+
+---[[ แก้บั๊ก Hover ให้ใช้ TweenService ตรงๆ และแก้ชื่อตัวแปรให้ตรง ]]---
+ToggleBtn.MouseEnter:Connect(function() 
+    TweenService:Create(ToggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}):Play()
+    TweenService:Create(ContainerStroke, TweenInfo.new(0.2), {Transparency = 0, Thickness = 2}):Play()
+end)
+
+ToggleBtn.MouseLeave:Connect(function() 
+    TweenService:Create(ToggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 25)}):Play()
+    TweenService:Create(ContainerStroke, TweenInfo.new(0.2), {Color = CONFIG.NavBtnColor, Transparency = 0.4, Thickness = 1.5}):Play()
 end)
 
 ToggleBtn.MouseEnter:Connect(function() 
