@@ -235,38 +235,122 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 -- Modern Sleek Toggle Button Setup (Pure On/Off Toggle)
-local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Size = UDim2.new(0, 105, 0, 36)
-ToggleBtn.Position = UDim2.new(0, 335, 0, 25)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-ToggleBtn.Text = "🐾 On/Off :3"
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local ToggleContainer = Instance.new("Frame", ScreenGui)
+ToggleContainer.Size = UDim2.new(0, 140, 0, 36)
+ToggleContainer.Position = UDim2.new(0, 335, 0, 25)
+ToggleContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+ToggleContainer.BackgroundTransparency = 0.1
+ToggleContainer.Active = true
+ToggleContainer.ZIndex = 999
+
+local ContainerCorner = Instance.new("UICorner", ToggleContainer)
+ContainerCorner.CornerRadius = UDim.new(0, 10)
+
+local ContainerStroke = Instance.new("UIStroke", ToggleContainer)
+ContainerStroke.Thickness = 1.5
+ContainerStroke.Color = CONFIG.NavBtnColor
+ContainerStroke.Transparency = 0.4
+
+local ToggleBtn = Instance.new("TextButton", ToggleContainer)
+ToggleBtn.Size = UDim2.new(0, 95, 1, 0)
+ToggleBtn.Position = UDim2.new(0, 0, 0, 0)
+ToggleBtn.BackgroundTransparency = 1
+ToggleBtn.Text = "🐾 On/Off"
 ToggleBtn.TextColor3 = Color3.fromRGB(245, 245, 245)
 ToggleBtn.Font = Enum.Font.GothamBold
 ToggleBtn.TextSize = 12
-ToggleBtn.Active = true
+ToggleBtn.ZIndex = 1000
 
-local ToggleCorner = Instance.new("UICorner", ToggleBtn)
-ToggleCorner.CornerRadius = UDim.new(0, 8)
+local Divider = Instance.new("Frame", ToggleContainer)
+Divider.Size = UDim2.new(0, 1, 0, 20)
+Divider.Position = UDim2.new(0, 96, 0.5, -10)
+Divider.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
+Divider.BackgroundTransparency = 0.7
+Divider.ZIndex = 1000
 
-local ToggleStroke = Instance.new("UIStroke", ToggleBtn)
-ToggleStroke.Thickness = 1.5
-ToggleStroke.Color = CONFIG.NavBtnColor
-ToggleStroke.Transparency = 0.3
+local LockBtn = Instance.new("TextButton", ToggleContainer)
+LockBtn.Size = UDim2.new(0, 43, 1, 0)
+LockBtn.Position = UDim2.new(0, 97, 0, 0)
+LockBtn.BackgroundTransparency = 1
+LockBtn.Text = "🔓"
+LockBtn.TextColor3 = Color3.fromRGB(100, 240, 100)
+LockBtn.Font = Enum.Font.GothamBold
+LockBtn.TextSize = 14
+LockBtn.ZIndex = 1000
 
-makeDraggable(ToggleBtn)
+local isUiLocked = false
+_G.MainFrameLocked = false
+
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+ToggleContainer.InputBegan:Connect(function(input)
+	if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not isUiLocked then
+		dragging = true
+		dragStart = input.Position
+		startPos = ToggleContainer.Position
+		
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+ToggleContainer.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging and not isUiLocked then
+		local delta = input.Position - dragStart
+		local screenSize = ScreenGui.AbsoluteSize
+		local containerSize = ToggleContainer.AbsoluteSize
+		
+		local newX = math.clamp(startPos.X.Offset + delta.X, 5, screenSize.X - containerSize.X - 5)
+		local newY = math.clamp(startPos.Y.Offset + delta.Y, 5, screenSize.Y - containerSize.Y - 5)
+		
+		TweenService:Create(ToggleContainer, TweenInfo.new(0.06, Enum.EasingStyle.Linear), {
+			Position = UDim2.new(0, newX, 0, newY)
+		}):Play()
+	end
+end)
 
 ToggleBtn.MouseButton1Down:Connect(function()
-    CreateTween(ToggleBtn, {Size = UDim2.new(0, 100, 0, 32)}, 0.1)
+	TweenService:Create(ToggleContainer, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 135, 0, 32)}):Play()
 end)
 
 ToggleBtn.MouseButton1Up:Connect(function()
-    CreateTween(ToggleBtn, {Size = UDim2.new(0, 105, 0, 36)}, 0.1)
+	TweenService:Create(ToggleContainer, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 140, 0, 36)}):Play()
 end)
 
-ToggleBtn.Activated:Connect(function() 
-    if MainFrame then
-        MainFrame.Visible = not MainFrame.Visible
-    end
+ToggleBtn.Activated:Connect(function()
+	if MainFrame then
+		MainFrame.Visible = not MainFrame.Visible
+	end
+end)
+
+LockBtn.Activated:Connect(function()
+	isUiLocked = not isUiLocked
+	_G.MainFrameLocked = isUiLocked
+	
+	if isUiLocked then
+		LockBtn.Text = "🔒"
+		LockBtn.TextColor3 = Color3.fromRGB(240, 70, 70)
+		TweenService:Create(ContainerStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Color = Color3.fromRGB(240, 70, 70), Transparency = 0.1}):Play()
+	else
+		LockBtn.Text = "🔓"
+		LockBtn.TextColor3 = Color3.fromRGB(100, 240, 100)
+		TweenService:Create(ContainerStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Color = CONFIG.NavBtnColor, Transparency = 0.4}):Play()
+	end
 end)
 
 ToggleBtn.MouseEnter:Connect(function() 
