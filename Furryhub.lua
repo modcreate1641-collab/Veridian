@@ -14,7 +14,7 @@ local CONFIG = {
     DefaultFontSize = 12,
     KeybindEnabled = true,
     ToggleKey = Enum.KeyCode.K,
-    BgFolder = "furlogo"
+    BgFolder = "VeridianConfig"
 }
 
 UserInputService.InputBegan:Connect(function(input, gpe)
@@ -25,19 +25,35 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-local folderName = CONFIG.BgFolder
-local fileName = folderName .. "/Cool background.png"
-local imageUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
+local baseFolder = CONFIG.BgFolder
+local targetFolder = baseFolder .. "/BgAsset"
+
+local bgName = targetFolder .. "/Cool background.png"
+local bgUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
+
+local logoName = targetFolder .. "/furryLogo.png"
+local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/1000109193-01.jpeg"
 
 pcall(function()
-    if isfolder and not isfolder(folderName) then 
-        makefolder(folderName) 
+    if isfolder and not isfolder(baseFolder) then 
+        makefolder(baseFolder) 
     end
     
-    if isfile and not isfile(fileName) then
-        local content = game:HttpGet(imageUrl)
-        if writefile then
-            writefile(fileName, content)
+    if isfolder and not isfolder(targetFolder) then 
+        makefolder(targetFolder) 
+    end
+    
+    if isfile and not isfile(bgName) then
+        local content = game:HttpGet(bgUrl)
+        if writefile and type(content) == "string" and #content > 5000 then
+            writefile(bgName, content)
+        end
+    end
+    
+    if isfile and not isfile(logoName) then
+        local content = game:HttpGet(logoUrl)
+        if writefile and type(content) == "string" and #content > 5000 then
+            writefile(logoName, content)
         end
     end
 end)
@@ -48,15 +64,23 @@ local function CreateTween(instance, properties, time, style, direction)
     return info
 end
 
-function Veridianhub:CreateWindow(HubName)
+function Veridianhub:CreateWindow(Config)
+    -- [[ CONFIGURATION PARSING WITH FALLBACK PROTECTION ]] --
+    local HubText = typeof(Config) == "table" and Config.Name or Config or "Veridian Hub"
+    local HubTextSize = typeof(Config) == "table" and Config.TextSize or 14
+    local HubFont = typeof(Config) == "table" and Config.Font or Enum.Font.GothamBold
+    local HubColor = typeof(Config) == "table" and Config.TextColor or Color3.fromRGB(245, 245, 245)
+
+    -- [[ ENVIRONMENT EXECUTOR GUI TARGET CHECK ]] --
     local Success, TargetGui = pcall(function()
-        return CoreGui
+        return game:GetService("CoreGui")
     end)
     
     if not Success or not TargetGui then
         TargetGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     end
 
+    -- [[ MAIN GUI CONTAINER LAYER ]] --
     local ScreenGui = Instance.new("ScreenGui", TargetGui)
     ScreenGui.Name = "VeridianHub_Official_Full"
     ScreenGui.IgnoreGuiInset = true
@@ -91,18 +115,32 @@ local function ApplyAutoBackground(bgFileName)
     if not getAsset then return end
 
     pcall(function()
-        if bgFileName and isfile and isfile(CONFIG.BgFolder .. "/" .. bgFileName) then
-            BgImage.Image = getAsset(CONFIG.BgFolder .. "/" .. bgFileName)
-            DarkOverlay.Visible = true
-            MainFrame.BackgroundTransparency = 1
-        elseif isfolder and isfolder(CONFIG.BgFolder) then
-            for _, f in pairs(listfiles(CONFIG.BgFolder)) do
-                local ext = f:lower()
-                if ext:find(".png") or ext:find(".jpg") or ext:find(".jpeg") then
-                    BgImage.Image = getAsset(f)
+        local mainFolder = CONFIG.BgFolder
+        local subFolder = mainFolder .. "/BgAsset"
+        
+        if isfolder and isfolder(subFolder) then
+            local target = bgFileName
+            
+            if not target and isfile then
+                local validExts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tga"}
+                for _, f in pairs(listfiles(subFolder)) do
+                    local ext = f:lower()
+                    for _, valid in ipairs(validExts) do
+                        if ext:sub(-#valid) == valid then
+                            target = f:sub(#subFolder + 2)
+                            break
+                        end
+                    end
+                    if target then break end
+                end
+            end
+
+            if target then
+                local fullPath = subFolder .. "/" .. target
+                if isfile and isfile(fullPath) then
+                    BgImage.Image = getAsset(fullPath)
                     DarkOverlay.Visible = true
                     MainFrame.BackgroundTransparency = 1
-                    break 
                 end
             end
         end
@@ -118,21 +156,26 @@ UIStroke.ZIndex = 5
 local TS = game:GetService("TweenService")
 local info = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
+local rainbowConnection
 local function startRainbow()
-    while true do
+    if rainbowConnection then 
+        rainbowConnection:Disconnect() 
+    end
+    
+    rainbowConnection = RunService.RenderStepped:Connect(function()
         pcall(function()
             if UIStroke and UIStroke.Parent then
-                TS:Create(UIStroke, info, {Color = Color3.fromHSV(0.33, 1, 1)}):Play()
-                task.wait(2)
-                TS:Create(UIStroke, info, {Color = Color3.fromHSV(0.66, 1, 1)}):Play()
-                task.wait(2)
-                TS:Create(UIStroke, info, {Color = Color3.fromHSV(1, 1, 1)}):Play()
+                local hue = (tick() * 0.05) % 1
+                UIStroke.Color = Color3.fromHSV(hue, 1, 1)
+            else
+                if rainbowConnection then 
+                    rainbowConnection:Disconnect() 
+                    rainbowConnection = nil
+                end
             end
         end)
-        task.wait(2)
-    end
+    end)
 end
-
 task.spawn(startRainbow)
 
 local function makeDraggable(gui, targetFrame)
@@ -352,6 +395,7 @@ end
 makeToggleDraggable(ToggleContainer)
 
 -- =================== BUTTONS LOGIC ===================
+-- =================== BUTTONS LOGIC ===================
 ToggleBtn.MouseButton1Down:Connect(function()
 	TweenService:Create(ToggleContainer, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 135, 0, 32)}):Play()
 end)
@@ -360,12 +404,10 @@ ToggleBtn.MouseButton1Up:Connect(function()
 	TweenService:Create(ToggleContainer, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 140, 0, 36)}):Play()
 end)
 
----[[ REDIRECT TOUCH ACTIVATION TO THE ANIMATED TOGGLE FUNCTION ]]---
 ToggleBtn.Activated:Connect(function()
 	if typeof(ToggleWindow) == "function" then
 		ToggleWindow(not isWindowOpen)
 	elseif MainFrame then
-		---[[ FALLBACK IF GLOBAL FUNCTION IS NOT FULLY IN SCOPE ]]---
 		MainFrame.Visible = not MainFrame.Visible
 	end
 end)
@@ -384,7 +426,7 @@ LockBtn.Activated:Connect(function()
 	end
 end)
 
----[[ SYSTEM HOVER ACTIONS WITH TWEEN SERVICE ]]---
+-- [[ SYSTEM HOVER ACTIONS WITH TWEEN SERVICE ]] --
 ToggleBtn.MouseEnter:Connect(function() 
     TweenService:Create(ToggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}):Play()
     TweenService:Create(ContainerStroke, TweenInfo.new(0.2), {Transparency = 0, Thickness = 2}):Play()
@@ -395,40 +437,51 @@ ToggleBtn.MouseLeave:Connect(function()
     TweenService:Create(ContainerStroke, TweenInfo.new(0.2), {Color = CONFIG.NavBtnColor, Transparency = 0.4, Thickness = 1.5}):Play()
 end)
 
-ToggleBtn.MouseEnter:Connect(function() 
-    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}, 0.2)
-    CreateTween(ToggleStroke, {Transparency = 0, Thickness = 2}, 0.2) 
-end)
-
-ToggleBtn.MouseLeave:Connect(function() 
-    CreateTween(ToggleBtn, {BackgroundColor3 = Color3.fromRGB(25, 25, 30)}, 0.2)
-    CreateTween(ToggleStroke, {Color = CONFIG.NavBtnColor, Transparency = 0.3, Thickness = 1.5}, 0.2) 
-end)
+-- FIXED: Deleted the broken repetitive ToggleStroke hover loops that caused the Null Instance Error.
 
 local destroyStage = 0
-
+-- [[ ======================================================= ]] --
+-- [[ MODERN FULL-WIDTH TOP NAVIGATION BAR ]] --
+-- [[ ======================================================= ]] --
 local TopBar = Instance.new("Frame", MainFrame)
-TopBar.Size = UDim2.new(1, -6, 0, 45)
-TopBar.Position = UDim2.new(0, 3, 0, 3)
-TopBar.BackgroundTransparency = 1
+TopBar.Name = "ModernTopNavigationBar"
+TopBar.Size = UDim2.new(1, -12, 0, 42) -- Spans fully from left to right with slight padding
+TopBar.Position = UDim2.new(0, 6, 0, 6) -- Clean offset from the main frame borders
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25) -- Solid sleek dark base
+TopBar.BackgroundTransparency = 0.3 -- Adjust this value whenever you want it semi-transparent
 TopBar.ZIndex = 10
 
+local TopBarCorner = Instance.new("UICorner", TopBar)
+TopBarCorner.CornerRadius = UDim.new(0, 8) -- Smooth rounded edges for top bar setup
+
+-- [[ ======================================================= ]] --
+-- [[ HUB TITLE LABEL SETUP (CLEAN TEXT-ONLY STYLE) ]] --
+-- [[ ======================================================= ]] --
 local HubLabel = Instance.new("TextLabel", TopBar)
-HubLabel.Size = UDim2.new(0, 100, 1, 0)
-HubLabel.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
-HubLabel.Text = HubName
-HubLabel.TextColor3 = Color3.new(1,1,1)
+HubLabel.Name = "HubTitleLabel"
+HubLabel.Size = UDim2.new(0, 150, 1, 0)
+HubLabel.Position = UDim2.new(0, 12, 0, 0) -- Clean indentation from the left edge
+HubLabel.BackgroundTransparency = 1 -- Removed the ugly green block background
+HubLabel.Text = HubName or "Veridian Hub"
+HubLabel.TextColor3 = Color3.fromRGB(245, 245, 245)
 HubLabel.Font = Enum.Font.GothamBold
-Instance.new("UICorner", HubLabel)
+HubLabel.TextSize = 14
+HubLabel.TextXAlignment = Enum.TextXAlignment.Left
+HubLabel.TextYAlignment = Enum.TextYAlignment.Center
+HubLabel.ZIndex = 11
 
 local ClosedBtn = Instance.new("TextButton", TopBar)
+ClosedBtn.Name = "HubDestroyButton"
 ClosedBtn.Size = UDim2.new(0, 80, 1, 0)
 ClosedBtn.Position = UDim2.new(1, -80, 0, 0)
 ClosedBtn.BackgroundColor3 = Color3.fromRGB(129, 129, 129)
+ClosedBtn.BackgroundTransparency = 0.9
 ClosedBtn.Text = "💥 Destroy"
-ClosedBtn.TextColor3 = Color3.new(1,1,1)
+ClosedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ClosedBtn.Font = Enum.Font.GothamBold
+ClosedBtn.TextSize = 12
 ClosedBtn.Active = true
+ClosedBtn.ZIndex = 12 
 Instance.new("UICorner", ClosedBtn)
 
 ClosedBtn.MouseEnter:Connect(function() 
@@ -477,32 +530,59 @@ ClosedBtn.Activated:Connect(function()
 end)
 
 local TopSettingBtn = Instance.new("TextButton", TopBar)
+TopSettingBtn.Name = "TopSettingsNavigationButton"
 TopSettingBtn.Size = UDim2.new(0, 60, 1, 0)
 TopSettingBtn.Position = UDim2.new(1, -146, 0, 0)
 TopSettingBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
 TopSettingBtn.Text = "⚙️"
-TopSettingBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", TopSettingBtn)
-TopSettingBtn.MouseEnter:Connect(function() CreateTween(TopSettingBtn, {BackgroundColor3 = Color3.fromRGB(120, 120, 140)}) end)
-TopSettingBtn.MouseLeave:Connect(function() CreateTween(TopSettingBtn, {BackgroundColor3 = Color3.fromRGB(100, 100, 120)}) end)
+TopSettingBtn.TextColor3 = Color3.new(1, 1, 1)
+TopSettingBtn.BackgroundTransparency = 0.9
+TopSettingBtn.TextSize = 14
+TopSettingBtn.Font = Enum.Font.GothamBold
+TopSettingBtn.ZIndex = 12 -- FIXED: Lifted up from layer 1 to layer 12 to prevent drowning behind background elements
+TopSettingBtn.Active = true
 
-local SearchBox = Instance.new("TextBox", TopBar)
-SearchBox.Size = UDim2.new(1, -258, 1, 0)
-SearchBox.Position = UDim2.new(0, 106, 0, 0)
-SearchBox.BackgroundColor3 = CONFIG.SearchBgColor
-SearchBox.PlaceholderText = "Search..."
-SearchBox.Text = ""
-SearchBox.TextColor3 = Color3.new(1,1,1)
-SearchBox.Font = Enum.Font.GothamSemibold
-Instance.new("UICorner", SearchBox)
+local SettingBtnCorner = Instance.new("UICorner", TopSettingBtn)
+SettingBtnCorner.CornerRadius = UDim.new(0, 8)
 
-SearchBox.Focused:Connect(function() 
-    CreateTween(SearchBox, {BackgroundColor3 = Color3.fromRGB(96, 201, 211)}, 0.2) 
-end)
-SearchBox.FocusLost:Connect(function() 
-    CreateTween(SearchBox, {BackgroundColor3 = CONFIG.SearchBgColor}, 0.2) 
+-- [[ SETTINGS BUTTON HOVER INTERACTION LOOPS ]] --
+TopSettingBtn.MouseEnter:Connect(function() 
+    CreateTween(TopSettingBtn, {BackgroundColor3 = Color3.fromRGB(120, 120, 140)}, 0.2) 
 end)
 
+TopSettingBtn.MouseLeave:Connect(function() 
+    CreateTween(TopSettingBtn, {BackgroundColor3 = Color3.fromRGB(100, 100, 120)}, 0.2) 
+end)
+
+-- [[ ======================================================= ]] --
+-- [[ FURRY CONFIG AND ASSET CACHE MANAGEMENT ]] --
+-- [[ ======================================================= ]] --
+local CONFIG = CONFIG or {}
+CONFIG.SearchBgColor = Color3.fromRGB(20, 20, 25)
+CONFIG.NavPanelColor = Color3.fromRGB(30, 30, 35)
+
+local function GetLocalAsset(fileName, url)
+    local getAsset = getcustomasset or getsynasset
+    if not getAsset then return url end
+    
+    local folderName = CONFIG.BgFolder
+    local subFolder = "Icons"
+    local fullPath = folderName .. "/" .. subFolder .. "/" .. fileName
+    
+    if isfile and not isfile(fullPath) then
+        pcall(function()
+            writefile(fullPath, game:HttpGet(url))
+        end)
+    end
+    
+    return getAsset(fullPath)
+end
+
+local CachedSearchIcon = GetLocalAsset("search_icon.png", "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/18458939117.png")
+
+-- [[ ======================================================= ]] --
+-- [[ BASE UI ELEMENTS AND DRAG INFRASTRUCTURE ]] --
+-- [[ ======================================================= ]] --
 makeDraggable(MainFrame)
 
 local NavSidePanel = Instance.new("Frame", MainFrame)
@@ -528,6 +608,99 @@ PageArea.Position = UDim2.new(0, 110, 0, 55)
 PageArea.BackgroundTransparency = 1
 PageArea.ZIndex = 3
 
+-- [[ ======================================================= ]] --
+-- [[ MODERN TOGGLEABLE SEARCH ENGINE CREATION ]] --
+-- [[ ======================================================= ]] --
+local SearchBtn = Instance.new("ImageButton", TopBar)
+SearchBtn.Name = "SearchTriggerButton"
+SearchBtn.Size = UDim2.new(0, 26, 0, 26)
+SearchBtn.Position = UDim2.new(1, -185, 0.5, -13)
+SearchBtn.BackgroundTransparency = 1
+SearchBtn.Image = CachedSearchIcon
+SearchBtn.ZIndex = 15
+
+local SearchContainer = Instance.new("Frame", MainFrame)
+SearchContainer.Name = "DropdownSearchPanel"
+SearchContainer.Size = UDim2.new(1, -125, 0, 36)
+SearchContainer.Position = UDim2.new(0, 115, 0, 15) -- Hidden behind/inside topbar at start
+SearchContainer.BackgroundColor3 = CONFIG.SearchBgColor
+SearchContainer.BackgroundTransparency = 1
+SearchContainer.Visible = false
+SearchContainer.ZIndex = 100 -- Places search securely above all standard page tabs
+
+local ContainerCorner = Instance.new("UICorner", SearchContainer)
+ContainerCorner.CornerRadius = UDim.new(0, 8)
+
+local SearchStroke = Instance.new("UIStroke", SearchContainer)
+SearchStroke.Thickness = 1.5
+SearchStroke.Color = Color3.fromRGB(0, 170, 255)
+SearchStroke.Transparency = 1
+
+local SearchBox = Instance.new("TextBox", SearchContainer)
+SearchBox.Size = UDim2.new(1, -20, 1, 0)
+SearchBox.Position = UDim2.new(0, 10, 0, 0)
+SearchBox.BackgroundTransparency = 1
+SearchBox.PlaceholderText = "Search features..."
+SearchBox.Text = ""
+SearchBox.TextColor3 = Color3.new(1, 1, 1)
+SearchBox.PlaceholderColor3 = Color3.fromRGB(160, 160, 160)
+SearchBox.Font = Enum.Font.GothamSemibold
+SearchBox.TextSize = 13
+SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+SearchBox.ZIndex = 101
+
+-- [[ ======================================================= ]] --
+-- [[ SEARCH BOX TWEEN INTERACTIONS & HOVER ANIMS ]] --
+-- [[ ======================================================= ]] --
+SearchBox.Focused:Connect(function() 
+    CreateTween(SearchStroke, {Color = Color3.fromRGB(96, 201, 211), Transparency = 0.1}, 0.2) 
+end)
+
+SearchBox.FocusLost:Connect(function() 
+    CreateTween(SearchStroke, {Color = Color3.fromRGB(0, 170, 255), Transparency = 0.4}, 0.2) 
+end)
+
+SearchBtn.MouseEnter:Connect(function()
+    CreateTween(SearchBtn, {ImageTransparency = 0.3}, 0.2)
+end)
+
+SearchBtn.MouseLeave:Connect(function()
+    CreateTween(SearchBtn, {ImageTransparency = 0}, 0.2)
+end)
+
+-- [[ ======================================================= ]] --
+-- [[ SEARCH TOGGLE MECHANISM (1-CLICK ACTIVATE/DEACTIVATE) ]] --
+-- [[ ======================================================= ]] --
+local isSearchActive = false
+
+local function TriggerSearchInterface(state)
+    isSearchActive = state
+    if isSearchActive then
+        SearchContainer.Visible = true
+        -- Slide down slightly below the TopBar and overlay everything cleanly
+        CreateTween(SearchContainer, {Position = UDim2.new(0, 115, 0, 60), BackgroundTransparency = 0.1}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        CreateTween(SearchStroke, {Transparency = 0.4}, 0.3)
+        SearchBox:CaptureFocus()
+    else
+        SearchBox:ReleaseFocus()
+        local ShrinkTween = CreateTween(SearchContainer, {Position = UDim2.new(0, 115, 0, 15), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        CreateTween(SearchStroke, {Transparency = 1}, 0.25)
+        
+        ShrinkTween.Completed:Connect(function()
+            if not isSearchActive then
+                SearchContainer.Visible = false
+            end
+        end)
+    end
+end
+
+SearchBtn.Activated:Connect(function()
+    TriggerSearchInterface(not isSearchActive)
+end)
+
+-- [[ ======================================================= ]] --
+-- [[ REALTIME TEXT FILTERING ENGINE ]] --
+-- [[ ======================================================= ]] --
 SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     local input = SearchBox.Text:lower()
     for _, tabFrame in pairs(PageArea:GetChildren()) do
@@ -966,16 +1139,16 @@ end)
             for _, u in ipairs(urls) do
                 pcall(function()
                     local d = game:HttpGet(u)
-                    if u:match("%.json") then
-                        for k, v in pairs(HttpService:JSONDecode(d)) do 
-                            extThemes[k] = Color3.fromRGB(v[1], v[2], v[3]) 
-                        end
-                    else
-                        local f = loadstring(d)
-                        if f then
-                            local r = f()
-                            if type(r) == "table" then 
-                                for k, v in pairs(r) do extThemes[k] = v end 
+                    if d then
+                        local decoded = HttpService:JSONDecode(d)
+                        if type(decoded) == "table" then
+                            for k, v in pairs(decoded) do 
+                                extThemes[k] = Color3.fromRGB(v[1], v[2], v[3]) 
+                            end
+                            
+                            local themePath = CONFIG.BgFolder .. "/Theme/theme.json"
+                            if writefile and isfile and not isfile(themePath) then
+                                writefile(themePath, d)
                             end
                         end
                     end
@@ -986,10 +1159,9 @@ end)
         local function BuildDrop(name, getOpts, cb)
             local open = false
             local itemHeight = 32
-            local maxDisplayItems = 2.5 -- Limit visible items to 2.5
+            local maxDisplayItems = 2.5
             local closedSize = UDim2.new(0.95, 0, 0, 35)
             
-            -- Main Container for Setting Dropdown
             local df = Instance.new("Frame", SettingPage)
             df.Name = "SettingDrop_" .. name
             df.Size = closedSize
@@ -998,7 +1170,6 @@ end)
             df.ZIndex = 20
             Instance.new("UICorner", df)
             
-            -- Header Button
             local mb = Instance.new("TextButton", df)
             mb.Name = "MainBtn"
             mb.Size = UDim2.new(1, 0, 0, 35)
@@ -1010,7 +1181,6 @@ end)
             mb.TextXAlignment = Enum.TextXAlignment.Left
             mb.ZIndex = 21
             
-            -- Animated Arrow for Setting
             local Arrow = Instance.new("TextLabel", mb)
             Arrow.Name = "Arrow"
             Arrow.Size = UDim2.new(0, 35, 0, 35)
@@ -1021,7 +1191,6 @@ end)
             Arrow.TextSize = 10
             Arrow.ZIndex = 22
 
-            -- Scrolling Area for Setting Options
             local DropScroll = Instance.new("ScrollingFrame", df)
             DropScroll.Name = "DropScroll"
             DropScroll.Size = UDim2.new(1, -4, 1, -40)
@@ -1031,13 +1200,12 @@ end)
             DropScroll.ScrollBarImageColor3 = CONFIG.NavBtnColor
             DropScroll.ZIndex = 21
             DropScroll.Visible = false
-            DropScroll.CanvasSize = UDim2.new(0, 0, 0, 0) -- Will update dynamically
+            DropScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 
             local list = Instance.new("UIListLayout", DropScroll)
             list.Padding = UDim.new(0, 2)
             list.SortOrder = Enum.SortOrder.LayoutOrder
 
-            -- Function to Clear and Rebuild Options
             local function RefreshOptions()
                 for _, child in pairs(DropScroll:GetChildren()) do
                     if child:IsA("TextButton") then child:Destroy() end
@@ -1073,7 +1241,6 @@ end)
                 open = not open
                 local currentOptsCount = RefreshOptions()
                 
-                -- Calculate target height based on item count
                 local displayCount = math.min(currentOptsCount, maxDisplayItems)
                 local targetHeight = open and (35 + (displayCount * itemHeight) + 10) or 35
                 local targetSize = UDim2.new(0.95, 0, 0, targetHeight)
@@ -1089,7 +1256,6 @@ end)
             end)
         end
 
-        -- Build Dropdowns with the new system
         BuildDrop("Theme", function()
             local t = {}
             for k, _ in pairs(extThemes) do table.insert(t, k) end
@@ -1104,12 +1270,17 @@ end)
 
         BuildDrop("Background", function()
             local t = {"None"}
-            if isfolder and isfolder(CONFIG.BgFolder) then
-                for _, f in pairs(listfiles(CONFIG.BgFolder)) do
-                    local n = f:sub(#CONFIG.BgFolder + 2)
+            local targetFolder = CONFIG.BgFolder .. "/BgAsset"
+            if isfolder and isfolder(targetFolder) then
+                local validExts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tga"}
+                for _, f in pairs(listfiles(targetFolder)) do
+                    local n = f:sub(#targetFolder + 2)
                     local ext = n:lower()
-                    if ext:match("%.png") or ext:match("%.jpg") or ext:match("%.jpeg") then 
-                        table.insert(t, n) 
+                    for _, valid in ipairs(validExts) do
+                        if ext:sub(-#valid) == valid then
+                            table.insert(t, n)
+                            break
+                        end
                     end
                 end
             end
@@ -1120,13 +1291,11 @@ end)
                 if DarkOverlay then DarkOverlay.Visible = false end
                 if MainFrame then MainFrame.BackgroundTransparency = 0 end
             else 
-                -- Assuming ApplyAutoBackground is accessible in scope
                 pcall(function() ApplyAutoBackground(s) end)
             end
         end)
     end
     
-    -- Final Execution of Render
     RenderSettings()
     
     TopSettingBtn.MouseButton1Click:Connect(function() 
