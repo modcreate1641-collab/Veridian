@@ -592,6 +592,92 @@ NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
 NavSidePanel.BackgroundTransparency = 0.2
 NavSidePanel.ZIndex = 2
 Instance.new("UICorner", NavSidePanel)
+-- [[ IN-GAME CODE EDITOR UI LAYER (NON-SCROLLING FIXED POSITION) ]] --
+local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
+EditorTriggerBtn.Name = "EditorOpenTriggerButton"
+EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 35)
+EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -39)
+EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
+EditorTriggerBtn.Text = "📝 CODE EDITOR"
+EditorTriggerBtn.TextColor3 = Color3.new(1, 1, 1)
+EditorTriggerBtn.Font = Enum.Font.GothamBold
+EditorTriggerBtn.TextSize = 11
+EditorTriggerBtn.ZIndex = 5
+Instance.new("UICorner", EditorTriggerBtn)
+
+local InGameEditorFrame = Instance.new("Frame", MainFrame)
+InGameEditorFrame.Name = "VeridianCoreCodeEditor"
+InGameEditorFrame.Size = UDim2.new(1, -125, 1, -65)
+InGameEditorFrame.Position = UDim2.new(0, 115, 0, 55)
+InGameEditorFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+InGameEditorFrame.Visible = false
+InGameEditorFrame.ZIndex = 50
+Instance.new("UICorner", InGameEditorFrame)
+
+local EditorStroke = Instance.new("UIStroke", InGameEditorFrame)
+EditorStroke.Thickness = 1.5
+EditorStroke.Color = CONFIG.NavBtnColor
+EditorStroke.ZIndex = 51
+
+local EditorTopBar = Instance.new("Frame", InGameEditorFrame)
+EditorTopBar.Size = UDim2.new(1, 0, 0, 32)
+EditorTopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+EditorTopBar.ZIndex = 52
+Instance.new("UICorner", EditorTopBar)
+
+local LocalSearchBox = Instance.new("TextBox", EditorTopBar)
+LocalSearchBox.Size = UDim2.new(0, 180, 1, -6)
+LocalSearchBox.Position = UDim2.new(0, 8, 0, 3)
+LocalSearchBox.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+LocalSearchBox.PlaceholderText = "🔍 Find line/code..."
+LocalSearchBox.Text = ""
+LocalSearchBox.TextColor3 = Color3.new(1, 1, 1)
+LocalSearchBox.Font = Enum.Font.GothamSemibold
+LocalSearchBox.TextSize = 12
+LocalSearchBox.TextXAlignment = Enum.TextXAlignment.Left
+LocalSearchBox.ZIndex = 53
+Instance.new("UICorner", LocalSearchBox)
+
+local CodeTextBox = Instance.new("TextBox", InGameEditorFrame)
+CodeTextBox.Size = UDim2.new(1, -16, 1, -44)
+CodeTextBox.Position = UDim2.new(0, 8, 0, 38)
+CodeTextBox.BackgroundTransparency = 1
+CodeTextBox.ClearTextOnFocus = false
+CodeTextBox.MultiLine = true
+CodeTextBox.Text = "-- Write or modify your custom Lua script here..."
+CodeTextBox.TextColor3 = Color3.fromRGB(220, 220, 225)
+CodeTextBox.Font = Enum.Font.Code
+CodeTextBox.TextSize = 13
+CodeTextBox.TextXAlignment = Enum.TextXAlignment.Left
+CodeTextBox.TextYAlignment = Enum.TextYAlignment.Top
+CodeTextBox.ZIndex = 53
+
+EditorTriggerBtn.Activated:Connect(function()
+    for _, page in pairs(PageArea:GetChildren()) do
+        if page:IsA("ScrollingFrame") or page:IsA("Frame") then page.Visible = false end
+    end
+    InGameEditorFrame.Visible = not InGameEditorFrame.Visible
+end)
+
+LocalSearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local searchPattern = LocalSearchBox.Text:lower()
+    if searchPattern == "" then CodeTextBox.TextSelectionStart = nil return end
+    
+    local textSource = CodeTextBox.Text:lower()
+    local startIdx, endIdx = textSource:find(searchPattern, 1, true)
+    if startIdx then
+        CodeTextBox:CaptureFocus()
+        CodeTextBox.CursorPosition = startIdx
+        CodeTextBox.SelectionStart = startIdx + #searchPattern
+    end
+end)
+
+local RawUpdateTheme = WindowAPI.UpdateTheme
+WindowAPI.UpdateTheme = function(self, newColor)
+    pcall(RawUpdateTheme, self, newColor)
+    if EditorStroke then EditorStroke.Color = newColor end
+    if EditorTriggerBtn then EditorTriggerBtn.BackgroundColor3 = newColor end
+end
 
 local NavArea = Instance.new("ScrollingFrame", NavSidePanel)
 NavArea.Size = UDim2.new(1, -4, 1, -4)
