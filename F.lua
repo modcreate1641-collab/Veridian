@@ -592,7 +592,7 @@ NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
 NavSidePanel.BackgroundTransparency = 0.2
 NavSidePanel.ZIndex = 2
 Instance.new("UICorner", NavSidePanel)
--- [[ IN-GAME CODE EDITOR UI LAYER (NON-SCROLLING FIXED POSITION) ]] --
+
 local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
 EditorTriggerBtn.Name = "EditorOpenTriggerButton"
 EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 35)
@@ -653,9 +653,11 @@ CodeTextBox.TextYAlignment = Enum.TextYAlignment.Top
 CodeTextBox.ZIndex = 53
 
 EditorTriggerBtn.Activated:Connect(function()
-    for _, page in pairs(PageArea:GetChildren()) do
-        if page:IsA("ScrollingFrame") or page:IsA("Frame") then page.Visible = false end
-    end
+    pcall(function()
+        for _, page in pairs(PageArea:GetChildren()) do
+            if page:IsA("ScrollingFrame") or page:IsA("Frame") then page.Visible = false end
+        end
+    end)
     InGameEditorFrame.Visible = not InGameEditorFrame.Visible
 end)
 
@@ -672,12 +674,14 @@ LocalSearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
-local RawUpdateTheme = WindowAPI.UpdateTheme
-WindowAPI.UpdateTheme = function(self, newColor)
-    pcall(RawUpdateTheme, self, newColor)
-    if EditorStroke then EditorStroke.Color = newColor end
-    if EditorTriggerBtn then EditorTriggerBtn.BackgroundColor3 = newColor end
-end
+pcall(function()
+    local RawUpdateTheme = WindowAPI.UpdateTheme
+    WindowAPI.UpdateTheme = function(self, newColor)
+        pcall(RawUpdateTheme, self, newColor)
+        if EditorStroke then EditorStroke.Color = newColor end
+        if EditorTriggerBtn then EditorTriggerBtn.BackgroundColor3 = newColor end
+    end
+end)
 
 local NavArea = Instance.new("ScrollingFrame", NavSidePanel)
 NavArea.Size = UDim2.new(1, -4, 1, -4)
