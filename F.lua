@@ -595,14 +595,14 @@ Instance.new("UICorner", NavSidePanel)
 
 local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
 EditorTriggerBtn.Name = "EditorOpenTriggerButton"
-EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 35)
+EditorTriggerBtn.Size = UDim2.new(1, -13, 0, 35)
 EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -39)
 EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
-EditorTriggerBtn.Text = "📝 CODE EDITOR"
+EditorTriggerBtn.Text = "CODE EDITOR"
 EditorTriggerBtn.TextColor3 = Color3.new(1, 1, 1)
 EditorTriggerBtn.Font = Enum.Font.GothamBold
 EditorTriggerBtn.TextSize = 11
-EditorTriggerBtn.ZIndex = 5
+EditorTriggerBtn.ZIndex = 20
 Instance.new("UICorner", EditorTriggerBtn)
 
 local InGameEditorFrame = Instance.new("Frame", MainFrame)
