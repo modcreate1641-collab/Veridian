@@ -594,15 +594,14 @@ NavSidePanel.ZIndex = 2
 Instance.new("UICorner", NavSidePanel)
 
 local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
-EditorTriggerBtn.Name = "EditorOpenTriggerButton"
-EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 45)
+EditorTriggerBtn.Name = "EditorOpenTriggerButton"EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 55)
 EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -39)
 EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
 EditorTriggerBtn.Text = "CODE EDITOR"
 EditorTriggerBtn.TextColor3 = Color3.new(1, 1, 1)
 EditorTriggerBtn.Font = Enum.Font.GothamBold
 EditorTriggerBtn.TextSize = 11
-EditorTriggerBtn.ZIndex = 20
+EditorTriggerBtn.ZIndex = 5
 Instance.new("UICorner", EditorTriggerBtn)
 
 local InGameEditorFrame = Instance.new("Frame", MainFrame)
@@ -629,7 +628,7 @@ local LocalSearchBox = Instance.new("TextBox", EditorTopBar)
 LocalSearchBox.Size = UDim2.new(0, 180, 1, -6)
 LocalSearchBox.Position = UDim2.new(0, 8, 0, 3)
 LocalSearchBox.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-LocalSearchBox.PlaceholderText = "🔍 Find line (Press Enter)"
+LocalSearchBox.PlaceholderText = "Find line (Press Enter)"
 LocalSearchBox.Text = ""
 LocalSearchBox.TextColor3 = Color3.new(1, 1, 1)
 LocalSearchBox.Font = Enum.Font.GothamSemibold
@@ -644,7 +643,7 @@ CodeTextBox.Position = UDim2.new(0, 8, 0, 38)
 CodeTextBox.BackgroundTransparency = 1
 CodeTextBox.ClearTextOnFocus = false
 CodeTextBox.MultiLine = true
-CodeTextBox.Text = "-- Write or modify your custom Lua script here..."
+CodeTextBox.Text = "hello world"
 CodeTextBox.TextColor3 = Color3.fromRGB(220, 220, 225)
 CodeTextBox.Font = Enum.Font.Code
 CodeTextBox.TextSize = 13
