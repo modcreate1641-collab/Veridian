@@ -595,7 +595,7 @@ Instance.new("UICorner", NavSidePanel)
 
 local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
 EditorTriggerBtn.Name = "EditorOpenTriggerButton"
-EditorTriggerBtn.Size = UDim2.new(1, -13, 0, 35)
+EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 45)
 EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -39)
 EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
 EditorTriggerBtn.Text = "CODE EDITOR"
