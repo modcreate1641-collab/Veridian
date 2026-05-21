@@ -32,7 +32,7 @@ local bgName = targetFolder .. "/Cool background.png"
 local bgUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
 
 local logoName = targetFolder .. "/furryLogo.png"
-local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/1000109193-01.jpeg"
+local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg"
 
 pcall(function()
     if isfolder and not isfolder(baseFolder) then 
@@ -599,8 +599,19 @@ NavArea.Position = UDim2.new(0, 2, 0, 2)
 NavArea.BackgroundTransparency = 1
 NavArea.ZIndex = 3
 NavArea.ScrollBarThickness = 0
-NavArea.AutomaticCanvasSize = "Y"
-Instance.new("UIListLayout", NavArea).Padding = UDim.new(0, 5)
+NavArea.CanvasSize = UDim2.new(0, 0, 0, 0)
+NavArea.AutomaticCanvasSize = Enum.AutomaticSize.Y
+NavArea.ClipsDescendants = true
+
+local NavLayout = Instance.new("UIListLayout", NavArea)
+NavLayout.Padding = UDim.new(0, 5)
+NavLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+NavLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+NavLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    NavArea.CanvasSize = UDim2.new(0, 0, 0, NavLayout.AbsoluteContentSize.Y)
+end)
+
 
 local PageArea = Instance.new("Frame", MainFrame)
 PageArea.Size = UDim2.new(1, -115, 1, -55)
