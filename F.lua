@@ -629,7 +629,7 @@ local LocalSearchBox = Instance.new("TextBox", EditorTopBar)
 LocalSearchBox.Size = UDim2.new(0, 180, 1, -6)
 LocalSearchBox.Position = UDim2.new(0, 8, 0, 3)
 LocalSearchBox.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-LocalSearchBox.PlaceholderText = "🔍 Find line/code..."
+LocalSearchBox.PlaceholderText = "🔍 Find line (Press Enter)"
 LocalSearchBox.Text = ""
 LocalSearchBox.TextColor3 = Color3.new(1, 1, 1)
 LocalSearchBox.Font = Enum.Font.GothamSemibold
@@ -653,24 +653,30 @@ CodeTextBox.TextYAlignment = Enum.TextYAlignment.Top
 CodeTextBox.ZIndex = 53
 
 EditorTriggerBtn.Activated:Connect(function()
+    local targetState = not InGameEditorFrame.Visible
+    InGameEditorFrame.Visible = targetState
     pcall(function()
-        for _, page in pairs(PageArea:GetChildren()) do
-            if page:IsA("ScrollingFrame") or page:IsA("Frame") then page.Visible = false end
+        if PageArea then
+            PageArea.Visible = not targetState
         end
     end)
-    InGameEditorFrame.Visible = not InGameEditorFrame.Visible
 end)
 
-LocalSearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-    local searchPattern = LocalSearchBox.Text:lower()
-    if searchPattern == "" then CodeTextBox.TextSelectionStart = nil return end
-    
-    local textSource = CodeTextBox.Text:lower()
-    local startIdx, endIdx = textSource:find(searchPattern, 1, true)
-    if startIdx then
-        CodeTextBox:CaptureFocus()
-        CodeTextBox.CursorPosition = startIdx
-        CodeTextBox.SelectionStart = startIdx + #searchPattern
+LocalSearchBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local searchPattern = LocalSearchBox.Text:lower()
+        if searchPattern == "" then 
+            CodeTextBox.CursorPosition = 1
+            CodeTextBox.SelectionStart = 1
+            return 
+        end
+        local textSource = CodeTextBox.Text:lower()
+        local startIdx = textSource:find(searchPattern, 1, true)
+        if startIdx then
+            CodeTextBox:CaptureFocus()
+            CodeTextBox.CursorPosition = startIdx + #searchPattern
+            CodeTextBox.SelectionStart = startIdx
+        end
     end
 end)
 
