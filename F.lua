@@ -27,6 +27,7 @@ end)
 
 local baseFolder = CONFIG.BgFolder
 local targetFolder = baseFolder .. "/BgAsset"
+local iconFolder = baseFolder .. "/Icons" -- สร้างพาร์ทโฟลเดอร์สำหรับเก็บไอคอนโดยเฉพาะ
 
 local bgName = targetFolder .. "/Cool background.png"
 local bgUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
@@ -34,15 +35,24 @@ local bgUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/r
 local logoName = targetFolder .. "/furryLogo.png"
 local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg"
 
+-- รวมลิสต์ไอคอนของมึง แยกชื่อไฟล์กับ URL เป็นคู่ๆ จะได้วน Loop ดาวน์โหลดง่ายๆ
+local iconAssets = {
+    { name = "setting icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/setting%20icon.png" },
+    { name = "scripthub icon.jpeg", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/scripthub%20icon.jpeg" },
+    { name = "script icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/script%20icon.png" },
+    { name = "furry icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/furry%20icon.png" },
+    { name = "aim icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/aim%20icon.png" },
+    { name = "destroy icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/destroy%20icon.png" },
+    { name = "auto.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/auto.png" }
+}
+
 pcall(function()
-    if isfolder and not isfolder(baseFolder) then 
-        makefolder(baseFolder) 
-    end
+    -- เช็คและสร้างโฟลเดอร์หลัก
+    if isfolder and not isfolder(baseFolder) then makefolder(baseFolder) end
+    if isfolder and not isfolder(targetFolder) then makefolder(targetFolder) end
+    if isfolder and not isfolder(iconFolder) then makefolder(iconFolder) end -- สร้างโฟลเดอร์ Icons ตัวนี้แหละ
     
-    if isfolder and not isfolder(targetFolder) then 
-        makefolder(targetFolder) 
-    end
-    
+    -- โหลดพื้นหลัง (แบบเดิมของมึง)
     if isfile and not isfile(bgName) then
         local content = game:HttpGet(bgUrl)
         if writefile and type(content) == "string" and #content > 5000 then
@@ -50,10 +60,23 @@ pcall(function()
         end
     end
     
+    -- โหลดโลโก้ (แบบเดิมของมึง)
     if isfile and not isfile(logoName) then
         local content = game:HttpGet(logoUrl)
-        if writefile and type(content) == "string" and #content > 5000 then
+        if writefile and type(content) == "string" and #content > 1000 then
             writefile(logoName, content)
+        end
+    end
+    
+    -- ระบบดาวน์โหลดไอคอนแบบอัตโนมัติ (ขี้เกียจเขียนทีละบรรทัดก็จัดลูปไปดิ)
+    for _, icon in ipairs(iconAssets) do
+        local fullPath = iconFolder .. "/" .. icon.name
+        if isfile and not isfile(fullPath) then
+            local content = game:HttpGet(icon.url)
+            -- ไอคอนขนาดเล็ก เช็คขนาดแค่มากกว่า 500 ไบต์ก็พอให้ชัวร์ว่าไฟล์ไม่พัง
+            if writefile and type(content) == "string" and #content > 500 then
+                writefile(fullPath, content)
+            end
         end
     end
 end)
@@ -321,15 +344,38 @@ ContainerStroke.Color = CONFIG.NavBtnColor
 ContainerStroke.Transparency = 0.4
 
 local ToggleBtn = Instance.new("TextButton", ToggleContainer)
+ToggleBtn.Name = "ToggleButton"
 ToggleBtn.Size = UDim2.new(0, 95, 1, 0)
 ToggleBtn.Position = UDim2.new(0, 0, 0, 0)
 ToggleBtn.BackgroundTransparency = 1
-ToggleBtn.Text = "🐾 On/Off"
-ToggleBtn.TextColor3 = Color3.fromRGB(245, 245, 245)
-ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 12
+ToggleBtn.Text = "" -- ลบอีโมจิอุ้งเท้าออก เซตเป็นค่าว่างซะ
+ToggleBtn.Active = true
 ToggleBtn.ZIndex = 1000
 
+-- ยัดไอคอนขนฟู (Furry Icon) ไว้ฝั่งซ้ายของปุ่ม
+local ToggleIcon = Instance.new("ImageLabel", ToggleBtn)
+ToggleIcon.Name = "ToggleIcon"
+ToggleIcon.Size = UDim2.new(0, 18, 0, 18) -- ขนาด 18x18 กำลังน่ารักไม่แย่งซีนข้อความ
+ToggleIcon.Position = UDim2.new(0, 10, 0.5, -9) -- ชิดซ้ายเว้นจากขอบเข้ามา 10 พิกเซล
+ToggleIcon.BackgroundTransparency = 1
+ToggleIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/furry icon.png") -- ดึงไฟล์ไอคอนเฟี้ยวๆ มาแปะ
+ToggleIcon.ZIndex = 1001
+
+-- สร้าง TextLabel แยกต่างหากเพื่อจัดระเบียบตัวหนังสือ "On/Off"
+local ToggleText = Instance.new("TextLabel", ToggleBtn)
+ToggleText.Name = "ToggleText"
+-- ขนาดให้กินพื้นที่ที่เหลือ โดยลบระยะของไอคอนออกไป
+ToggleText.Size = UDim2.new(1, -35, 1, 0) 
+ToggleText.Position = UDim2.new(0, 34, 0, 0) -- ขยับมาทางขวาเพื่อหลบให้ไอคอน
+ToggleText.BackgroundTransparency = 1
+ToggleText.Text = "On/Off"
+ToggleText.TextColor3 = Color3.fromRGB(245, 245, 245)
+ToggleText.Font = Enum.Font.GothamBold
+ToggleText.TextSize = 12
+ToggleText.TextXAlignment = Enum.TextXAlignment.Left -- จัดข้อความชิดซ้ายเรียงต่อจากไอคอนแบบเนียนๆ
+ToggleText.ZIndex = 1001
+
+-- เส้นคั่น (Divider) ของเดิมมึง เอามาวางหล่อๆ เหมือนเดิม
 local Divider = Instance.new("Frame", ToggleContainer)
 Divider.Size = UDim2.new(0, 1, 0, 20)
 Divider.Position = UDim2.new(0, 96, 0.5, -10)
@@ -470,13 +516,14 @@ HubLabel.TextXAlignment = Enum.TextXAlignment.Left
 HubLabel.TextYAlignment = Enum.TextYAlignment.Center
 HubLabel.ZIndex = 11
 
+-- สร้างปุ่มหลัก (ซ่อน Text ไว้ก่อน)
 local ClosedBtn = Instance.new("TextButton", TopBar)
 ClosedBtn.Name = "HubDestroyButton"
 ClosedBtn.Size = UDim2.new(0, 80, 1, 0)
 ClosedBtn.Position = UDim2.new(1, -80, 0, 0)
 ClosedBtn.BackgroundColor3 = Color3.fromRGB(129, 129, 129)
 ClosedBtn.BackgroundTransparency = 0.9
-ClosedBtn.Text = "💥 Destroy"
+ClosedBtn.Text = "" -- เริ่มต้นเป็นค่าว่างตามที่มึงอยากได้
 ClosedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ClosedBtn.Font = Enum.Font.GothamBold
 ClosedBtn.TextSize = 12
@@ -484,6 +531,24 @@ ClosedBtn.Active = true
 ClosedBtn.ZIndex = 12 
 Instance.new("UICorner", ClosedBtn)
 
+-- ยัดไอคอนเข้าไปข้างในปุ่มโดยใช้ getcustomasset
+local BtnIcon = Instance.new("ImageLabel", ClosedBtn)
+BtnIcon.Name = "DestroyIcon"
+BtnIcon.Size = UDim2.new(0, 20, 0, 20) -- ปรับขนาดไอคอนตามใจชอบ
+BtnIcon.Position = UDim2.new(0.5, -10, 0.5, -10) -- จัดให้อยู่ตรงกลางเป๊ะ
+BtnIcon.BackgroundTransparency = 1
+BtnIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/destroy icon.png") -- ดึงไฟล์ไอคอนที่โหลดมา
+BtnIcon.ZIndex = 13
+
+-- ฟังก์ชันคลีนๆ เอาไว้รีเซ็ตปุ่มกลับเป็นสถานะไอคอนเริ่มต้น (ลบโค้ดซ้ำซาก)
+local function resetBtn()
+    destroyStage = 0
+    ClosedBtn.Text = ""
+    BtnIcon.Visible = true -- โชว์ไอคอนกลับมา
+    CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2)
+end
+
+-- ระบบ Hover เมาส์
 ClosedBtn.MouseEnter:Connect(function() 
     if destroyStage == 0 then
         CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(180, 50, 50)}, 0.2) 
@@ -496,18 +561,17 @@ ClosedBtn.MouseLeave:Connect(function()
     end
 end)
 
+-- ระบบคลิกยืนยัน 3 สเต็ป
 ClosedBtn.Activated:Connect(function() 
     destroyStage = destroyStage + 1
+    BtnIcon.Visible = false -- กดปุ๊บซ่อนไอคอน เพื่อหลีกทางให้ตัวหนังสือเตือน
+    
     if destroyStage == 1 then
         ClosedBtn.Text = "⚠️ Sure? (1/2)"
         CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(210, 100, 40)}, 0.1)
         
         task.delay(3, function()
-            if destroyStage == 1 then
-                destroyStage = 0
-                ClosedBtn.Text = "💥 Destroy"
-                CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
-            end
+            if destroyStage == 1 then resetBtn() end
         end)
         
     elseif destroyStage == 2 then
@@ -515,11 +579,7 @@ ClosedBtn.Activated:Connect(function()
         CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(230, 40, 40)}, 0.1)
         
         task.delay(3, function()
-            if destroyStage == 2 then
-                destroyStage = 0
-                ClosedBtn.Text = "💥 Destroy"
-                CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
-            end
+            if destroyStage == 2 then resetBtn() end
         end)
         
     elseif destroyStage >= 3 then
@@ -534,16 +594,22 @@ TopSettingBtn.Name = "TopSettingsNavigationButton"
 TopSettingBtn.Size = UDim2.new(0, 60, 1, 0)
 TopSettingBtn.Position = UDim2.new(1, -146, 0, 0)
 TopSettingBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
-TopSettingBtn.Text = "⚙️"
-TopSettingBtn.TextColor3 = Color3.new(1, 1, 1)
 TopSettingBtn.BackgroundTransparency = 0.9
-TopSettingBtn.TextSize = 14
-TopSettingBtn.Font = Enum.Font.GothamBold
-TopSettingBtn.ZIndex = 12 -- FIXED: Lifted up from layer 1 to layer 12 to prevent drowning behind background elements
+TopSettingBtn.Text = "" -- ลบอีโมจิส้นตีนนั่นออกไป เซตเป็นค่าว่างซะ
 TopSettingBtn.Active = true
+TopSettingBtn.ZIndex = 12 
 
 local SettingBtnCorner = Instance.new("UICorner", TopSettingBtn)
 SettingBtnCorner.CornerRadius = UDim.new(0, 8)
+
+-- ยัดไอคอนตั้งค่าเข้าไปข้างใน และปรับให้ใหญ่ขึ้นตามคำขอ (24x24 พิกเซล)
+local SettingIcon = Instance.new("ImageLabel", TopSettingBtn)
+SettingIcon.Name = "SettingIcon"
+SettingIcon.Size = UDim2.new(0, 24, 0, 24) -- ขยายขนาดให้ใหญ่สะใจขึ้น
+SettingIcon.Position = UDim2.new(0.5, -12, 0.5, -12) -- สูตรคำนวณจัดกึ่งกลางเป๊ะ (ขนาดหารสองแล้วติดลบ)
+SettingIcon.BackgroundTransparency = 1
+SettingIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/setting icon.png") -- ดึงไฟล์ไอคอนตั้งค่ามาใช้
+SettingIcon.ZIndex = 13
 
 -- [[ SETTINGS BUTTON HOVER INTERACTION LOOPS ]] --
 TopSettingBtn.MouseEnter:Connect(function() 
@@ -586,15 +652,15 @@ local CachedSearchIcon = GetLocalAsset("search_icon.png", "https://raw.githubuse
 makeDraggable(MainFrame)
 
 local NavSidePanel = Instance.new("Frame", MainFrame)
-NavSidePanel.Size = UDim2.new(0, 105, 1, -55)
+NavSidePanel.Size = UDim2.new(0, 155, 1, -55)
 NavSidePanel.Position = UDim2.new(0, 3, 0, 55)
 NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
-NavSidePanel.BackgroundTransparency = 0.2
+NavSidePanel.BackgroundTransparency = 0.3
 NavSidePanel.ZIndex = 2
 Instance.new("UICorner", NavSidePanel)
 
 local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
-EditorTriggerBtn.Name = "EditorOpenTriggerButton"EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 35)
+EditorTriggerBtn.Name = "EditorOpenTriggerButton"EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 55)
 EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -39)
 EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
 EditorTriggerBtn.Text = "CODE EDITOR"
