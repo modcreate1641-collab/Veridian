@@ -693,10 +693,11 @@ local CachedSearchIcon = GetLocalAsset("search_icon.png", "https://raw.githubuse
 makeDraggable(MainFrame)
 
 local NavSidePanel = Instance.new("Frame", MainFrame)
+NavSidePanel.Name = "NavSidePanel" -- ใส่ชื่อไว้หน่อยเวลาเช็คใน UpdateTheme จะได้ชัวร์
 NavSidePanel.Size = UDim2.new(0, 105, 1, -55)
 NavSidePanel.Position = UDim2.new(0, 3, 0, 55)
 NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
-NavSidePanel.BackgroundTransparency = 0.3
+NavSidePanel.BackgroundTransparency = 0.3 -- ค่าเริ่มต้นตอนเปิด
 NavSidePanel.ZIndex = 2
 Instance.new("UICorner", NavSidePanel)
 
@@ -951,19 +952,21 @@ end)
 
 function WindowAPI:UpdateTheme(newColor)
     -- [[ 1. Color Processing (Deepening Effect) ]]
-    -- Mix the theme color with deep space dark to make it look "Complex"
     local BaseDark = Color3.fromRGB(15, 15, 20)
     local MutedColor = newColor:lerp(BaseDark, 0.45) 
-    local DeepOverlay = MutedColor:lerp(BaseDark, 0.8) -- Super dark tone for backgrounds
-    local HighlightColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.3) -- Subtle light for text/icons
+    local DeepOverlay = MutedColor:lerp(BaseDark, 0.8) -- โทนมืดสุดสำหรับพวก Background
+    local HighlightColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.3) 
     
+    -- ตั้งค่าความโปร่งใสที่มึงอยากให้เท่ากันเป๊ะตรงนี้ (ปรับเลขนี้จุดเดียว เปลี่ยนทั้ง UI)
+    local GlobalTransparency = 0.3 
+
     CONFIG.NavBtnColor = MutedColor
     CONFIG.HoverColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.15)
-
-    -- Update config dynamically to prevent color snapping on FocusLost
     CONFIG.SearchBgColor = DeepOverlay 
+    -- อัปเดต CONFIG ตัวนี้อัตโนมัติ ให้สี Panel แมตช์กับธีมใหม่
+    CONFIG.NavPanelColor = DeepOverlay:lerp(BaseDark, 0.2) 
 
-    -- [[ 2. Top Bar & Global Controls ]]
+    -- [[ 2. Top Bar, Global Controls & Side Panel ]]
     if HubLabel then CreateTween(HubLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.3) end
     if ToggleBtn then CreateTween(ToggleBtn, {BackgroundColor3 = MutedColor}, 0.3) end
     if SearchBox then 
@@ -972,38 +975,45 @@ function WindowAPI:UpdateTheme(newColor)
     if TopSettingBtn then CreateTween(TopSettingBtn, {TextColor3 = HighlightColor}, 0.3) end
     if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.5) end
 
+    -- ยัดไอ้แผงข้างเจ้าปัญหาเข้ามาในนี้ซะ! เวลาเปลี่ยนธีม มันจะได้ไม่ยืนงง
+    if NavSidePanel then 
+        CreateTween(NavSidePanel, {
+            BackgroundColor3 = CONFIG.NavPanelColor,
+            BackgroundTransparency = GlobalTransparency -- เท่ากันเป๊ะตามที่มึงสั่ง
+        }, 0.3)
+    end
+
     -- [[ 3. Navigation Buttons (Left Panel) ]]
     for _, btn in pairs(NavArea:GetChildren()) do
         if btn:IsA("TextButton") then
             CreateTween(btn, {
                 BackgroundColor3 = MutedColor,
+                BackgroundTransparency = GlobalTransparency, -- ให้ปุ่มโปร่งใสเท่าแผงข้างด้วย
                 TextColor3 = Color3.fromRGB(220, 220, 220)
             }, 0.3)
-            -- Check for optional UICorner or UIStroke inside Nav Buttons
             local st = btn:FindFirstChildOfClass("UIStroke")
             if st then CreateTween(st, {Color = HighlightColor:lerp(BaseDark, 0.5)}, 0.3) end
         end
     end
 
     -- [[ 4. Tab Content Deep-Sync (The "Global Overwrite") ]]
-    -- This loop looks inside all Tab Pages and adjusts the elements dynamically
     for _, tab in pairs(PageArea:GetChildren()) do
         if tab:IsA("ScrollingFrame") or tab:IsA("Frame") then
             for _, item in pairs(tab:GetChildren()) do
-                -- Buttons inside tabs (Toggle, Normal Button, etc.)
                 if item:IsA("TextButton") then
-                    -- If it's a Toggle, we usually handle it in its own logic, 
-                    -- but we can darken its base here if needed.
-                    if not item:FindFirstChild("IsToggle") then -- Custom check if you add tags
-                        CreateTween(item, {BackgroundColor3 = DeepOverlay:lerp(MutedColor, 0.2)}, 0.3)
+                    if not item:FindFirstChild("IsToggle") then 
+                        CreateTween(item, {
+                            BackgroundColor3 = DeepOverlay:lerp(MutedColor, 0.2),
+                            BackgroundTransparency = GlobalTransparency
+                        }, 0.3)
                     end
-                -- Slider background or other Containers
                 elseif item:IsA("Frame") then
-                    CreateTween(item, {BackgroundColor3 = DeepOverlay}, 0.3)
-                    -- Adjust Slider Fill or Inner Elements
-                    local fill = item:FindFirstChild("Fill", true) -- Recursive search for Fill
+                    CreateTween(item, {
+                        BackgroundColor3 = DeepOverlay,
+                        BackgroundTransparency = GlobalTransparency
+                    }, 0.3)
+                    local fill = item:FindFirstChild("Fill", true) 
                     if fill then CreateTween(fill, {BackgroundColor3 = MutedColor}, 0.3) end
-                -- TextLabels inside tabs
                 elseif item:IsA("TextLabel") then
                     CreateTween(item, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.3)
                 end
@@ -1013,7 +1023,6 @@ function WindowAPI:UpdateTheme(newColor)
     
     -- [[ 5. Visual Polish (Darkened Canvas) ]]
     if MainFrame then
-        -- Add a subtle tint to the whole frame for the Galaxy feel
         CreateTween(MainFrame, {GroupColor3 = Color3.fromRGB(230, 230, 245)}, 0.5)
     end
 end
