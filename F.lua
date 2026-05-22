@@ -36,13 +36,13 @@ local logoName = targetFolder .. "/furryLogo.png"
 local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg"
 
 local iconAssets = {
-    { name = "setting icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/setting%20icon.png" },
-    { name = "scripthub icon.jpeg", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/scripthub%20icon.jpeg" },
-    { name = "script icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/script%20icon.png" },
-    { name = "furry icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/furry%20icon.png" },
-    { name = "aim icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/aim%20icon.png" },
-    { name = "destroy icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/destroy%20icon.png" },
-    { name = "auto.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/auto.png" }
+    { name = "setting icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/setting%20icon.png" },
+    { name = "scripthub icon.jpeg", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/scripthub%20icon.jpeg" },
+    { name = "script icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/script%20icon.png" },
+    { name = "furry icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/furry%20icon.png" },
+    { name = "aim icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/aim%20icon.png" },
+    { name = "destroy icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/destroy%20icon.png" },
+    { name = "auto.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/auto.png" }
 }
 
 -- เปลี่ยนมารับค่า success กับ err จะได้รู้ว่า pcall มันพังไหม
