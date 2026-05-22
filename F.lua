@@ -27,7 +27,7 @@ end)
 
 local baseFolder = CONFIG.BgFolder
 local targetFolder = baseFolder .. "/BgAsset"
-local iconFolder = baseFolder .. "/Icons" -- สร้างพาร์ทโฟลเดอร์สำหรับเก็บไอคอนโดยเฉพาะ
+local iconFolder = baseFolder .. "/Icons"
 
 local bgName = targetFolder .. "/Cool background.png"
 local bgUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
@@ -35,7 +35,6 @@ local bgUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/r
 local logoName = targetFolder .. "/furryLogo.png"
 local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg"
 
--- รวมลิสต์ไอคอนของมึง แยกชื่อไฟล์กับ URL เป็นคู่ๆ จะได้วน Loop ดาวน์โหลดง่ายๆ
 local iconAssets = {
     { name = "setting icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/setting%20icon.png" },
     { name = "scripthub icon.jpeg", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/scripthub%20icon.jpeg" },
@@ -46,40 +45,46 @@ local iconAssets = {
     { name = "auto.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/veridian-hub/refs/heads/main/auto.png" }
 }
 
-pcall(function()
-    -- เช็คและสร้างโฟลเดอร์หลัก
+-- เปลี่ยนมารับค่า success กับ err จะได้รู้ว่า pcall มันพังไหม
+local success, err = pcall(function()
     if isfolder and not isfolder(baseFolder) then makefolder(baseFolder) end
     if isfolder and not isfolder(targetFolder) then makefolder(targetFolder) end
-    if isfolder and not isfolder(iconFolder) then makefolder(iconFolder) end -- สร้างโฟลเดอร์ Icons ตัวนี้แหละ
+    if isfolder and not isfolder(iconFolder) then makefolder(iconFolder) end 
     
-    -- โหลดพื้นหลัง (แบบเดิมของมึง)
+    -- โหลด Background
     if isfile and not isfile(bgName) then
         local content = game:HttpGet(bgUrl)
-        if writefile and type(content) == "string" and #content > 5000 then
-            writefile(bgName, content)
-        end
+        if writefile and type(content) == "string" then writefile(bgName, content) end
     end
     
-    -- โหลดโลโก้ (แบบเดิมของมึง)
+    -- โหลด Logo
     if isfile and not isfile(logoName) then
         local content = game:HttpGet(logoUrl)
-        if writefile and type(content) == "string" and #content > 1000 then
-            writefile(logoName, content)
-        end
+        if writefile and type(content) == "string" then writefile(logoName, content) end
     end
     
-    -- ระบบดาวน์โหลดไอคอนแบบอัตโนมัติ (ขี้เกียจเขียนทีละบรรทัดก็จัดลูปไปดิ)
+    -- โหลด Icons แบบจับผิด
     for _, icon in ipairs(iconAssets) do
         local fullPath = iconFolder .. "/" .. icon.name
         if isfile and not isfile(fullPath) then
             local content = game:HttpGet(icon.url)
-            -- ไอคอนขนาดเล็ก เช็คขนาดแค่มากกว่า 500 ไบต์ก็พอให้ชัวร์ว่าไฟล์ไม่พัง
-            if writefile and type(content) == "string" and #content > 500 then
+            
+            -- เช็คเลยว่า GitHub คืนค่าเป็นหน้า 404 หรือเปล่า
+            if string.find(content, "404: Not Found") then
+                warn("❌ ไอ้เวรเอ้ย! ลิงก์รูปนี้ 404 หาไม่เจอ: " .. icon.name)
+            elseif writefile and type(content) == "string" then
                 writefile(fullPath, content)
+                print("✅ โหลดไอคอนสำเร็จ: " .. icon.name)
             end
         end
     end
 end)
+
+-- ถ้าโค้ดพังตั้งแต่ตอนรัน มันจะด่าตรงนี้
+if not success then
+    warn("🔥 ระบบโหลดไฟล์พังยับ: ", err)
+end
+
 
 local function CreateTween(instance, properties, time, style, direction)
     local info = TweenService:Create(instance, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quad, direction or Enum.EasingDirection.Out), properties)
