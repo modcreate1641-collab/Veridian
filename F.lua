@@ -693,7 +693,7 @@ local CachedSearchIcon = GetLocalAsset("search_icon.png", "https://raw.githubuse
 makeDraggable(MainFrame)
 
 local NavSidePanel = Instance.new("Frame", MainFrame)
-NavSidePanel.Size = UDim2.new(0, 105, 1, -55)
+NavSidePanel.Size = UDim2.new(1, -4, 1, -4)
 NavSidePanel.Position = UDim2.new(0, 3, 0, 55)
 NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
 NavSidePanel.BackgroundTransparency = 0.3
