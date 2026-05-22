@@ -697,7 +697,7 @@ NavSidePanel.Name = "NavSidePanel" -- ใส่ชื่อไว้หน่อ
 NavSidePanel.Size = UDim2.new(0, 105, 1, -55)
 NavSidePanel.Position = UDim2.new(0, 3, 0, 55)
 NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
-NavSidePanel.BackgroundTransparency = 0.3 -- ค่าเริ่มต้นตอนเปิด
+NavSidePanel.BackgroundTransparency = 0.5 -- ค่าเริ่มต้นตอนเปิด
 NavSidePanel.ZIndex = 2
 Instance.new("UICorner", NavSidePanel)
 
@@ -953,7 +953,7 @@ end)
 function WindowAPI:UpdateTheme(newColor)
     -- [[ 1. Color Processing (Deepening Effect) ]]
     local BaseDark = Color3.fromRGB(15, 15, 20)
-    local MutedColor = newColor:lerp(BaseDark, 0.45) 
+    local MutedColor = newColor:lerp(BaseDark, 0.7) 
     local DeepOverlay = MutedColor:lerp(BaseDark, 0.8) -- โทนมืดสุดสำหรับพวก Background
     local HighlightColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.3) 
     
@@ -970,17 +970,17 @@ function WindowAPI:UpdateTheme(newColor)
     if HubLabel then CreateTween(HubLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.3) end
     if ToggleBtn then CreateTween(ToggleBtn, {BackgroundColor3 = MutedColor}, 0.3) end
     if SearchBox then 
-        CreateTween(SearchBox, {BackgroundColor3 = DeepOverlay, TextColor3 = Color3.new(0.9, 0.9, 0.9)}, 0.3) 
+        CreateTween(SearchBox, {BackgroundColor3 = DeepOverlay, TextColor3 = Color3.new(0.9, 0.9, 0.9)}, 0.5) 
     end
     if TopSettingBtn then CreateTween(TopSettingBtn, {TextColor3 = HighlightColor}, 0.3) end
-    if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.5) end
+    if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.3) end
 
     -- ยัดไอ้แผงข้างเจ้าปัญหาเข้ามาในนี้ซะ! เวลาเปลี่ยนธีม มันจะได้ไม่ยืนงง
     if NavSidePanel then 
         CreateTween(NavSidePanel, {
             BackgroundColor3 = CONFIG.NavPanelColor,
             BackgroundTransparency = GlobalTransparency -- เท่ากันเป๊ะตามที่มึงสั่ง
-        }, 0.3)
+        }, 0.5)
     end
 
     -- [[ 3. Navigation Buttons (Left Panel) ]]
@@ -990,7 +990,7 @@ function WindowAPI:UpdateTheme(newColor)
                 BackgroundColor3 = MutedColor,
                 BackgroundTransparency = GlobalTransparency, -- ให้ปุ่มโปร่งใสเท่าแผงข้างด้วย
                 TextColor3 = Color3.fromRGB(220, 220, 220)
-            }, 0.3)
+            }, 0.5)
             local st = btn:FindFirstChildOfClass("UIStroke")
             if st then CreateTween(st, {Color = HighlightColor:lerp(BaseDark, 0.5)}, 0.3) end
         end
@@ -1005,7 +1005,7 @@ function WindowAPI:UpdateTheme(newColor)
                         CreateTween(item, {
                             BackgroundColor3 = DeepOverlay:lerp(MutedColor, 0.2),
                             BackgroundTransparency = GlobalTransparency
-                        }, 0.3)
+                        }, 0.5)
                     end
                 elseif item:IsA("Frame") then
                     CreateTween(item, {
@@ -1015,7 +1015,7 @@ function WindowAPI:UpdateTheme(newColor)
                     local fill = item:FindFirstChild("Fill", true) 
                     if fill then CreateTween(fill, {BackgroundColor3 = MutedColor}, 0.3) end
                 elseif item:IsA("TextLabel") then
-                    CreateTween(item, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.3)
+                    CreateTween(item, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.5)
                 end
             end
         end
