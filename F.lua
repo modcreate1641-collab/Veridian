@@ -155,7 +155,7 @@ MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainFrame.BackgroundColor3 = CONFIG.MainBgColor
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0
+MainFrame.GroupTransparency = 0.5
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local BgImage = Instance.new("ImageLabel", MainFrame)
@@ -169,7 +169,7 @@ BgCorner.CornerRadius = UDim.new(0, 10)
 local DarkOverlay = Instance.new("Frame", MainFrame)
 DarkOverlay.Size = UDim2.new(1, 0, 1, 0)
 DarkOverlay.BackgroundColor3 = Color3.new(0,0,0)
-DarkOverlay.BackgroundTransparency = 0.5
+DarkOverlay.BackgroundTransparency = 0.7
 DarkOverlay.ZIndex = 1
 DarkOverlay.Visible = false
 Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
