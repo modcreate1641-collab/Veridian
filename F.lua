@@ -29,62 +29,98 @@ local baseFolder = CONFIG.BgFolder
 local targetFolder = baseFolder .. "/BgAsset"
 local iconFolder = baseFolder .. "/Icons"
 
+-- [[ 1. ระบบเช็คและสร้างโฟลเดอร์ ]] --
+if not isfolder(baseFolder) then makefolder(baseFolder) end
+if not isfolder(targetFolder) then makefolder(targetFolder) end
+if not isfolder(iconFolder) then makefolder(iconFolder) end
+
+-- [[ 2. ประกาศตัวแปรพาร์ทไฟล์และ URL (แยกขาดจากกัน) ]] --
+
+-- ฝั่ง Veridian (พื้นหลัง + โลโก้หลัก)
 local bgName = targetFolder .. "/Cool background.png"
 local bgUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
 
 local logoName = targetFolder .. "/furryLogo.png"
 local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg"
 
-local iconAssets = {
-    { name = "setting icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/setting%20icon.png" },
-    { name = "scripthub icon.jpeg", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/scripthub%20icon.jpeg" },
-    { name = "script icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/script%20icon.png" },
-    { name = "furry icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/furry%20icon.png" },
-    { name = "aim icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/aim%20icon.png" },
-    { name = "destroy icon.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/destroy%20icon.png" },
-    { name = "auto.png", url = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/auto.png" }
-}
+-- ฝั่ง Fluffy (ไอคอน Signature ของมึง)
+local settingName = iconFolder .. "/setting icon.png"
+local settingUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/setting%20icon.png"
 
--- เปลี่ยนมารับค่า success กับ err จะได้รู้ว่า pcall มันพังไหม
-local success, err = pcall(function()
-    if isfolder and not isfolder(baseFolder) then makefolder(baseFolder) end
-    if isfolder and not isfolder(targetFolder) then makefolder(targetFolder) end
-    if isfolder and not isfolder(iconFolder) then makefolder(iconFolder) end 
-    
-    -- โหลด Background
-    if isfile and not isfile(bgName) then
-        local content = game:HttpGet(bgUrl)
-        if writefile and type(content) == "string" then writefile(bgName, content) end
-    end
-    
-    -- โหลด Logo
-    if isfile and not isfile(logoName) then
-        local content = game:HttpGet(logoUrl)
-        if writefile and type(content) == "string" then writefile(logoName, content) end
-    end
-    
-    -- โหลด Icons แบบจับผิด
-    for _, icon in ipairs(iconAssets) do
-        local fullPath = iconFolder .. "/" .. icon.name
-        if isfile and not isfile(fullPath) then
-            local content = game:HttpGet(icon.url)
-            
-            -- เช็คเลยว่า GitHub คืนค่าเป็นหน้า 404 หรือเปล่า
-            if string.find(content, "404: Not Found") then
-                warn("❌ ไอ้เวรเอ้ย! ลิงก์รูปนี้ 404 หาไม่เจอ: " .. icon.name)
-            elseif writefile and type(content) == "string" then
-                writefile(fullPath, content)
-                print("✅ โหลดไอคอนสำเร็จ: " .. icon.name)
-            end
-        end
-    end
-end)
+local scripthubName = iconFolder .. "/scripthub icon.jpeg"
+local scripthubUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/scripthub%20icon.jpeg"
 
--- ถ้าโค้ดพังตั้งแต่ตอนรัน มันจะด่าตรงนี้
-if not success then
-    warn("🔥 ระบบโหลดไฟล์พังยับ: ", err)
+local scriptName = iconFolder .. "/script icon.png"
+local scriptUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/script%20icon.png"
+
+local furryName = iconFolder .. "/furry icon.png"
+local furryUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/furry%20icon.png"
+
+local aimName = iconFolder .. "/aim icon.png"
+local aimUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/aim%20icon.png"
+
+local destroyName = iconFolder .. "/destroy icon.png"
+local destroyUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/destroy%20icon.png"
+
+local autoName = iconFolder .. "/auto.png"
+local autoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/auto.png"
+
+
+-- [[ 3. ระบบดาวน์โหลดแบบทีละตัว (เน้นชัวร์ ไม่เน้นสั้น) ]] --
+
+-- โหลด Background (ขนาดใหญ่ > 5000)
+if not isfile(bgName) then
+    local s, content = pcall(game.HttpGet, game, bgUrl)
+    if s and #content > 5000 then writefile(bgName, content) end
 end
 
+-- โหลด Logo (ขนาดใหญ่ > 5000)
+if not isfile(logoName) then
+    local s, content = pcall(game.HttpGet, game, logoUrl)
+    if s and #content > 5000 then writefile(logoName, content) end
+end
+
+-- โหลด Setting Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(settingName) then
+    local s, content = pcall(game.HttpGet, game, settingUrl)
+    if s and #content > 0 then writefile(settingName, content) end
+end
+
+-- โหลด ScriptHub Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(scripthubName) then
+    local s, content = pcall(game.HttpGet, game, scripthubUrl)
+    if s and #content > 0 then writefile(scripthubName, content) end
+end
+
+-- โหลด Script Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(scriptName) then
+    local s, content = pcall(game.HttpGet, game, scriptUrl)
+    if s and #content > 0 then writefile(scriptName, content) end
+end
+
+-- โหลด Furry Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(furryName) then
+    local s, content = pcall(game.HttpGet, game, furryUrl)
+    if s and #content > 0 then writefile(furryName, content) end
+end
+
+-- โหลด Aim Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(aimName) then
+    local s, content = pcall(game.HttpGet, game, aimUrl)
+    if s and #content > 0 then writefile(aimName, content) end
+end
+
+-- โหลด Destroy Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(destroyName) then
+    local s, content = pcall(game.HttpGet, game, destroyUrl)
+    if s and #content > 0 then writefile(destroyName, content) end
+end
+
+-- โหลด Auto Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(autoName) then
+    local s, content = pcall(game.HttpGet, game, autoUrl)
+    if s and #content > 0 then writefile(autoName, content) end
+end
 
 local function CreateTween(instance, properties, time, style, direction)
     local info = TweenService:Create(instance, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quad, direction or Enum.EasingDirection.Out), properties)
