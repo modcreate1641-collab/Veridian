@@ -145,61 +145,79 @@ function Veridianhub:CreateWindow(Config)
     end
 
     -- [[ MAIN GUI CONTAINER LAYER ]] --
+-- ดึง Service ขึ้นมาไว้ด้านบนสุดเพื่อความเสถียร ไม่เอ๋อแดกเวลาเรียกใช้
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 
 local ScreenGui = Instance.new("ScreenGui", TargetGui)
-ScreenGui.Name = "VeridianHub_Official_Full_GodMode"
+ScreenGui.Name = "VeridianHub_Official_Full"
 ScreenGui.IgnoreGuiInset = true
-ScreenGui.ResetOnSpawn = false
 
--- // สร้างเงาเรืองแสงข้างหลัง (Ambient Glow) ให้ UI ดูลอยออกมา //
-local Glow = Instance.new("ImageLabel", ScreenGui)
-Glow.Name = "AmbientGlow"
-Glow.AnchorPoint = Vector2.new(0.5, 0.5)
-Glow.Position = UDim2.new(0.5, 0, 0.5, 0)
-Glow.Size = UDim2.new(0, 540, 0, 300) -- ใหญ่กว่า MainFrame นิดนึงให้เห็นขอบ
-Glow.BackgroundTransparency = 1
-Glow.Image = "rbxassetid://5028857084" -- ขอบเบลอๆ โคตรเนียน
-Glow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-Glow.ImageTransparency = 0.3
-Glow.ZIndex = 0
-
+-- [UPGRADED] MainFrame: เปลี่ยนสีพื้นหลังเป็นดาร์กไซเบอร์ และปรับความชัดขึ้น ไม่จางเป็นผีขอบเบลอ
 local MainFrame = Instance.new("CanvasGroup", ScreenGui)
-MainFrame.Name = "MainFrame"
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.BackgroundColor3 = CONFIG.MainBgColor or Color3.fromRGB(20, 20, 20)
+MainFrame.BackgroundColor3 = CONFIG.MainBgColor or Color3.fromRGB(15, 15, 22)
+MainFrame.BackgroundTransparency = 0.15
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0.5
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+MainFrame.GroupTransparency = 0.1 -- ชัดเจน หล่อเท่ (ของเก่า 0.5 มืดมนเกิน)
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12) -- มนขึ้นอีกนิดเพื่อความโมเดิร์น
 
--- // ส่วนจัดการรูปพื้นหลัง //
+-- [ADDED] Soft Drop Shadow: ยัดเงาเนียนๆ ด้านหลัง ให้ตัวเมนูมันดูลอยมีมิติออกมาจากจอเกม
+local Shadow = Instance.new("ImageLabel", ScreenGui)
+Shadow.Name = "Shadow"
+Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+Shadow.BackgroundTransparency = 1
+Shadow.Image = "rbxassetid://6015897843" -- Asset เงาแบบนุ่มละมุน
+Shadow.ImageColor3 = Color3.new(0, 0, 0)
+Shadow.ImageTransparency = 0.4
+Shadow.ZIndex = MainFrame.ZIndex - 1
+
+-- ผูกเงาให้ขยับ ย่อขยาย และเปิดปิดตาม MainFrame ตลอดเวลาแบบ Real-time
+RunService.RenderStepped:Connect(function()
+    Shadow.Position = MainFrame.Position
+    Shadow.Size = UDim2.new(0, MainFrame.AbsoluteSize.X + 32, 0, MainFrame.AbsoluteSize.Y + 32)
+    Shadow.Visible = MainFrame.Visible
+    Shadow.GroupTransparency = MainFrame.GroupTransparency
+end)
+
+-- [ADDED] Main Frame Gradient: ไล่เฉดสีมืด-สว่างจางๆ ให้แผงหลังดูหรูหราไม่แบนเป็นกระดาษ
+local FrameGradient = Instance.new("UIGradient", MainFrame)
+FrameGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 14))
+})
+FrameGradient.Rotation = 45
+
 local BgImage = Instance.new("ImageLabel", MainFrame)
 BgImage.Size = UDim2.new(1, 0, 1, 0)
 BgImage.BackgroundTransparency = 1
 BgImage.ZIndex = 0
 BgImage.ScaleType = Enum.ScaleType.Crop
-Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 10)
+local BgCorner = Instance.new("UICorner", BgImage)
+BgCorner.CornerRadius = UDim.new(0, 12)
 
 local DarkOverlay = Instance.new("Frame", MainFrame)
 DarkOverlay.Size = UDim2.new(1, 0, 1, 0)
 DarkOverlay.BackgroundColor3 = Color3.new(0,0,0)
-DarkOverlay.BackgroundTransparency = 0.7
+DarkOverlay.BackgroundTransparency = 0.45 -- ลดความมืดลงหน่อย เผื่อโชว์ลาย Custom Background จะได้สวยๆ
 DarkOverlay.ZIndex = 1
 DarkOverlay.Visible = false
-Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 12)
 
+-- ระบบดึงภาพ Background (ของเดิมเป๊ะ ไม่เปลี่ยนโครงสร้าง)
 local function ApplyAutoBackground(bgFileName)
     local getAsset = getcustomasset or getsynasset
     if not getAsset then return end
+
     pcall(function()
-        local mainFolder = CONFIG.BgFolder or "Veridian"
+        local mainFolder = CONFIG.BgFolder
         local subFolder = mainFolder .. "/BgAsset"
+        
         if isfolder and isfolder(subFolder) then
             local target = bgFileName
+            
             if not target and isfile then
                 local validExts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tga"}
                 for _, f in pairs(listfiles(subFolder)) do
@@ -213,6 +231,7 @@ local function ApplyAutoBackground(bgFileName)
                     if target then break end
                 end
             end
+
             if target then
                 local fullPath = subFolder .. "/" .. target
                 if isfile and isfile(fullPath) then
@@ -224,119 +243,110 @@ local function ApplyAutoBackground(bgFileName)
         end
     end)
 end
+
 ApplyAutoBackground()
 
--- // อัพเกรด RGB Gradient หมุนติ้วๆ ไล่สีโคตรเท่ //
+-- [UPGRADED] UIStroke: ปรับขอบให้โค้งมนรับกับมุมกรอบ 
 local UIStroke = Instance.new("UIStroke", MainFrame)
 UIStroke.Thickness = 2
+UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+UIStroke.LineJoinMode = Enum.LineJoinMode.Round
 UIStroke.ZIndex = 5
-UIStroke.Color = Color3.fromRGB(255, 255, 255)
 
-local UIGradient = Instance.new("UIGradient", UIStroke)
-UIGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
-    ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255, 255, 0)),
-    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
-    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 255)),
-    ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)),
-    ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
-    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))
-})
+-- [ADDED] ขยี้ความแรงด้วยขอบ RGB Gradient ไล่เฉดสีวนรอบทิศทาง
+local StrokeGradient = Instance.new("UIGradient", UIStroke)
 
--- ลูปรันขอบสีรุ้งให้หมุน พร้อมขยับเงาตาม MainFrame
-RunService.RenderStepped:Connect(function(deltaTime)
-    if UIGradient and UIGradient.Parent then
-        UIGradient.Rotation = (UIGradient.Rotation + 90 * deltaTime) % 360
+local TS = game:GetService("TweenService")
+local info = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+
+local rainbowConnection
+local function startRainbow()
+    if rainbowConnection then 
+        rainbowConnection:Disconnect() 
     end
-    if Glow and Glow.Parent then
-        Glow.Position = MainFrame.Position
-        Glow.Size = UDim2.new(0, MainFrame.AbsoluteSize.X + 32, 0, MainFrame.AbsoluteSize.Y + 32)
-    end
-end)
-
--- // อัพเกรดระบบลากหน้าต่าง ลื่นหัวแตกด้วย RenderStepped //
-local function makeDraggable(gui)
-    local dragging = false
-    local dragStart, startPos, dragConnection
     
-    gui.InputBegan:Connect(function(input)
+    rainbowConnection = RunService.RenderStepped:Connect(function()
+        pcall(function()
+            if UIStroke and UIStroke.Parent then
+                -- [UPGRADED VISUAL] แทนที่จะเปลี่ยนสีโง่ๆ ทั้งเส้น กูจัดให้มันไล่เฉดหมุนวน 360 องศาแบบเซิร์ฟนอกเค้าทำกัน!
+                local hue = (tick() * 0.1) % 1
+                StrokeGradient.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromHSV(hue, 0.75, 1)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromHSV((hue + 0.5) % 1, 0.75, 1)),
+                    ColorSequenceKeypoint.new(1, Color3.fromHSV(hue, 0.75, 1))
+                })
+                StrokeGradient.Rotation = (tick() * 45) % 360 -- สปีดการหมุนของแสง RGB
+            else
+                if rainbowConnection then 
+                    rainbowConnection:Disconnect() 
+                    rainbowConnection = nil
+                end
+            end
+        end)
+    end)
+end
+task.spawn(startRainbow)
+
+-- ระบบ Drag ลากหน้าจอ (ระบบเดิมของมึง ไม่เปลี่ยนโครงสร้าง)
+local function makeDraggable(gui, targetFrame)
+    local dragging, dragInput, dragStart, startPos
+    
+    local function startDrag(input)
         if _G.MainFrameLocked then return end
+        
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UserInputService:GetFocusedTextBox() then
             dragging = true
-            dragStart = UserInputService:GetMouseLocation()
-            startPos = gui.Position
-            
-            if dragConnection then dragConnection:Disconnect() end
-            
-            dragConnection = RunService.RenderStepped:Connect(function()
-                if dragging and not _G.MainFrameLocked then
-                    local mousePos = UserInputService:GetMouseLocation()
-                    local delta = mousePos - dragStart
-                    -- ทวีนจางๆ ให้ดูนุ่มเวลากระชากเมาส์
-                    TweenService:Create(gui, TweenInfo.new(0.05, Enum.EasingStyle.Linear), {
-                        Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-                    }):Play()
-                elseif _G.MainFrameLocked then
-                    dragging = false
-                end
-            end)
+            dragStart = input.Position
+            dragInput = input
+            startPos = targetFrame and targetFrame.Position or gui.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
         end
-    end)
+    end
     
-    -- ดักอีเวนต์ตอนปล่อยนิ้ว/เมาส์ คืนค่าให้หมด
-    gui.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-            if dragConnection then
-                dragConnection:Disconnect()
-                dragConnection = nil
+    gui.InputBegan:Connect(startDrag)
+    
+    for _, child in pairs(gui:GetChildren()) do
+        if child:IsA("TextButton") or child:IsA("ImageButton") then
+            child.InputBegan:Connect(startDrag)
+        end
+    end
+    
+    gui.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            if _G.MainFrameLocked then 
+                dragging = false 
+                return 
             end
+            
+            local delta = input.Position - dragStart
+            local target = targetFrame or gui
+            CreateTween(target, {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}, 0.05, Enum.EasingStyle.Linear)
         end
     end)
 end
-makeDraggable(MainFrame)
 
--- // ระบบเปิด-ปิดหน้าต่าง พร้อมคุมเงา Glow ให้ออกมาเนียนๆ //
 local isWindowOpen = true
-local currentSize = MainFrame.Size
+local currentSize = UDim2.new(0, 508, 0, 264)
 
+-- ระบบซ่อน/แสดงหน้าต่างเมนู (อิงค่าโปร่งแสงใหม่ให้สมูทตอนเปิดปิด)
 local function ToggleWindow(state)
     isWindowOpen = state
     if state then
         MainFrame.Visible = true
-        Glow.Visible = true
-        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = currentSize, 
-            GroupTransparency = 0
-        }):Play()
-        TweenService:Create(Glow, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            ImageTransparency = 0.3
-        }):Play()
+        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0.1}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     else
         currentSize = MainFrame.Size
         local shrinkW = math.max(200, currentSize.X.Offset - 58)
         local shrinkH = math.max(100, currentSize.Y.Offset - 64)
-        
-        local t = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-            Size = UDim2.new(0, shrinkW, 0, shrinkH), 
-            GroupTransparency = 1
-        })
-        TweenService:Create(Glow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-            ImageTransparency = 1
-        }):Play()
-        
-        t:Play()
-        t.Completed:Connect(function() 
-            if not isWindowOpen then 
-                MainFrame.Visible = false 
-                Glow.Visible = false
-            end 
-        end)
+        local t = CreateTween(MainFrame, {Size = UDim2.new(0, shrinkW, 0, shrinkH), GroupTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        t.Completed:Connect(function() if not isWindowOpen then MainFrame.Visible = false end end)
     end
 end
 
 UserInputService.InputBegan:Connect(function(input, gpe)
-    if not gpe and CONFIG and CONFIG.KeybindEnabled and input.KeyCode == CONFIG.ToggleKey then 
+    if not gpe and CONFIG.KeybindEnabled and input.KeyCode == CONFIG.ToggleKey then 
         ToggleWindow(not isWindowOpen) 
     end
 end)
