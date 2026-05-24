@@ -145,50 +145,18 @@ function Veridianhub:CreateWindow(Config)
     end
 
     -- [[ MAIN GUI CONTAINER LAYER ]] --
--- ดึง Service ขึ้นมาไว้ด้านบนสุดเพื่อความเสถียร ไม่เอ๋อแดกเวลาเรียกใช้
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+    local ScreenGui = Instance.new("ScreenGui", TargetGui)
+    ScreenGui.Name = "VeridianHub_Official_Full"
+    ScreenGui.IgnoreGuiInset = true
 
-local ScreenGui = Instance.new("ScreenGui", TargetGui)
-ScreenGui.Name = "VeridianHub_Official_Full"
-ScreenGui.IgnoreGuiInset = true
-
--- [UPGRADED] MainFrame: เปลี่ยนสีพื้นหลังเป็นดาร์กไซเบอร์ และปรับความชัดขึ้น ไม่จางเป็นผีขอบเบลอ
-local MainFrame = Instance.new("CanvasGroup", ScreenGui)
+    local MainFrame = Instance.new("CanvasGroup", ScreenGui)
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.BackgroundColor3 = CONFIG.MainBgColor or Color3.fromRGB(15, 15, 22)
-MainFrame.BackgroundTransparency = 0.15
+MainFrame.BackgroundColor3 = CONFIG.MainBgColor
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0.1 -- ชัดเจน หล่อเท่ (ของเก่า 0.5 มืดมนเกิน)
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12) -- มนขึ้นอีกนิดเพื่อความโมเดิร์น
-
--- [ADDED] Soft Drop Shadow: ยัดเงาเนียนๆ ด้านหลัง ให้ตัวเมนูมันดูลอยมีมิติออกมาจากจอเกม
-local Shadow = Instance.new("ImageLabel", ScreenGui)
-Shadow.Name = "Shadow"
-Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-Shadow.BackgroundTransparency = 1
-Shadow.Image = "rbxassetid://6015897843" -- Asset เงาแบบนุ่มละมุน
-Shadow.ImageColor3 = Color3.new(0, 0, 0)
-Shadow.ImageTransparency = 0.4
-Shadow.ZIndex = MainFrame.ZIndex - 1
-
--- ผูกเงาให้ขยับ ย่อขยาย และเปิดปิดตาม MainFrame ตลอดเวลาแบบ Real-time
-RunService.RenderStepped:Connect(function()
-    Shadow.Position = MainFrame.Position
-    Shadow.Size = UDim2.new(0, MainFrame.AbsoluteSize.X + 32, 0, MainFrame.AbsoluteSize.Y + 32)
-    Shadow.Visible = MainFrame.Visible
-    Shadow.GroupTransparency = MainFrame.GroupTransparency
-end)
-
--- [ADDED] Main Frame Gradient: ไล่เฉดสีมืด-สว่างจางๆ ให้แผงหลังดูหรูหราไม่แบนเป็นกระดาษ
-local FrameGradient = Instance.new("UIGradient", MainFrame)
-FrameGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 14))
-})
-FrameGradient.Rotation = 45
+MainFrame.GroupTransparency = 0.5
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local BgImage = Instance.new("ImageLabel", MainFrame)
 BgImage.Size = UDim2.new(1, 0, 1, 0)
@@ -196,17 +164,16 @@ BgImage.BackgroundTransparency = 1
 BgImage.ZIndex = 0
 BgImage.ScaleType = Enum.ScaleType.Crop
 local BgCorner = Instance.new("UICorner", BgImage)
-BgCorner.CornerRadius = UDim.new(0, 12)
+BgCorner.CornerRadius = UDim.new(0, 10)
 
 local DarkOverlay = Instance.new("Frame", MainFrame)
 DarkOverlay.Size = UDim2.new(1, 0, 1, 0)
 DarkOverlay.BackgroundColor3 = Color3.new(0,0,0)
-DarkOverlay.BackgroundTransparency = 0.45 -- ลดความมืดลงหน่อย เผื่อโชว์ลาย Custom Background จะได้สวยๆ
+DarkOverlay.BackgroundTransparency = 0.7
 DarkOverlay.ZIndex = 1
 DarkOverlay.Visible = false
-Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 12)
+Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
 
--- ระบบดึงภาพ Background (ของเดิมเป๊ะ ไม่เปลี่ยนโครงสร้าง)
 local function ApplyAutoBackground(bgFileName)
     local getAsset = getcustomasset or getsynasset
     if not getAsset then return end
@@ -246,15 +213,9 @@ end
 
 ApplyAutoBackground()
 
--- [UPGRADED] UIStroke: ปรับขอบให้โค้งมนรับกับมุมกรอบ 
 local UIStroke = Instance.new("UIStroke", MainFrame)
 UIStroke.Thickness = 2
-UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-UIStroke.LineJoinMode = Enum.LineJoinMode.Round
 UIStroke.ZIndex = 5
-
--- [ADDED] ขยี้ความแรงด้วยขอบ RGB Gradient ไล่เฉดสีวนรอบทิศทาง
-local StrokeGradient = Instance.new("UIGradient", UIStroke)
 
 local TS = game:GetService("TweenService")
 local info = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
@@ -268,14 +229,8 @@ local function startRainbow()
     rainbowConnection = RunService.RenderStepped:Connect(function()
         pcall(function()
             if UIStroke and UIStroke.Parent then
-                -- [UPGRADED VISUAL] แทนที่จะเปลี่ยนสีโง่ๆ ทั้งเส้น กูจัดให้มันไล่เฉดหมุนวน 360 องศาแบบเซิร์ฟนอกเค้าทำกัน!
-                local hue = (tick() * 0.1) % 1
-                StrokeGradient.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromHSV(hue, 0.75, 1)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromHSV((hue + 0.5) % 1, 0.75, 1)),
-                    ColorSequenceKeypoint.new(1, Color3.fromHSV(hue, 0.75, 1))
-                })
-                StrokeGradient.Rotation = (tick() * 45) % 360 -- สปีดการหมุนของแสง RGB
+                local hue = (tick() * 0.05) % 1
+                UIStroke.Color = Color3.fromHSV(hue, 1, 1)
             else
                 if rainbowConnection then 
                     rainbowConnection:Disconnect() 
@@ -287,11 +242,11 @@ local function startRainbow()
 end
 task.spawn(startRainbow)
 
--- ระบบ Drag ลากหน้าจอ (ระบบเดิมของมึง ไม่เปลี่ยนโครงสร้าง)
 local function makeDraggable(gui, targetFrame)
     local dragging, dragInput, dragStart, startPos
     
     local function startDrag(input)
+        ---[[ INTERCEPT DRAG IF GLOBAL LOCK IS ENABLED ]]---
         if _G.MainFrameLocked then return end
         
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UserInputService:GetFocusedTextBox() then
@@ -305,6 +260,7 @@ local function makeDraggable(gui, targetFrame)
     
     gui.InputBegan:Connect(startDrag)
     
+    ---[[ PREVENT BUTTON SINKING AND PREVENT JUMPING TO ROBLOX TOP BAR ]]---
     for _, child in pairs(gui:GetChildren()) do
         if child:IsA("TextButton") or child:IsA("ImageButton") then
             child.InputBegan:Connect(startDrag)
@@ -315,6 +271,7 @@ local function makeDraggable(gui, targetFrame)
     
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
+            ---[[ BREAK DRAG IMMEDIATELY IF LOCK TOGGLED MIDWAY ]]---
             if _G.MainFrameLocked then 
                 dragging = false 
                 return 
@@ -330,12 +287,11 @@ end
 local isWindowOpen = true
 local currentSize = UDim2.new(0, 508, 0, 264)
 
--- ระบบซ่อน/แสดงหน้าต่างเมนู (อิงค่าโปร่งแสงใหม่ให้สมูทตอนเปิดปิด)
 local function ToggleWindow(state)
     isWindowOpen = state
     if state then
         MainFrame.Visible = true
-        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0.1}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     else
         currentSize = MainFrame.Size
         local shrinkW = math.max(200, currentSize.X.Offset - 58)
@@ -350,6 +306,9 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         ToggleWindow(not isWindowOpen) 
     end
 end)
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local ResizeBtn = Instance.new("TextButton", MainFrame)
 ResizeBtn.Size = UDim2.new(0, 32, 0, 32)
