@@ -145,26 +145,44 @@ function Veridianhub:CreateWindow(Config)
     end
 
     -- [[ MAIN GUI CONTAINER LAYER ]] --
-    local ScreenGui = Instance.new("ScreenGui", TargetGui)
-    ScreenGui.Name = "VeridianHub_Official_Full"
-    ScreenGui.IgnoreGuiInset = true
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
-    local MainFrame = Instance.new("CanvasGroup", ScreenGui)
+local ScreenGui = Instance.new("ScreenGui", TargetGui)
+ScreenGui.Name = "VeridianHub_Official_Full_GodMode"
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ResetOnSpawn = false
+
+-- // สร้างเงาเรืองแสงข้างหลัง (Ambient Glow) ให้ UI ดูลอยออกมา //
+local Glow = Instance.new("ImageLabel", ScreenGui)
+Glow.Name = "AmbientGlow"
+Glow.AnchorPoint = Vector2.new(0.5, 0.5)
+Glow.Position = UDim2.new(0.5, 0, 0.5, 0)
+Glow.Size = UDim2.new(0, 540, 0, 300) -- ใหญ่กว่า MainFrame นิดนึงให้เห็นขอบ
+Glow.BackgroundTransparency = 1
+Glow.Image = "rbxassetid://5028857084" -- ขอบเบลอๆ โคตรเนียน
+Glow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+Glow.ImageTransparency = 0.3
+Glow.ZIndex = 0
+
+local MainFrame = Instance.new("CanvasGroup", ScreenGui)
+MainFrame.Name = "MainFrame"
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.BackgroundColor3 = CONFIG.MainBgColor
+MainFrame.BackgroundColor3 = CONFIG.MainBgColor or Color3.fromRGB(20, 20, 20)
 MainFrame.ClipsDescendants = true
 MainFrame.GroupTransparency = 0.5
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
+-- // ส่วนจัดการรูปพื้นหลัง //
 local BgImage = Instance.new("ImageLabel", MainFrame)
 BgImage.Size = UDim2.new(1, 0, 1, 0)
 BgImage.BackgroundTransparency = 1
 BgImage.ZIndex = 0
 BgImage.ScaleType = Enum.ScaleType.Crop
-local BgCorner = Instance.new("UICorner", BgImage)
-BgCorner.CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 10)
 
 local DarkOverlay = Instance.new("Frame", MainFrame)
 DarkOverlay.Size = UDim2.new(1, 0, 1, 0)
@@ -177,14 +195,11 @@ Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
 local function ApplyAutoBackground(bgFileName)
     local getAsset = getcustomasset or getsynasset
     if not getAsset then return end
-
     pcall(function()
-        local mainFolder = CONFIG.BgFolder
+        local mainFolder = CONFIG.BgFolder or "Veridian"
         local subFolder = mainFolder .. "/BgAsset"
-        
         if isfolder and isfolder(subFolder) then
             local target = bgFileName
-            
             if not target and isfile then
                 local validExts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tga"}
                 for _, f in pairs(listfiles(subFolder)) do
@@ -198,7 +213,6 @@ local function ApplyAutoBackground(bgFileName)
                     if target then break end
                 end
             end
-
             if target then
                 local fullPath = subFolder .. "/" .. target
                 if isfile and isfile(fullPath) then
@@ -210,99 +224,119 @@ local function ApplyAutoBackground(bgFileName)
         end
     end)
 end
-
 ApplyAutoBackground()
 
+-- // อัพเกรด RGB Gradient หมุนติ้วๆ ไล่สีโคตรเท่ //
 local UIStroke = Instance.new("UIStroke", MainFrame)
 UIStroke.Thickness = 2
 UIStroke.ZIndex = 5
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
 
-local TS = game:GetService("TweenService")
-local info = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+local UIGradient = Instance.new("UIGradient", UIStroke)
+UIGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
+    ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255, 255, 0)),
+    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 255)),
+    ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)),
+    ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))
+})
 
-local rainbowConnection
-local function startRainbow()
-    if rainbowConnection then 
-        rainbowConnection:Disconnect() 
+-- ลูปรันขอบสีรุ้งให้หมุน พร้อมขยับเงาตาม MainFrame
+RunService.RenderStepped:Connect(function(deltaTime)
+    if UIGradient and UIGradient.Parent then
+        UIGradient.Rotation = (UIGradient.Rotation + 90 * deltaTime) % 360
     end
-    
-    rainbowConnection = RunService.RenderStepped:Connect(function()
-        pcall(function()
-            if UIStroke and UIStroke.Parent then
-                local hue = (tick() * 0.05) % 1
-                UIStroke.Color = Color3.fromHSV(hue, 1, 1)
-            else
-                if rainbowConnection then 
-                    rainbowConnection:Disconnect() 
-                    rainbowConnection = nil
-                end
-            end
-        end)
-    end)
-end
-task.spawn(startRainbow)
+    if Glow and Glow.Parent then
+        Glow.Position = MainFrame.Position
+        Glow.Size = UDim2.new(0, MainFrame.AbsoluteSize.X + 32, 0, MainFrame.AbsoluteSize.Y + 32)
+    end
+end)
 
-local function makeDraggable(gui, targetFrame)
-    local dragging, dragInput, dragStart, startPos
+-- // อัพเกรดระบบลากหน้าต่าง ลื่นหัวแตกด้วย RenderStepped //
+local function makeDraggable(gui)
+    local dragging = false
+    local dragStart, startPos, dragConnection
     
-    local function startDrag(input)
-        ---[[ INTERCEPT DRAG IF GLOBAL LOCK IS ENABLED ]]---
+    gui.InputBegan:Connect(function(input)
         if _G.MainFrameLocked then return end
-        
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UserInputService:GetFocusedTextBox() then
             dragging = true
-            dragStart = input.Position
-            dragInput = input
-            startPos = targetFrame and targetFrame.Position or gui.Position
-            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
-        end
-    end
-    
-    gui.InputBegan:Connect(startDrag)
-    
-    ---[[ PREVENT BUTTON SINKING AND PREVENT JUMPING TO ROBLOX TOP BAR ]]---
-    for _, child in pairs(gui:GetChildren()) do
-        if child:IsA("TextButton") or child:IsA("ImageButton") then
-            child.InputBegan:Connect(startDrag)
-        end
-    end
-    
-    gui.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            ---[[ BREAK DRAG IMMEDIATELY IF LOCK TOGGLED MIDWAY ]]---
-            if _G.MainFrameLocked then 
-                dragging = false 
-                return 
-            end
+            dragStart = UserInputService:GetMouseLocation()
+            startPos = gui.Position
             
-            local delta = input.Position - dragStart
-            local target = targetFrame or gui
-            CreateTween(target, {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}, 0.05, Enum.EasingStyle.Linear)
+            if dragConnection then dragConnection:Disconnect() end
+            
+            dragConnection = RunService.RenderStepped:Connect(function()
+                if dragging and not _G.MainFrameLocked then
+                    local mousePos = UserInputService:GetMouseLocation()
+                    local delta = mousePos - dragStart
+                    -- ทวีนจางๆ ให้ดูนุ่มเวลากระชากเมาส์
+                    TweenService:Create(gui, TweenInfo.new(0.05, Enum.EasingStyle.Linear), {
+                        Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+                    }):Play()
+                elseif _G.MainFrameLocked then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    -- ดักอีเวนต์ตอนปล่อยนิ้ว/เมาส์ คืนค่าให้หมด
+    gui.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+            if dragConnection then
+                dragConnection:Disconnect()
+                dragConnection = nil
+            end
         end
     end)
 end
+makeDraggable(MainFrame)
 
+-- // ระบบเปิด-ปิดหน้าต่าง พร้อมคุมเงา Glow ให้ออกมาเนียนๆ //
 local isWindowOpen = true
-local currentSize = UDim2.new(0, 508, 0, 264)
+local currentSize = MainFrame.Size
 
 local function ToggleWindow(state)
     isWindowOpen = state
     if state then
         MainFrame.Visible = true
-        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        Glow.Visible = true
+        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = currentSize, 
+            GroupTransparency = 0
+        }):Play()
+        TweenService:Create(Glow, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            ImageTransparency = 0.3
+        }):Play()
     else
         currentSize = MainFrame.Size
         local shrinkW = math.max(200, currentSize.X.Offset - 58)
         local shrinkH = math.max(100, currentSize.Y.Offset - 64)
-        local t = CreateTween(MainFrame, {Size = UDim2.new(0, shrinkW, 0, shrinkH), GroupTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-        t.Completed:Connect(function() if not isWindowOpen then MainFrame.Visible = false end end)
+        
+        local t = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+            Size = UDim2.new(0, shrinkW, 0, shrinkH), 
+            GroupTransparency = 1
+        })
+        TweenService:Create(Glow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+            ImageTransparency = 1
+        }):Play()
+        
+        t:Play()
+        t.Completed:Connect(function() 
+            if not isWindowOpen then 
+                MainFrame.Visible = false 
+                Glow.Visible = false
+            end 
+        end)
     end
 end
 
 UserInputService.InputBegan:Connect(function(input, gpe)
-    if not gpe and CONFIG.KeybindEnabled and input.KeyCode == CONFIG.ToggleKey then 
+    if not gpe and CONFIG and CONFIG.KeybindEnabled and input.KeyCode == CONFIG.ToggleKey then 
         ToggleWindow(not isWindowOpen) 
     end
 end)
@@ -328,25 +362,36 @@ local dragConnection = nil
 ResizeBtn.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         isResizing = true
-        resStartPos = input.Position
-        resStartSize = MainFrame.Size
+        -- ดึงพิกัดเมาส์/นิ้ว ณ ตอนเริ่มกดแบบ Absolute จบๆ ไป
+        resStartPos = UserInputService:GetMouseLocation()
+        resStartSize = MainFrame.AbsoluteSize
         
         if dragConnection then 
             dragConnection:Disconnect() 
         end
         
-        dragConnection = UserInputService.InputChanged:Connect(function(changedInput)
-            if isResizing and (changedInput.UserInputType == Enum.UserInputType.MouseMovement or changedInput.UserInputType == Enum.UserInputType.Touch) then
-                local delta = changedInput.Position - resStartPos
-                local newWidth = math.max(400, resStartSize.X.Offset + delta.X)
-                local newHeight = math.max(250, resStartSize.Y.Offset + delta.Y)
+        -- ใช้ RenderStepped อัพเดตตามเฟรมเรต ลื่นสัสลากไวแค่ไหนก็ทัน
+        dragConnection = RunService.RenderStepped:Connect(function()
+            if isResizing then
+                local currentMousePos = UserInputService:GetMouseLocation()
+                local delta = currentMousePos - resStartPos
+                
+                -- คำนวณขนาดใหม่ ลิมิตขั้นต่ำไว้เท่าเดิมที่มึงตั้งไว้ (400x250)
+                local newWidth = math.max(400, resStartSize.X + delta.X)
+                local newHeight = math.max(250, resStartSize.Y + delta.Y)
+                
                 MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
-                currentSize = MainFrame.Size
+            else
+                if dragConnection then 
+                    dragConnection:Disconnect() 
+                    dragConnection = nil
+                end
             end
         end)
     end
 end)
 
+-- เช็กตอนปล่อยนิ้ว/เมาส์ เคลียร์คอนเนคชั่นทิ้งซะ จะได้ไม่เปลืองเครื่อง
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         isResizing = false
@@ -354,12 +399,6 @@ UserInputService.InputEnded:Connect(function(input)
             dragConnection:Disconnect()
             dragConnection = nil
         end
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        isResizing = false
     end
 end)
 
@@ -975,10 +1014,29 @@ function WindowAPI:UpdateTheme(newColor)
     if TopSettingBtn then CreateTween(TopSettingBtn, {TextColor3 = HighlightColor}, 0.3) end
     if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.3) end
 
-    -- ยัดไอ้แผงข้างเจ้าปัญหาเข้ามาในนี้ซะ! เวลาเปลี่ยนธีม มันจะได้ไม่ยืนงง
-    if NavSidePanel then 
-        CreateTween(NavSidePanel, {
-            BackgroundColor3 = CONFIG.NavPanelColor,
+pcall(function()
+    local RawUpdateTheme = WindowAPI.UpdateTheme
+    WindowAPI.UpdateTheme = function(self, newColor)
+        pcall(RawUpdateTheme, self, newColor)
+        
+        if EditorStroke then EditorStroke.Color = newColor end
+        if EditorTriggerBtn then EditorTriggerBtn.BackgroundColor3 = newColor end
+        
+        -- [[ ตรงนี้แหละที่มึงทัก ถูกต้องเป๊ะ! ]]
+        if NavSidePanel then
+            -- คำนวณโทนสีมืดให้แมตช์กับธีมใหม่ก่อน
+            local BaseDark = Color3.fromRGB(15, 15, 20)
+            local MutedColor = newColor:lerp(BaseDark, 0.45)
+            local NavPanelColor = MutedColor:lerp(BaseDark, 0.2)
+            
+            -- สั่ง Tween ให้มันค่อยๆ เฟดสีแผงข้างแบบสมูท 0.3 วินาที
+            CreateTween(NavSidePanel, {
+                BackgroundColor3 = NavPanelColor,
+                BackgroundTransparency = 0.5 -- คงค่าเดิมที่มึงชอบไว้
+            }, 0.3)
+        end
+    end
+end)
             BackgroundTransparency = GlobalTransparency -- เท่ากันเป๊ะตามที่มึงสั่ง
         }, 0.5)
     end
