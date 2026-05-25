@@ -155,7 +155,8 @@ MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainFrame.BackgroundColor3 = CONFIG.MainBgColor
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0.3
+MainFrame.GroupTransparency = 0.5
+MainFrame.BackgroundTransparency = 0.3
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local BgImage = Instance.new("ImageLabel", MainFrame)
@@ -169,7 +170,7 @@ BgCorner.CornerRadius = UDim.new(0, 10)
 local DarkOverlay = Instance.new("Frame", MainFrame)
 DarkOverlay.Size = UDim2.new(1, 0, 1, 0)
 DarkOverlay.BackgroundColor3 = Color3.new(0,0,0)
-DarkOverlay.BackgroundTransparency = 0.3
+DarkOverlay.BackgroundTransparency = 0.7
 DarkOverlay.ZIndex = 1
 DarkOverlay.Visible = false
 Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
@@ -215,7 +216,7 @@ ApplyAutoBackground()
 
 local UIStroke = Instance.new("UIStroke", MainFrame)
 UIStroke.Thickness = 2
-UIStroke.ZIndex = 50
+UIStroke.ZIndex = 5
 
 local TS = game:GetService("TweenService")
 local info = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
@@ -291,7 +292,7 @@ local function ToggleWindow(state)
     isWindowOpen = state
     if state then
         MainFrame.Visible = true
-        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0.3}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     else
         currentSize = MainFrame.Size
         local shrinkW = math.max(200, currentSize.X.Offset - 58)
