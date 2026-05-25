@@ -8,7 +8,7 @@ local CONFIG = {
     NavBtnColor = Color3.fromRGB(90, 132, 255),
     HoverColor = Color3.fromRGB(110, 152, 255),
     ClickColor = Color3.fromRGB(70, 112, 235),
-    MainBgColor = Color3.fromRGB(35, 35, 40),
+    MainBgColor = Color3.fromRGB(45, 45, 50),
     NavPanelColor = Color3.fromRGB(45, 45, 50),
     SearchBgColor = Color3.fromRGB(76, 181, 191),
     DefaultFontSize = 12,
@@ -155,7 +155,7 @@ MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainFrame.BackgroundColor3 = CONFIG.MainBgColor
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0.7
+MainFrame.GroupTransparency = 0.5
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local BgImage = Instance.new("ImageLabel", MainFrame)
@@ -169,7 +169,7 @@ BgCorner.CornerRadius = UDim.new(0, 10)
 local DarkOverlay = Instance.new("Frame", MainFrame)
 DarkOverlay.Size = UDim2.new(1, 0, 1, 0)
 DarkOverlay.BackgroundColor3 = Color3.new(0,0,0)
-DarkOverlay.BackgroundTransparency = 0.7
+DarkOverlay.BackgroundTransparency = 0.5
 DarkOverlay.ZIndex = 1
 DarkOverlay.Visible = false
 Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
@@ -958,7 +958,7 @@ function WindowAPI:UpdateTheme(newColor)
     local HighlightColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.3) 
     
     -- ตั้งค่าความโปร่งใสที่มึงอยากให้เท่ากันเป๊ะตรงนี้ (ปรับเลขนี้จุดเดียว เปลี่ยนทั้ง UI)
-    local GlobalTransparency = 0.3 
+    local GlobalTransparency = 0.5 
 
     CONFIG.NavBtnColor = MutedColor
     CONFIG.HoverColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.15)
@@ -1011,7 +1011,7 @@ function WindowAPI:UpdateTheme(newColor)
                     CreateTween(item, {
                         BackgroundColor3 = DeepOverlay,
                         BackgroundTransparency = GlobalTransparency
-                    }, 0.3)
+                    }, 0.5)
                     local fill = item:FindFirstChild("Fill", true) 
                     if fill then CreateTween(fill, {BackgroundColor3 = MutedColor}, 0.3) end
                 elseif item:IsA("TextLabel") then
