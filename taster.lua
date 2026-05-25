@@ -5,12 +5,12 @@ local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 
 local CONFIG = {
-    NavBtnColor = Color3.fromRGB(45, 45, 50), 
-    HoverColor = Color3.fromRGB(60, 60, 65),
-    ClickColor = Color3.fromRGB(30, 30, 35),
-    MainBgColor = Color3.fromRGB(20, 20, 25),
-    NavPanelColor = Color3.fromRGB(35, 35, 40),
-    SearchBgColor = Color3.fromRGB(30, 30, 35),
+    NavBtnColor = Color3.fromRGB(90, 132, 255),
+    HoverColor = Color3.fromRGB(110, 152, 255),
+    ClickColor = Color3.fromRGB(70, 112, 235),
+    MainBgColor = Color3.fromRGB(35, 35, 40),
+    NavPanelColor = Color3.fromRGB(45, 45, 50),
+    SearchBgColor = Color3.fromRGB(76, 181, 191),
     DefaultFontSize = 12,
     KeybindEnabled = true,
     ToggleKey = Enum.KeyCode.K,
@@ -692,42 +692,14 @@ local CachedSearchIcon = GetLocalAsset("search_icon.png", "https://raw.githubuse
 -- [[ ======================================================= ]] --
 makeDraggable(MainFrame)
 
--- [[ 1. จุดที่สร้าง NavSidePanel (ปรับค่าเริ่มต้นให้อ้างอิง CONFIG ชัดเจน) ]] --
 local NavSidePanel = Instance.new("Frame", MainFrame)
-NavSidePanel.Name = "NavSidePanel" -- ชื่อนี้ห้ามเปลี่ยนเด็ดขาด เอาไว้ดึงตอนเปลี่ยนธีม
+NavSidePanel.Name = "NavSidePanel" -- ใส่ชื่อไว้หน่อยเวลาเช็คใน UpdateTheme จะได้ชัวร์
 NavSidePanel.Size = UDim2.new(0, 105, 1, -55)
 NavSidePanel.Position = UDim2.new(0, 3, 0, 55)
--- ผูกกับค่า CONFIG.NavPanelColor ถ้าไม่มีให้ Fallback ไปสีเข้มดั้งเดิมของมึง
-NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor or Color3.fromRGB(45, 45, 50)
-NavSidePanel.BackgroundTransparency = 0.5 -- ค่าเริ่มต้นตอนเปิดโปร่งใสแบบ Ghost UI ตามที่อยากได้
+NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
+NavSidePanel.BackgroundTransparency = 0.5 -- ค่าเริ่มต้นตอนเปิด
 NavSidePanel.ZIndex = 2
 Instance.new("UICorner", NavSidePanel)
-
-
--- [[ 2. วิธีเช็คและจับใส่ฟังก์ชัน UpdateTheme ของมึง ]] --
--- ค้นหาท่อน "WindowAPI:UpdateTheme(newColor)" ในสคริปต์หลักของมึง แล้วตรวจสอบว่ามีก้อนนี้รันอยู่ไหม
--- ถ้าตัวแปร NavSidePanel เป็น Local นอกฟังก์ชัน ตัวฟังก์ชัน UpdateTheme จะมองเห็นได้ทันทีและลากมันมาเปลี่ยนสีตามนี้:
-
-function WindowAPI:UpdateTheme(newColor)
-    -- [[ 1. Color Processing (ส่วนคำนวณสีเดิมของมึง) ]]
-    local BaseDark = Color3.fromRGB(15, 15, 20)
-    local MutedColor = newColor:lerp(BaseDark, 0.7) 
-    local DeepOverlay = MutedColor:lerp(BaseDark, 0.8) 
-    
-    local GlobalTransparency = 0.3 -- ค่าความโปร่งใสแบบเท่าเทียมกันทั้ง UI
-
-    CONFIG.NavBtnColor = MutedColor
-    CONFIG.HoverColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.15)
-    CONFIG.SearchBgColor = DeepOverlay 
-    CONFIG.NavPanelColor = DeepOverlay:lerp(BaseDark, 0.2) -- คำนวณสีมืดใหม่สำหรับแผงข้าง
-
-    -- [[ 2. ตรงนี้แหละเว้ย สั่งแผงข้างสยบยอมต่อธีมใหม่! ]] --
-    if NavSidePanel then 
-        CreateTween(NavSidePanel, {
-            BackgroundColor3 = CONFIG.NavPanelColor, -- สั่งเปลี่ยนเป็นสีธีมใหม่ที่คำนวณแล้ว
-            BackgroundTransparency = GlobalTransparency -- คุมโทนความโปร่งใสให้สมดุล
-        }, 0.5)
-    end
 
 local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
 EditorTriggerBtn.Name = "EditorOpenTriggerButton"EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 55)
@@ -824,75 +796,23 @@ pcall(function()
     end
 end)
 
--- [[ 1. ตัว ScrollingFrame หลัก (ซ่อนแถบเลื่อนกากๆ ทิ้งไปซะ) ]] --
 local NavArea = Instance.new("ScrollingFrame", NavSidePanel)
-NavArea.Name = "GhostScrollNav"
--- ขยับตำแหน่งมันไปทางขวานิดนึง (Offset 6) เพื่อเว้นที่ให้แถบเลื่อนทำมือของเรา
-NavArea.Size = UDim2.new(1, -8, 1, -4) 
-NavArea.Position = UDim2.new(0, 6, 0, 2)
+NavArea.Size = UDim2.new(1, -4, 1, -4)
+NavArea.Position = UDim2.new(0, 2, 0, 2)
 NavArea.BackgroundTransparency = 1
 NavArea.ZIndex = 3
-NavArea.ScrollBarThickness = 0 -- ปิดทิ้งไปเลยชัวร์สุด
+NavArea.ScrollBarThickness = 0
 NavArea.CanvasSize = UDim2.new(0, 0, 0, 0)
 NavArea.AutomaticCanvasSize = Enum.AutomaticSize.Y
 NavArea.ClipsDescendants = true
 
 local NavLayout = Instance.new("UIListLayout", NavArea)
 NavLayout.Padding = UDim.new(0, 5)
-NavLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right -- ชิดขวาหลบแถบ
+NavLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 NavLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
--- [[ 2. สร้างแถบเลื่อนทำมือ (Custom Scrollbar Track & Thumb) ]] --
-local ScrollTrack = Instance.new("Frame", NavSidePanel)
-ScrollTrack.Name = "CustomScrollTrack"
-ScrollTrack.Size = UDim2.new(0, 2, 1, -8) -- หนา 2px อยู่ฝั่งซ้าย
-ScrollTrack.Position = UDim2.new(0, 2, 0, 4)
-ScrollTrack.BackgroundTransparency = 1 -- ซ่อนรางไว้
-ScrollTrack.ZIndex = 4
-
-local ScrollThumb = Instance.new("Frame", ScrollTrack)
-ScrollThumb.Name = "CustomScrollThumb"
-ScrollThumb.Size = UDim2.new(1, 0, 0, 0)
-ScrollThumb.BackgroundColor3 = CONFIG.NavBtnColor or Color3.fromRGB(90, 132, 255)
-ScrollThumb.BackgroundTransparency = 0.6 -- โปร่งใสแบบผีๆ ตามสไตล์
-ScrollThumb.ZIndex = 5
-Instance.new("UICorner", ScrollThumb).CornerRadius = UDim.new(1, 0)
-
--- [[ 3. ระบบสมองกลคำนวณตำแหน่งแถบเลื่อน ]] --
-local function UpdateCustomScrollbar()
-    -- ดึงค่าความสูงที่มองเห็น (Window) กับความสูงทั้งหมด (Canvas)
-    local windowSize = NavArea.AbsoluteWindowSize.Y
-    local canvasSize = NavArea.CanvasSize.Y.Offset
-    local canvasPos = NavArea.CanvasPosition.Y
-
-    -- ถ้าเนื้อหาน้อยกว่าหน้าจอ ก็ซ่อนแถบเลื่อนไปเลย
-    if canvasSize <= windowSize or canvasSize == 0 then
-        ScrollThumb.Visible = false
-    else
-        ScrollThumb.Visible = true
-        
-        -- คำนวณความสูงของแถบ (ยิ่งเนื้อหาเยอะ แถบยิ่งสั้น)
-        local scrollRatio = windowSize / canvasSize
-        local thumbHeight = math.max(15, windowSize * scrollRatio) -- สั้นสุดอย่าต่ำกว่า 15px
-        ScrollThumb.Size = UDim2.new(1, 0, 0, thumbHeight)
-
-        -- คำนวณตำแหน่งเลื่อนขึ้น-ลง
-        local maxCanvasScroll = canvasSize - windowSize
-        local scrollPercent = maxCanvasScroll > 0 and (canvasPos / maxCanvasScroll) or 0
-        
-        local maxThumbY = windowSize - thumbHeight
-        ScrollThumb.Position = UDim2.new(0, 0, 0, scrollPercent * maxThumbY)
-    end
-end
-
--- เชื่อม Event ให้มันอัปเดตตลอดเวลาที่มีการขยับหรือเพิ่มปุ่ม
-NavArea:GetPropertyChangedSignal("CanvasPosition"):Connect(UpdateCustomScrollbar)
-NavArea:GetPropertyChangedSignal("CanvasSize"):Connect(UpdateCustomScrollbar)
-NavArea:GetPropertyChangedSignal("AbsoluteWindowSize"):Connect(UpdateCustomScrollbar)
-
--- [[ 4. อัปเดตขนาด Canvas เมื่อมีปุ่มเพิ่มเข้ามา ]] --
 NavLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    NavArea.CanvasSize = UDim2.new(0, 0, 0, NavLayout.AbsoluteContentSize.Y + 10)
+    NavArea.CanvasSize = UDim2.new(0, 0, 0, NavLayout.AbsoluteContentSize.Y)
 end)
 
 
