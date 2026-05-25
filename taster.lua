@@ -155,7 +155,7 @@ MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainFrame.BackgroundColor3 = CONFIG.MainBgColor
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0.5
+MainFrame.GroupTransparency = 0.7
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local BgImage = Instance.new("ImageLabel", MainFrame)
@@ -215,7 +215,7 @@ ApplyAutoBackground()
 
 local UIStroke = Instance.new("UIStroke", MainFrame)
 UIStroke.Thickness = 2
-UIStroke.ZIndex = 5
+UIStroke.ZIndex = 50
 
 local TS = game:GetService("TweenService")
 local info = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
