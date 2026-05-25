@@ -161,7 +161,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local BgImage = Instance.new("ImageLabel", MainFrame)
 BgImage.Size = UDim2.new(1, 0, 1, 0)
-BgImage.BackgroundTransparency = 1
+BgImage.BackgroundTransparency = 0.3
 BgImage.ZIndex = 0
 BgImage.ScaleType = Enum.ScaleType.Crop
 local BgCorner = Instance.new("UICorner", BgImage)
