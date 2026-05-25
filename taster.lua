@@ -169,7 +169,7 @@ BgCorner.CornerRadius = UDim.new(0, 10)
 local DarkOverlay = Instance.new("Frame", MainFrame)
 DarkOverlay.Size = UDim2.new(1, 0, 1, 0)
 DarkOverlay.BackgroundColor3 = Color3.new(0,0,0)
-DarkOverlay.BackgroundTransparency = 0.5
+DarkOverlay.BackgroundTransparency = 0.3
 DarkOverlay.ZIndex = 1
 DarkOverlay.Visible = false
 Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
@@ -291,7 +291,7 @@ local function ToggleWindow(state)
     isWindowOpen = state
     if state then
         MainFrame.Visible = true
-        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0.3}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0.3}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     else
         currentSize = MainFrame.Size
         local shrinkW = math.max(200, currentSize.X.Offset - 58)
