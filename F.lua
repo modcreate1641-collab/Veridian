@@ -307,9 +307,6 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-
 local ResizeBtn = Instance.new("TextButton", MainFrame)
 ResizeBtn.Size = UDim2.new(0, 32, 0, 32)
 ResizeBtn.Position = UDim2.new(1, -32, 1, -32)
@@ -331,36 +328,25 @@ local dragConnection = nil
 ResizeBtn.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         isResizing = true
-        -- ดึงพิกัดเมาส์/นิ้ว ณ ตอนเริ่มกดแบบ Absolute จบๆ ไป
-        resStartPos = UserInputService:GetMouseLocation()
-        resStartSize = MainFrame.AbsoluteSize
+        resStartPos = input.Position
+        resStartSize = MainFrame.Size
         
         if dragConnection then 
             dragConnection:Disconnect() 
         end
         
-        -- ใช้ RenderStepped อัพเดตตามเฟรมเรต ลื่นสัสลากไวแค่ไหนก็ทัน
-        dragConnection = RunService.RenderStepped:Connect(function()
-            if isResizing then
-                local currentMousePos = UserInputService:GetMouseLocation()
-                local delta = currentMousePos - resStartPos
-                
-                -- คำนวณขนาดใหม่ ลิมิตขั้นต่ำไว้เท่าเดิมที่มึงตั้งไว้ (400x250)
-                local newWidth = math.max(400, resStartSize.X + delta.X)
-                local newHeight = math.max(250, resStartSize.Y + delta.Y)
-                
+        dragConnection = UserInputService.InputChanged:Connect(function(changedInput)
+            if isResizing and (changedInput.UserInputType == Enum.UserInputType.MouseMovement or changedInput.UserInputType == Enum.UserInputType.Touch) then
+                local delta = changedInput.Position - resStartPos
+                local newWidth = math.max(400, resStartSize.X.Offset + delta.X)
+                local newHeight = math.max(250, resStartSize.Y.Offset + delta.Y)
                 MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
-            else
-                if dragConnection then 
-                    dragConnection:Disconnect() 
-                    dragConnection = nil
-                end
+                currentSize = MainFrame.Size
             end
         end)
     end
 end)
 
--- เช็กตอนปล่อยนิ้ว/เมาส์ เคลียร์คอนเนคชั่นทิ้งซะ จะได้ไม่เปลืองเครื่อง
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         isResizing = false
@@ -368,6 +354,12 @@ UserInputService.InputEnded:Connect(function(input)
             dragConnection:Disconnect()
             dragConnection = nil
         end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isResizing = false
     end
 end)
 
@@ -983,29 +975,10 @@ function WindowAPI:UpdateTheme(newColor)
     if TopSettingBtn then CreateTween(TopSettingBtn, {TextColor3 = HighlightColor}, 0.3) end
     if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.3) end
 
-pcall(function()
-    local RawUpdateTheme = WindowAPI.UpdateTheme
-    WindowAPI.UpdateTheme = function(self, newColor)
-        pcall(RawUpdateTheme, self, newColor)
-        
-        if EditorStroke then EditorStroke.Color = newColor end
-        if EditorTriggerBtn then EditorTriggerBtn.BackgroundColor3 = newColor end
-        
-        -- [[ ตรงนี้แหละที่มึงทัก ถูกต้องเป๊ะ! ]]
-        if NavSidePanel then
-            -- คำนวณโทนสีมืดให้แมตช์กับธีมใหม่ก่อน
-            local BaseDark = Color3.fromRGB(15, 15, 20)
-            local MutedColor = newColor:lerp(BaseDark, 0.45)
-            local NavPanelColor = MutedColor:lerp(BaseDark, 0.2)
-            
-            -- สั่ง Tween ให้มันค่อยๆ เฟดสีแผงข้างแบบสมูท 0.3 วินาที
-            CreateTween(NavSidePanel, {
-                BackgroundColor3 = NavPanelColor,
-                BackgroundTransparency = 0.5 -- คงค่าเดิมที่มึงชอบไว้
-            }, 0.3)
-        end
-    end
-end)
+    -- ยัดไอ้แผงข้างเจ้าปัญหาเข้ามาในนี้ซะ! เวลาเปลี่ยนธีม มันจะได้ไม่ยืนงง
+    if NavSidePanel then 
+        CreateTween(NavSidePanel, {
+            BackgroundColor3 = CONFIG.NavPanelColor,
             BackgroundTransparency = GlobalTransparency -- เท่ากันเป๊ะตามที่มึงสั่ง
         }, 0.5)
     end
