@@ -27,36 +27,100 @@ end)
 
 local baseFolder = CONFIG.BgFolder
 local targetFolder = baseFolder .. "/BgAsset"
+local iconFolder = baseFolder .. "/Icons"
 
+-- [[ 1. ระบบเช็คและสร้างโฟลเดอร์ ]] --
+if not isfolder(baseFolder) then makefolder(baseFolder) end
+if not isfolder(targetFolder) then makefolder(targetFolder) end
+if not isfolder(iconFolder) then makefolder(iconFolder) end
+
+-- [[ 2. ประกาศตัวแปรพาร์ทไฟล์และ URL (แยกขาดจากกัน) ]] --
+
+-- ฝั่ง Veridian (พื้นหลัง + โลโก้หลัก)
 local bgName = targetFolder .. "/Cool background.png"
 local bgUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Cool%20background.png"
 
 local logoName = targetFolder .. "/furryLogo.png"
-local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/1000109193-01.jpeg"
+local logoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/Texture7.jpg"
 
-pcall(function()
-    if isfolder and not isfolder(baseFolder) then 
-        makefolder(baseFolder) 
-    end
-    
-    if isfolder and not isfolder(targetFolder) then 
-        makefolder(targetFolder) 
-    end
-    
-    if isfile and not isfile(bgName) then
-        local content = game:HttpGet(bgUrl)
-        if writefile and type(content) == "string" and #content > 5000 then
-            writefile(bgName, content)
-        end
-    end
-    
-    if isfile and not isfile(logoName) then
-        local content = game:HttpGet(logoUrl)
-        if writefile and type(content) == "string" and #content > 5000 then
-            writefile(logoName, content)
-        end
-    end
-end)
+-- ฝั่ง Fluffy (ไอคอน Signature ของมึง)
+local settingName = iconFolder .. "/setting icon.png"
+local settingUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/setting%20icon.png"
+
+local scripthubName = iconFolder .. "/scripthub icon.jpeg"
+local scripthubUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/scripthub%20icon.jpeg"
+
+local scriptName = iconFolder .. "/script icon.png"
+local scriptUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/script%20icon.png"
+
+local furryName = iconFolder .. "/furry icon.png"
+local furryUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/furry%20icon.png"
+
+local aimName = iconFolder .. "/aim icon.png"
+local aimUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/aim%20icon.png"
+
+local destroyName = iconFolder .. "/destroy icon.png"
+local destroyUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/destroy%20icon.png"
+
+local autoName = iconFolder .. "/auto.png"
+local autoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/auto.png"
+
+
+-- [[ 3. ระบบดาวน์โหลดแบบทีละตัว (เน้นชัวร์ ไม่เน้นสั้น) ]] --
+
+-- โหลด Background (ขนาดใหญ่ > 5000)
+if not isfile(bgName) then
+    local s, content = pcall(game.HttpGet, game, bgUrl)
+    if s and #content > 5000 then writefile(bgName, content) end
+end
+
+-- โหลด Logo (ขนาดใหญ่ > 5000)
+if not isfile(logoName) then
+    local s, content = pcall(game.HttpGet, game, logoUrl)
+    if s and #content > 5000 then writefile(logoName, content) end
+end
+
+-- โหลด Setting Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(settingName) then
+    local s, content = pcall(game.HttpGet, game, settingUrl)
+    if s and #content > 0 then writefile(settingName, content) end
+end
+
+-- โหลด ScriptHub Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(scripthubName) then
+    local s, content = pcall(game.HttpGet, game, scripthubUrl)
+    if s and #content > 0 then writefile(scripthubName, content) end
+end
+
+-- โหลด Script Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(scriptName) then
+    local s, content = pcall(game.HttpGet, game, scriptUrl)
+    if s and #content > 0 then writefile(scriptName, content) end
+end
+
+-- โหลด Furry Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(furryName) then
+    local s, content = pcall(game.HttpGet, game, furryUrl)
+    if s and #content > 0 then writefile(furryName, content) end
+end
+
+-- โหลด Aim Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(aimName) then
+    local s, content = pcall(game.HttpGet, game, aimUrl)
+    if s and #content > 0 then writefile(aimName, content) end
+end
+
+-- โหลด Destroy Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(destroyName) then
+    local s, content = pcall(game.HttpGet, game, destroyUrl)
+    if s and #content > 0 then writefile(destroyName, content) end
+end
+
+-- โหลด Auto Icon (ไอคอนขนาดเล็ก > 0)
+if not isfile(autoName) then
+    local s, content = pcall(game.HttpGet, game, autoUrl)
+    if s and #content > 0 then writefile(autoName, content) end
+end
 
 local function CreateTween(instance, properties, time, style, direction)
     local info = TweenService:Create(instance, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quad, direction or Enum.EasingDirection.Out), properties)
@@ -91,7 +155,7 @@ MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainFrame.BackgroundColor3 = CONFIG.MainBgColor
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0
+MainFrame.GroupTransparency = 0.5
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local BgImage = Instance.new("ImageLabel", MainFrame)
@@ -105,7 +169,7 @@ BgCorner.CornerRadius = UDim.new(0, 10)
 local DarkOverlay = Instance.new("Frame", MainFrame)
 DarkOverlay.Size = UDim2.new(1, 0, 1, 0)
 DarkOverlay.BackgroundColor3 = Color3.new(0,0,0)
-DarkOverlay.BackgroundTransparency = 0.5
+DarkOverlay.BackgroundTransparency = 0.7
 DarkOverlay.ZIndex = 1
 DarkOverlay.Visible = false
 Instance.new("UICorner", DarkOverlay).CornerRadius = UDim.new(0, 10)
@@ -321,15 +385,38 @@ ContainerStroke.Color = CONFIG.NavBtnColor
 ContainerStroke.Transparency = 0.4
 
 local ToggleBtn = Instance.new("TextButton", ToggleContainer)
+ToggleBtn.Name = "ToggleButton"
 ToggleBtn.Size = UDim2.new(0, 95, 1, 0)
 ToggleBtn.Position = UDim2.new(0, 0, 0, 0)
 ToggleBtn.BackgroundTransparency = 1
-ToggleBtn.Text = "🐾 On/Off"
-ToggleBtn.TextColor3 = Color3.fromRGB(245, 245, 245)
-ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 12
+ToggleBtn.Text = "" -- ลบอีโมจิอุ้งเท้าออก เซตเป็นค่าว่างซะ
+ToggleBtn.Active = true
 ToggleBtn.ZIndex = 1000
 
+-- ยัดไอคอนขนฟู (Furry Icon) ไว้ฝั่งซ้ายของปุ่ม
+local ToggleIcon = Instance.new("ImageLabel", ToggleBtn)
+ToggleIcon.Name = "ToggleIcon"
+ToggleIcon.Size = UDim2.new(0, 18, 0, 18) -- ขนาด 18x18 กำลังน่ารักไม่แย่งซีนข้อความ
+ToggleIcon.Position = UDim2.new(0, 10, 0.5, -9) -- ชิดซ้ายเว้นจากขอบเข้ามา 10 พิกเซล
+ToggleIcon.BackgroundTransparency = 1
+ToggleIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/furry icon.png") -- ดึงไฟล์ไอคอนเฟี้ยวๆ มาแปะ
+ToggleIcon.ZIndex = 1001
+
+-- สร้าง TextLabel แยกต่างหากเพื่อจัดระเบียบตัวหนังสือ "On/Off"
+local ToggleText = Instance.new("TextLabel", ToggleBtn)
+ToggleText.Name = "ToggleText"
+-- ขนาดให้กินพื้นที่ที่เหลือ โดยลบระยะของไอคอนออกไป
+ToggleText.Size = UDim2.new(1, -35, 1, 0) 
+ToggleText.Position = UDim2.new(0, 34, 0, 0) -- ขยับมาทางขวาเพื่อหลบให้ไอคอน
+ToggleText.BackgroundTransparency = 1
+ToggleText.Text = "On/Off"
+ToggleText.TextColor3 = Color3.fromRGB(245, 245, 245)
+ToggleText.Font = Enum.Font.GothamBold
+ToggleText.TextSize = 12
+ToggleText.TextXAlignment = Enum.TextXAlignment.Left -- จัดข้อความชิดซ้ายเรียงต่อจากไอคอนแบบเนียนๆ
+ToggleText.ZIndex = 1001
+
+-- เส้นคั่น (Divider) ของเดิมมึง เอามาวางหล่อๆ เหมือนเดิม
 local Divider = Instance.new("Frame", ToggleContainer)
 Divider.Size = UDim2.new(0, 1, 0, 20)
 Divider.Position = UDim2.new(0, 96, 0.5, -10)
@@ -470,13 +557,14 @@ HubLabel.TextXAlignment = Enum.TextXAlignment.Left
 HubLabel.TextYAlignment = Enum.TextYAlignment.Center
 HubLabel.ZIndex = 11
 
+-- สร้างปุ่มหลัก (ซ่อน Text ไว้ก่อน)
 local ClosedBtn = Instance.new("TextButton", TopBar)
 ClosedBtn.Name = "HubDestroyButton"
 ClosedBtn.Size = UDim2.new(0, 80, 1, 0)
 ClosedBtn.Position = UDim2.new(1, -80, 0, 0)
 ClosedBtn.BackgroundColor3 = Color3.fromRGB(129, 129, 129)
 ClosedBtn.BackgroundTransparency = 0.9
-ClosedBtn.Text = "💥 Destroy"
+ClosedBtn.Text = "" -- เริ่มต้นเป็นค่าว่างตามที่มึงอยากได้
 ClosedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ClosedBtn.Font = Enum.Font.GothamBold
 ClosedBtn.TextSize = 12
@@ -484,6 +572,24 @@ ClosedBtn.Active = true
 ClosedBtn.ZIndex = 12 
 Instance.new("UICorner", ClosedBtn)
 
+-- ยัดไอคอนเข้าไปข้างในปุ่มโดยใช้ getcustomasset
+local BtnIcon = Instance.new("ImageLabel", ClosedBtn)
+BtnIcon.Name = "DestroyIcon"
+BtnIcon.Size = UDim2.new(0, 20, 0, 20) -- ปรับขนาดไอคอนตามใจชอบ
+BtnIcon.Position = UDim2.new(0.5, -10, 0.5, -10) -- จัดให้อยู่ตรงกลางเป๊ะ
+BtnIcon.BackgroundTransparency = 1
+BtnIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/destroy icon.png") -- ดึงไฟล์ไอคอนที่โหลดมา
+BtnIcon.ZIndex = 13
+
+-- ฟังก์ชันคลีนๆ เอาไว้รีเซ็ตปุ่มกลับเป็นสถานะไอคอนเริ่มต้น (ลบโค้ดซ้ำซาก)
+local function resetBtn()
+    destroyStage = 0
+    ClosedBtn.Text = ""
+    BtnIcon.Visible = true -- โชว์ไอคอนกลับมา
+    CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2)
+end
+
+-- ระบบ Hover เมาส์
 ClosedBtn.MouseEnter:Connect(function() 
     if destroyStage == 0 then
         CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(180, 50, 50)}, 0.2) 
@@ -496,18 +602,17 @@ ClosedBtn.MouseLeave:Connect(function()
     end
 end)
 
+-- ระบบคลิกยืนยัน 3 สเต็ป
 ClosedBtn.Activated:Connect(function() 
     destroyStage = destroyStage + 1
+    BtnIcon.Visible = false -- กดปุ๊บซ่อนไอคอน เพื่อหลีกทางให้ตัวหนังสือเตือน
+    
     if destroyStage == 1 then
         ClosedBtn.Text = "⚠️ Sure? (1/2)"
         CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(210, 100, 40)}, 0.1)
         
         task.delay(3, function()
-            if destroyStage == 1 then
-                destroyStage = 0
-                ClosedBtn.Text = "💥 Destroy"
-                CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
-            end
+            if destroyStage == 1 then resetBtn() end
         end)
         
     elseif destroyStage == 2 then
@@ -515,11 +620,7 @@ ClosedBtn.Activated:Connect(function()
         CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(230, 40, 40)}, 0.1)
         
         task.delay(3, function()
-            if destroyStage == 2 then
-                destroyStage = 0
-                ClosedBtn.Text = "💥 Destroy"
-                CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
-            end
+            if destroyStage == 2 then resetBtn() end
         end)
         
     elseif destroyStage >= 3 then
@@ -534,16 +635,22 @@ TopSettingBtn.Name = "TopSettingsNavigationButton"
 TopSettingBtn.Size = UDim2.new(0, 60, 1, 0)
 TopSettingBtn.Position = UDim2.new(1, -146, 0, 0)
 TopSettingBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
-TopSettingBtn.Text = "⚙️"
-TopSettingBtn.TextColor3 = Color3.new(1, 1, 1)
 TopSettingBtn.BackgroundTransparency = 0.9
-TopSettingBtn.TextSize = 14
-TopSettingBtn.Font = Enum.Font.GothamBold
-TopSettingBtn.ZIndex = 12 -- FIXED: Lifted up from layer 1 to layer 12 to prevent drowning behind background elements
+TopSettingBtn.Text = "" -- ลบอีโมจิส้นตีนนั่นออกไป เซตเป็นค่าว่างซะ
 TopSettingBtn.Active = true
+TopSettingBtn.ZIndex = 12 
 
 local SettingBtnCorner = Instance.new("UICorner", TopSettingBtn)
 SettingBtnCorner.CornerRadius = UDim.new(0, 8)
+
+-- ยัดไอคอนตั้งค่าเข้าไปข้างใน และปรับให้ใหญ่ขึ้นตามคำขอ (24x24 พิกเซล)
+local SettingIcon = Instance.new("ImageLabel", TopSettingBtn)
+SettingIcon.Name = "SettingIcon"
+SettingIcon.Size = UDim2.new(0, 24, 0, 24) -- ขยายขนาดให้ใหญ่สะใจขึ้น
+SettingIcon.Position = UDim2.new(0.5, -12, 0.5, -12) -- สูตรคำนวณจัดกึ่งกลางเป๊ะ (ขนาดหารสองแล้วติดลบ)
+SettingIcon.BackgroundTransparency = 1
+SettingIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/setting icon.png") -- ดึงไฟล์ไอคอนตั้งค่ามาใช้
+SettingIcon.ZIndex = 13
 
 -- [[ SETTINGS BUTTON HOVER INTERACTION LOOPS ]] --
 TopSettingBtn.MouseEnter:Connect(function() 
@@ -586,12 +693,108 @@ local CachedSearchIcon = GetLocalAsset("search_icon.png", "https://raw.githubuse
 makeDraggable(MainFrame)
 
 local NavSidePanel = Instance.new("Frame", MainFrame)
+NavSidePanel.Name = "NavSidePanel" -- ใส่ชื่อไว้หน่อยเวลาเช็คใน UpdateTheme จะได้ชัวร์
 NavSidePanel.Size = UDim2.new(0, 105, 1, -55)
 NavSidePanel.Position = UDim2.new(0, 3, 0, 55)
 NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
-NavSidePanel.BackgroundTransparency = 0.2
+NavSidePanel.BackgroundTransparency = 0.5 -- ค่าเริ่มต้นตอนเปิด
 NavSidePanel.ZIndex = 2
 Instance.new("UICorner", NavSidePanel)
+
+local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
+EditorTriggerBtn.Name = "EditorOpenTriggerButton"EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 55)
+EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -49)
+EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
+EditorTriggerBtn.Text = "CODE EDITOR"
+EditorTriggerBtn.TextColor3 = Color3.new(1, 1, 1)
+EditorTriggerBtn.Font = Enum.Font.GothamBold
+EditorTriggerBtn.TextSize = 11
+EditorTriggerBtn.ZIndex = 5
+Instance.new("UICorner", EditorTriggerBtn)
+
+local InGameEditorFrame = Instance.new("Frame", MainFrame)
+InGameEditorFrame.Name = "VeridianCoreCodeEditor"
+InGameEditorFrame.Size = UDim2.new(1, -125, 1, -65)
+InGameEditorFrame.Position = UDim2.new(0, 115, 0, 55)
+InGameEditorFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+InGameEditorFrame.Visible = false
+InGameEditorFrame.ZIndex = 50
+Instance.new("UICorner", InGameEditorFrame)
+
+local EditorStroke = Instance.new("UIStroke", InGameEditorFrame)
+EditorStroke.Thickness = 1.5
+EditorStroke.Color = CONFIG.NavBtnColor
+EditorStroke.ZIndex = 51
+
+local EditorTopBar = Instance.new("Frame", InGameEditorFrame)
+EditorTopBar.Size = UDim2.new(1, 0, 0, 32)
+EditorTopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+EditorTopBar.ZIndex = 52
+Instance.new("UICorner", EditorTopBar)
+
+local LocalSearchBox = Instance.new("TextBox", EditorTopBar)
+LocalSearchBox.Size = UDim2.new(0, 180, 1, -6)
+LocalSearchBox.Position = UDim2.new(0, 8, 0, 3)
+LocalSearchBox.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+LocalSearchBox.PlaceholderText = "Find line (Press Enter)"
+LocalSearchBox.Text = ""
+LocalSearchBox.TextColor3 = Color3.new(1, 1, 1)
+LocalSearchBox.Font = Enum.Font.GothamSemibold
+LocalSearchBox.TextSize = 12
+LocalSearchBox.TextXAlignment = Enum.TextXAlignment.Left
+LocalSearchBox.ZIndex = 53
+Instance.new("UICorner", LocalSearchBox)
+
+local CodeTextBox = Instance.new("TextBox", InGameEditorFrame)
+CodeTextBox.Size = UDim2.new(1, -16, 1, -44)
+CodeTextBox.Position = UDim2.new(0, 8, 0, 38)
+CodeTextBox.BackgroundTransparency = 1
+CodeTextBox.ClearTextOnFocus = false
+CodeTextBox.MultiLine = true
+CodeTextBox.Text = "hello world"
+CodeTextBox.TextColor3 = Color3.fromRGB(220, 220, 225)
+CodeTextBox.Font = Enum.Font.Code
+CodeTextBox.TextSize = 13
+CodeTextBox.TextXAlignment = Enum.TextXAlignment.Left
+CodeTextBox.TextYAlignment = Enum.TextYAlignment.Top
+CodeTextBox.ZIndex = 53
+
+EditorTriggerBtn.Activated:Connect(function()
+    local targetState = not InGameEditorFrame.Visible
+    InGameEditorFrame.Visible = targetState
+    pcall(function()
+        if PageArea then
+            PageArea.Visible = not targetState
+        end
+    end)
+end)
+
+LocalSearchBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local searchPattern = LocalSearchBox.Text:lower()
+        if searchPattern == "" then 
+            CodeTextBox.CursorPosition = 1
+            CodeTextBox.SelectionStart = 1
+            return 
+        end
+        local textSource = CodeTextBox.Text:lower()
+        local startIdx = textSource:find(searchPattern, 1, true)
+        if startIdx then
+            CodeTextBox:CaptureFocus()
+            CodeTextBox.CursorPosition = startIdx + #searchPattern
+            CodeTextBox.SelectionStart = startIdx
+        end
+    end
+end)
+
+pcall(function()
+    local RawUpdateTheme = WindowAPI.UpdateTheme
+    WindowAPI.UpdateTheme = function(self, newColor)
+        pcall(RawUpdateTheme, self, newColor)
+        if EditorStroke then EditorStroke.Color = newColor end
+        if EditorTriggerBtn then EditorTriggerBtn.BackgroundColor3 = newColor end
+    end
+end)
 
 local NavArea = Instance.new("ScrollingFrame", NavSidePanel)
 NavArea.Size = UDim2.new(1, -4, 1, -4)
@@ -599,8 +802,19 @@ NavArea.Position = UDim2.new(0, 2, 0, 2)
 NavArea.BackgroundTransparency = 1
 NavArea.ZIndex = 3
 NavArea.ScrollBarThickness = 0
-NavArea.AutomaticCanvasSize = "Y"
-Instance.new("UIListLayout", NavArea).Padding = UDim.new(0, 5)
+NavArea.CanvasSize = UDim2.new(0, 0, 0, 0)
+NavArea.AutomaticCanvasSize = Enum.AutomaticSize.Y
+NavArea.ClipsDescendants = true
+
+local NavLayout = Instance.new("UIListLayout", NavArea)
+NavLayout.Padding = UDim.new(0, 5)
+NavLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+NavLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+NavLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    NavArea.CanvasSize = UDim2.new(0, 0, 0, NavLayout.AbsoluteContentSize.Y)
+end)
+
 
 local PageArea = Instance.new("Frame", MainFrame)
 PageArea.Size = UDim2.new(1, -115, 1, -55)
@@ -738,61 +952,70 @@ end)
 
 function WindowAPI:UpdateTheme(newColor)
     -- [[ 1. Color Processing (Deepening Effect) ]]
-    -- Mix the theme color with deep space dark to make it look "Complex"
     local BaseDark = Color3.fromRGB(15, 15, 20)
-    local MutedColor = newColor:lerp(BaseDark, 0.45) 
-    local DeepOverlay = MutedColor:lerp(BaseDark, 0.8) -- Super dark tone for backgrounds
-    local HighlightColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.3) -- Subtle light for text/icons
+    local MutedColor = newColor:lerp(BaseDark, 0.7) 
+    local DeepOverlay = MutedColor:lerp(BaseDark, 0.8) -- โทนมืดสุดสำหรับพวก Background
+    local HighlightColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.3) 
     
+    -- ตั้งค่าความโปร่งใสที่มึงอยากให้เท่ากันเป๊ะตรงนี้ (ปรับเลขนี้จุดเดียว เปลี่ยนทั้ง UI)
+    local GlobalTransparency = 0.3 
+
     CONFIG.NavBtnColor = MutedColor
     CONFIG.HoverColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.15)
-
-    -- Update config dynamically to prevent color snapping on FocusLost
     CONFIG.SearchBgColor = DeepOverlay 
+    -- อัปเดต CONFIG ตัวนี้อัตโนมัติ ให้สี Panel แมตช์กับธีมใหม่
+    CONFIG.NavPanelColor = DeepOverlay:lerp(BaseDark, 0.2) 
 
-    -- [[ 2. Top Bar & Global Controls ]]
+    -- [[ 2. Top Bar, Global Controls & Side Panel ]]
     if HubLabel then CreateTween(HubLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.3) end
     if ToggleBtn then CreateTween(ToggleBtn, {BackgroundColor3 = MutedColor}, 0.3) end
     if SearchBox then 
-        CreateTween(SearchBox, {BackgroundColor3 = DeepOverlay, TextColor3 = Color3.new(0.9, 0.9, 0.9)}, 0.3) 
+        CreateTween(SearchBox, {BackgroundColor3 = DeepOverlay, TextColor3 = Color3.new(0.9, 0.9, 0.9)}, 0.5) 
     end
     if TopSettingBtn then CreateTween(TopSettingBtn, {TextColor3 = HighlightColor}, 0.3) end
-    if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.5) end
+    if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.3) end
+
+    -- ยัดไอ้แผงข้างเจ้าปัญหาเข้ามาในนี้ซะ! เวลาเปลี่ยนธีม มันจะได้ไม่ยืนงง
+    if NavSidePanel then 
+        CreateTween(NavSidePanel, {
+            BackgroundColor3 = CONFIG.NavPanelColor,
+            BackgroundTransparency = GlobalTransparency -- เท่ากันเป๊ะตามที่มึงสั่ง
+        }, 0.5)
+    end
 
     -- [[ 3. Navigation Buttons (Left Panel) ]]
     for _, btn in pairs(NavArea:GetChildren()) do
         if btn:IsA("TextButton") then
             CreateTween(btn, {
                 BackgroundColor3 = MutedColor,
+                BackgroundTransparency = GlobalTransparency, -- ให้ปุ่มโปร่งใสเท่าแผงข้างด้วย
                 TextColor3 = Color3.fromRGB(220, 220, 220)
-            }, 0.3)
-            -- Check for optional UICorner or UIStroke inside Nav Buttons
+            }, 0.5)
             local st = btn:FindFirstChildOfClass("UIStroke")
             if st then CreateTween(st, {Color = HighlightColor:lerp(BaseDark, 0.5)}, 0.3) end
         end
     end
 
     -- [[ 4. Tab Content Deep-Sync (The "Global Overwrite") ]]
-    -- This loop looks inside all Tab Pages and adjusts the elements dynamically
     for _, tab in pairs(PageArea:GetChildren()) do
         if tab:IsA("ScrollingFrame") or tab:IsA("Frame") then
             for _, item in pairs(tab:GetChildren()) do
-                -- Buttons inside tabs (Toggle, Normal Button, etc.)
                 if item:IsA("TextButton") then
-                    -- If it's a Toggle, we usually handle it in its own logic, 
-                    -- but we can darken its base here if needed.
-                    if not item:FindFirstChild("IsToggle") then -- Custom check if you add tags
-                        CreateTween(item, {BackgroundColor3 = DeepOverlay:lerp(MutedColor, 0.2)}, 0.3)
+                    if not item:FindFirstChild("IsToggle") then 
+                        CreateTween(item, {
+                            BackgroundColor3 = DeepOverlay:lerp(MutedColor, 0.2),
+                            BackgroundTransparency = GlobalTransparency
+                        }, 0.5)
                     end
-                -- Slider background or other Containers
                 elseif item:IsA("Frame") then
-                    CreateTween(item, {BackgroundColor3 = DeepOverlay}, 0.3)
-                    -- Adjust Slider Fill or Inner Elements
-                    local fill = item:FindFirstChild("Fill", true) -- Recursive search for Fill
+                    CreateTween(item, {
+                        BackgroundColor3 = DeepOverlay,
+                        BackgroundTransparency = GlobalTransparency
+                    }, 0.3)
+                    local fill = item:FindFirstChild("Fill", true) 
                     if fill then CreateTween(fill, {BackgroundColor3 = MutedColor}, 0.3) end
-                -- TextLabels inside tabs
                 elseif item:IsA("TextLabel") then
-                    CreateTween(item, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.3)
+                    CreateTween(item, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.5)
                 end
             end
         end
@@ -800,7 +1023,6 @@ function WindowAPI:UpdateTheme(newColor)
     
     -- [[ 5. Visual Polish (Darkened Canvas) ]]
     if MainFrame then
-        -- Add a subtle tint to the whole frame for the Galaxy feel
         CreateTween(MainFrame, {GroupColor3 = Color3.fromRGB(230, 230, 245)}, 0.5)
     end
 end
