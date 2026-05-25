@@ -291,7 +291,7 @@ local function ToggleWindow(state)
     isWindowOpen = state
     if state then
         MainFrame.Visible = true
-        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0.5}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     else
         currentSize = MainFrame.Size
         local shrinkW = math.max(200, currentSize.X.Offset - 58)
