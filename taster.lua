@@ -799,7 +799,7 @@ EditorTriggerBtn.ZIndex = 5
 Instance.new("UICorner", EditorTriggerBtn)
 
 local EditorIcon = Instance.new("ImageLabel", EditorTriggerBtn)
-EditorIcon.Size = UDim2.new(0, 32, 0, 32)
+EditorIcon.Size = UDim2.new(0, 82, 0, 82)
 EditorIcon.Position = UDim2.new(0.5, -16, 0.5, -16)
 EditorIcon.BackgroundTransparency = 1
 EditorIcon.ZIndex = 6
