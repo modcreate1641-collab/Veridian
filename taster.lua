@@ -790,15 +790,34 @@ NavSidePanel.ZIndex = 2
 Instance.new("UICorner", NavSidePanel)
 
 local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
-EditorTriggerBtn.Name = "EditorOpenTriggerButton"EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 55)
+EditorTriggerBtn.Name = "EditorOpenTriggerButton"
+EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 55)
 EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -49)
 EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
-EditorTriggerBtn.Text = "CODE EDITOR"
-EditorTriggerBtn.TextColor3 = Color3.new(1, 1, 1)
-EditorTriggerBtn.Font = Enum.Font.GothamBold
-EditorTriggerBtn.TextSize = 11
+EditorTriggerBtn.Text = "" 
 EditorTriggerBtn.ZIndex = 5
 Instance.new("UICorner", EditorTriggerBtn)
+
+local EditorIcon = Instance.new("ImageLabel", EditorTriggerBtn)
+EditorIcon.Size = UDim2.new(0, 32, 0, 32)
+EditorIcon.Position = UDim2.new(0.5, -16, 0.5, -16)
+EditorIcon.BackgroundTransparency = 1
+EditorIcon.ZIndex = 6
+
+task.spawn(function()
+    local iconPath = CONFIG.BgFolder .. "/Icons/editor_icon_new.png"
+    local iconUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/947cc3983ace2b466e4af8bc1b353f27a28cea04eb0c5b569bd1d45d32d3b281.0.png"
+    
+    if not isfile(iconPath) then
+        pcall(function() 
+            writefile(iconPath, game:HttpGet(iconUrl)) 
+        end)
+    end
+    
+    if isfile(iconPath) then
+        EditorIcon.Image = getcustomasset(iconPath)
+    end
+end)
 
 local InGameEditorFrame = Instance.new("Frame", MainFrame)
 InGameEditorFrame.Name = "VeridianCoreCodeEditor"
@@ -859,28 +878,24 @@ end)
 
 LocalSearchBox.FocusLost:Connect(function(enterPressed)
     if enterPressed then
-        local searchPattern = LocalSearchBox.Text:lower()
-        if searchPattern == "" then 
+        local rawSearch = LocalSearchBox.Text:lower()
+        
+        if rawSearch:gsub("%s", "") == "" then 
             CodeTextBox.CursorPosition = 1
             CodeTextBox.SelectionStart = 1
             return 
         end
+        
         local textSource = CodeTextBox.Text:lower()
-        local startIdx = textSource:find(searchPattern, 1, true)
+        local safeSearch = rawSearch:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1")
+        local fuzzyPattern = safeSearch:gsub("%s+", "%%s*")
+        
+        local startIdx, endIdx = textSource:find(fuzzyPattern)
         if startIdx then
             CodeTextBox:CaptureFocus()
-            CodeTextBox.CursorPosition = startIdx + #searchPattern
+            CodeTextBox.CursorPosition = endIdx + 1
             CodeTextBox.SelectionStart = startIdx
         end
-    end
-end)
-
-pcall(function()
-    local RawUpdateTheme = WindowAPI.UpdateTheme
-    WindowAPI.UpdateTheme = function(self, newColor)
-        pcall(RawUpdateTheme, self, newColor)
-        if EditorStroke then EditorStroke.Color = newColor end
-        if EditorTriggerBtn then EditorTriggerBtn.BackgroundColor3 = newColor end
     end
 end)
 
@@ -903,12 +918,111 @@ NavLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     NavArea.CanvasSize = UDim2.new(0, 0, 0, NavLayout.AbsoluteContentSize.Y)
 end)
 
-
 local PageArea = Instance.new("Frame", MainFrame)
 PageArea.Size = UDim2.new(1, -115, 1, -55)
 PageArea.Position = UDim2.new(0, 110, 0, 55)
 PageArea.BackgroundTransparency = 1
 PageArea.ZIndex = 3
+
+local function SetupDynamicFade(scrollFrame)
+    local TS = game:GetService("TweenService")
+    local fadeInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+    local function getOrig(obj, prop)
+        local attr = "Orig_" .. prop
+        if not obj:GetAttribute(attr) then
+            obj:SetAttribute(attr, obj[prop])
+        end
+        return obj:GetAttribute(attr)
+    end
+
+    local function tweenVisibility(item, isVisible)
+        if not item:IsA("GuiObject") then return end
+        
+        local bgT = isVisible and getOrig(item, "BackgroundTransparency") or 1
+        TS:Create(item, fadeInfo, {BackgroundTransparency = bgT}):Play()
+
+        if item:IsA("TextButton") or item:IsA("TextLabel") or item:IsA("TextBox") then
+            local txtT = isVisible and getOrig(item, "TextTransparency") or 1
+            TS:Create(item, fadeInfo, {TextTransparency = txtT}):Play()
+        end
+        
+        if item:IsA("ImageLabel") or item:IsA("ImageButton") then
+            local imgT = isVisible and getOrig(item, "ImageTransparency") or 1
+            TS:Create(item, fadeInfo, {ImageTransparency = imgT}):Play()
+        end
+
+        local stroke = item:FindFirstChildOfClass("UIStroke")
+        if stroke then
+            local strkT = isVisible and getOrig(stroke, "Transparency") or 1
+            TS:Create(stroke, fadeInfo, {Transparency = strkT}):Play()
+        end
+    end
+
+    local function updateScrollVisibility()
+        local viewTop = scrollFrame.AbsolutePosition.Y
+        local viewBottom = viewTop + scrollFrame.AbsoluteWindowSize.Y
+        local buffer = 15 
+        
+        for _, child in pairs(scrollFrame:GetChildren()) do
+            if child:IsA("GuiObject") then
+                local childTop = child.AbsolutePosition.Y
+                local childBottom = childTop + child.AbsoluteSize.Y
+                
+                local inView = (childBottom > viewTop - buffer) and (childTop < viewBottom + buffer)
+                
+                if inView and not child:GetAttribute("IsFadedIn") then
+                    child:SetAttribute("IsFadedIn", true)
+                    tweenVisibility(child, true)
+                elseif not inView and child:GetAttribute("IsFadedIn") ~= false then
+                    child:SetAttribute("IsFadedIn", false)
+                    tweenVisibility(child, false)
+                end
+            end
+        end
+    end
+
+    scrollFrame:GetPropertyChangedSignal("CanvasPosition"):Connect(updateScrollVisibility)
+    
+    scrollFrame.ChildAdded:Connect(function(child)
+        if child:IsA("GuiObject") then
+            child.BackgroundTransparency = 1
+            if child:IsA("TextButton") or child:IsA("TextLabel") then child.TextTransparency = 1 end
+            
+            task.delay(0.1, function()
+                child:SetAttribute("IsFadedIn", true)
+                tweenVisibility(child, true)
+                updateScrollVisibility()
+            end)
+        end
+    end)
+
+    task.spawn(function()
+        task.wait(0.1)
+        local delayCounter = 0
+        
+        for _, child in pairs(scrollFrame:GetChildren()) do
+            if child:IsA("GuiObject") then
+                child:SetAttribute("IsFadedIn", false)
+                
+                child.BackgroundTransparency = 1
+                if child:IsA("TextButton") or child:IsA("TextLabel") then child.TextTransparency = 1 end
+                if child:IsA("ImageLabel") or child:IsA("ImageButton") then child.ImageTransparency = 1 end
+                local str = child:FindFirstChildOfClass("UIStroke")
+                if str then str.Transparency = 1 end
+
+                task.delay(delayCounter * 0.08, function()
+                    child:SetAttribute("IsFadedIn", true)
+                    tweenVisibility(child, true)
+                end)
+                delayCounter = delayCounter + 1
+            end
+        end
+        task.delay((delayCounter * 0.08) + 0.1, updateScrollVisibility)
+    end)
+end
+
+SetupDynamicFade(NavArea)
 
 -- [[ ======================================================= ]] --
 -- [[ MODERN TOGGLEABLE SEARCH ENGINE CREATION ]] --
