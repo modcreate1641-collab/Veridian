@@ -907,18 +907,17 @@ local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
 EditorTriggerBtn.Name = "EditorOpenTriggerButton"
 EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 55)
 EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -30)
-EditorTriggerBtn.BackgroundTransparency = 0
 EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
 EditorTriggerBtn.Text = "" 
-EditorTriggerBtn.ZIndex = 5
+EditorTriggerBtn.ZIndex = 40
 Instance.new("UICorner", EditorTriggerBtn)
 
 local EditorIcon = Instance.new("ImageLabel", EditorTriggerBtn)
 EditorIcon.Size = UDim2.new(1, -8, 0, 55)
 EditorIcon.Position = UDim2.new(0, 4, 1, -30)
-EditorIcon.BackgroundTransparency = 0
+EditorIcon.BackgroundTransparency = 1
 EditorIcon.BackgroundColor3 = CONFIG.NavBtnColor
-EditorIcon.ZIndex = 6
+EditorIcon.ZIndex = 50
 
 task.spawn(function()
     local iconPath = CONFIG.BgFolder .. "/Icons/editor_icon_new.png"
