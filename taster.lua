@@ -531,31 +531,82 @@ local destroyStage = 0
 -- [[ MODERN FULL-WIDTH TOP NAVIGATION BAR ]] --
 -- [[ ======================================================= ]] --
 local TopBar = Instance.new("Frame", MainFrame)
-TopBar.Name = "ModernTopNavigationBar"
-TopBar.Size = UDim2.new(1, -12, 0, 42) -- Spans fully from left to right with slight padding
-TopBar.Position = UDim2.new(0, 6, 0, 6) -- Clean offset from the main frame borders
-TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25) -- Solid sleek dark base
-TopBar.BackgroundTransparency = 0.3 -- Adjust this value whenever you want it semi-transparent
-TopBar.ZIndex = 10
+    TopBar.Name = "ModernTopNavigationBar"
+    TopBar.Size = UDim2.new(1, -12, 0, 42)
+    TopBar.Position = UDim2.new(0, 6, 0, 6)
+    TopBar.BackgroundColor3 = CONFIG.NavPanelColor
+    TopBar.BackgroundTransparency = 0.5
+    TopBar.ZIndex = 10
+    Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
 
-local TopBarCorner = Instance.new("UICorner", TopBar)
-TopBarCorner.CornerRadius = UDim.new(0, 8) -- Smooth rounded edges for top bar setup
+    local HubLogo = Instance.new("ImageLabel", TopBar)
+    HubLogo.Name = "HubLogo"
+    HubLogo.Size = UDim2.new(0, 32, 0, 32)
+    HubLogo.Position = UDim2.new(0, 10, 0.5, -16)
+    HubLogo.BackgroundTransparency = 1
+    HubLogo.ZIndex = 11
+    HubLogo.ScaleType = Enum.ScaleType.Crop
+    HubLogo.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/furry icon.png") or "" 
+    Instance.new("UICorner", HubLogo).CornerRadius = UDim.new(1, 0) 
+    Instance.new("UIStroke", HubLogo).Color = Color3.fromRGB(60, 60, 70) 
 
--- [[ ======================================================= ]] --
--- [[ HUB TITLE LABEL SETUP (CLEAN TEXT-ONLY STYLE) ]] --
--- [[ ======================================================= ]] --
-local HubLabel = Instance.new("TextLabel", TopBar)
-HubLabel.Name = "HubTitleLabel"
-HubLabel.Size = UDim2.new(0, 150, 1, 0)
-HubLabel.Position = UDim2.new(0, 12, 0, 0) -- Clean indentation from the left edge
-HubLabel.BackgroundTransparency = 1 -- Removed the ugly green block background
-HubLabel.Text = HubName or "Veridian Hub"
-HubLabel.TextColor3 = Color3.fromRGB(245, 245, 245)
-HubLabel.Font = Enum.Font.GothamBold
-HubLabel.TextSize = 14
-HubLabel.TextXAlignment = Enum.TextXAlignment.Left
-HubLabel.TextYAlignment = Enum.TextYAlignment.Center
-HubLabel.ZIndex = 11
+    local TitleContainer = Instance.new("Frame", TopBar)
+    TitleContainer.Name = "TitleContainer"
+    TitleContainer.Size = UDim2.new(0, 200, 1, 0)
+    TitleContainer.Position = UDim2.new(0, 52, 0, 0)
+    TitleContainer.BackgroundTransparency = 1
+    TitleContainer.ZIndex = 11
+
+    local HubLabel = Instance.new("TextLabel", TitleContainer)
+    HubLabel.Name = "HubTitleLabel"
+    HubLabel.Size = UDim2.new(1, 0, 0, 22)
+    HubLabel.Position = UDim2.new(0, 0, 0, 4)
+    HubLabel.BackgroundTransparency = 1
+    HubLabel.Text = "Veridian Hub"
+    HubLabel.TextColor3 = Color3.fromRGB(245, 245, 245)
+    HubLabel.Font = Enum.Font.GothamBold
+    HubLabel.TextSize = 14
+    HubLabel.TextXAlignment = Enum.TextXAlignment.Left
+    HubLabel.ZIndex = 12
+
+    local ActiveDiscordLink = "discord.gg/veridian"
+    
+    local DiscordBtn = Instance.new("TextButton", TitleContainer)
+    DiscordBtn.Name = "DiscordCopyButton"
+    DiscordBtn.Size = UDim2.new(1, 0, 0, 14)
+    DiscordBtn.Position = UDim2.new(0, 0, 0, 24)
+    DiscordBtn.BackgroundTransparency = 1
+    DiscordBtn.Text = "🔗 " .. ActiveDiscordLink
+    DiscordBtn.TextColor3 = Color3.fromRGB(150, 150, 170)
+    DiscordBtn.Font = Enum.Font.GothamSemibold
+    DiscordBtn.TextSize = 10
+    DiscordBtn.TextXAlignment = Enum.TextXAlignment.Left
+    DiscordBtn.ZIndex = 12
+
+    DiscordBtn.MouseEnter:Connect(function()
+        if DiscordBtn.Text:find("Copied") then return end
+        CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(100, 170, 255)}, 0.2)
+    end)
+
+    DiscordBtn.MouseLeave:Connect(function()
+        if DiscordBtn.Text:find("Copied") then return end
+        CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(150, 150, 170)}, 0.2)
+    end)
+
+    DiscordBtn.Activated:Connect(function()
+        pcall(function()
+            if setclipboard then
+                setclipboard(ActiveDiscordLink)
+                DiscordBtn.Text = "✅ Copied!"
+                CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(50, 200, 50)}, 0.1)
+                
+                task.delay(1.5, function()
+                    DiscordBtn.Text = "🔗 " .. ActiveDiscordLink
+                    CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(150, 150, 170)}, 0.2)
+                end)
+            end
+        end)
+    end)
 
 -- [[ DESTROY BUTTON & POPUP SYSTEM ]]
 local ClosedBtn = Instance.new("TextButton", TopBar)
@@ -799,7 +850,7 @@ EditorTriggerBtn.ZIndex = 5
 Instance.new("UICorner", EditorTriggerBtn)
 
 local EditorIcon = Instance.new("ImageLabel", EditorTriggerBtn)
-EditorIcon.Size = UDim2.new(0, 82, 0, 82)
+EditorIcon.Size = UDim2.new(1, -8, 0, 55)
 EditorIcon.Position = UDim2.new(0.5, -16, 0.5, -16)
 EditorIcon.BackgroundTransparency = 1
 EditorIcon.ZIndex = 6
@@ -1052,6 +1103,41 @@ SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
 end)
 
     local WindowAPI = {}
+
+function WindowAPI:UpdateHubInfo(cfg)
+        if type(cfg) ~= "table" then return end
+        
+        if cfg.Name then
+            HubLabel.Text = cfg.Name
+        end
+        
+        if cfg.Discord then
+            ActiveDiscordLink = cfg.Discord
+            DiscordBtn.Text = "🔗 " .. ActiveDiscordLink
+        end
+        
+        if cfg.Logo then
+            task.spawn(function()
+                local safeName = string.gsub(cfg.Name or "HubLogo", "[^%w]", "")
+                if safeName == "" then safeName = "default" end
+                
+                local logoPath = CONFIG.BgFolder .. "/Icons/" .. safeName .. "_api_logo.png"
+                
+                if not isfile(logoPath) then
+                    pcall(function()
+                        local imgData = game:HttpGet(cfg.Logo)
+                        if imgData and #imgData > 100 then
+                            writefile(logoPath, imgData)
+                        end
+                    end)
+                end
+                
+                if isfile(logoPath) then
+                    HubLogo.Image = getcustomasset(logoPath)
+                end
+            end)
+        end
+    end
 
 function WindowAPI:UpdateTheme(newColor)
     -- [[ 1. Color Processing (Deepening Effect) ]]
