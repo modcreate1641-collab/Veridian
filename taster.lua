@@ -906,7 +906,8 @@ Instance.new("UICorner", NavSidePanel)
 local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
 EditorTriggerBtn.Name = "EditorOpenTriggerButton"
 EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 55)
-EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -35)
+EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -60)
+EditorTriggerBtn.BackgroundTransparency = 1
 EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
 EditorTriggerBtn.Text = "" 
 EditorTriggerBtn.ZIndex = 5
@@ -914,7 +915,7 @@ Instance.new("UICorner", EditorTriggerBtn)
 
 local EditorIcon = Instance.new("ImageLabel", EditorTriggerBtn)
 EditorIcon.Size = UDim2.new(1, -8, 0, 55)
-EditorIcon.Position = UDim2.new(0, 4, 1, -35)
+EditorIcon.Position = UDim2.new(0, 4, 1, -60)
 EditorIcon.BackgroundTransparency = 1
 EditorIcon.ZIndex = 6
 
