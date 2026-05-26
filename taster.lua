@@ -1106,28 +1106,52 @@ end)
 
 function WindowAPI:UpdateHubInfo(cfg)
     if type(cfg) ~= "table" then return end
-    
+
+    cfg.Name = cfg.Name or "Veridian Hub"
+    cfg.Discord = cfg.Discord or "No Discord"
+
+    local defaultFolder = CONFIG.BgFolder .. "/icon"
+
+    local targetFolder = cfg.foldertarget or defaultFolder
+    local createFolder = cfg.createfolder
+    local fileName = cfg.createfile or "logo.png"
+
+    if createFolder then
+        targetFolder = targetFolder .. "/" .. createFolder
+    end
+
+    local logoPath = targetFolder .. "/" .. fileName
+
     if cfg.Name then
         HubLabel.Text = cfg.Name
     end
-    
+
     if cfg.Discord then
         ActiveDiscordLink = cfg.Discord
-        DiscordBtn.Text = "🔗 " .. ActiveDiscordLink
+        DiscordBtn.Text = "🔗 " .. cfg.Discord
     end
-    
-    if cfg.Logo and cfg.Namefolder and cfg.NameFile then
+
+    if cfg.Logo then
         task.spawn(function()
-            if not isfolder(cfg.Namefolder) then makefolder(cfg.Namefolder) end
-            local logoPath = cfg.Namefolder .. "/" .. cfg.NameFile
-            
+
+            if not isfolder(targetFolder) then
+                makefolder(targetFolder)
+            end
+
             if not isfile(logoPath) then
                 local success, imgData = pcall(game.HttpGet, game, cfg.Logo)
-                if success and imgData then writefile(logoPath, imgData) end
+
+                if success and imgData and #imgData > 1000 then
+                    writefile(logoPath, imgData)
+                end
             end
-            
+
             if isfile(logoPath) then
-                HubLogo.Image = getcustomasset(logoPath)
+                local getAsset = getcustomasset or getsynasset
+
+                if getAsset then
+                    HubLogo.Image = getAsset(logoPath)
+                end
             end
         end)
     end
