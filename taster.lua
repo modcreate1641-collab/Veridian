@@ -539,6 +539,16 @@ local TopBar = Instance.new("Frame", MainFrame)
     TopBar.ZIndex = 10
     Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
 
+    local defaultLogoFolder = (CONFIG and CONFIG.BgFolder and CONFIG.BgFolder .. "/icon") or "VeridianConfig/icon"
+    local targetLogoFolder = (typeof(Config) == "table" and Config.foldertarget) or defaultLogoFolder
+
+    if typeof(Config) == "table" and Config.createfolder and type(Config.createfolder) == "string" and Config.createfolder ~= "" then
+        targetLogoFolder = targetLogoFolder .. "/" .. Config.createfolder
+    end
+
+    local targetFileName = (typeof(Config) == "table" and Config.createfile) or "logo.png"
+    local finalLogoPath = targetLogoFolder .. "/" .. targetFileName
+
     local HubLogo = Instance.new("ImageLabel", TopBar)
     HubLogo.Name = "HubLogo"
     HubLogo.Size = UDim2.new(0, 32, 0, 32)
@@ -546,66 +556,93 @@ local TopBar = Instance.new("Frame", MainFrame)
     HubLogo.BackgroundTransparency = 1
     HubLogo.ZIndex = 11
     HubLogo.ScaleType = Enum.ScaleType.Crop
-    HubLogo.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/furry icon.png") or "" 
-    Instance.new("UICorner", HubLogo).CornerRadius = UDim.new(1, 0) 
-    Instance.new("UIStroke", HubLogo).Color = Color3.fromRGB(60, 60, 70) 
 
-    local TitleContainer = Instance.new("Frame", TopBar)
-    TitleContainer.Name = "TitleContainer"
-    TitleContainer.Size = UDim2.new(0, 200, 1, 0)
-    TitleContainer.Position = UDim2.new(0, 52, 0, 0)
-    TitleContainer.BackgroundTransparency = 1
-    TitleContainer.ZIndex = 11
-
-    local HubLabel = Instance.new("TextLabel", TitleContainer)
-    HubLabel.Name = "HubTitleLabel"
-    HubLabel.Size = UDim2.new(1, 0, 0, 22)
-    HubLabel.Position = UDim2.new(0, 0, 0, 4)
-    HubLabel.BackgroundTransparency = 1
-    HubLabel.Text = "Veridian Hub"
-    HubLabel.TextColor3 = Color3.fromRGB(245, 245, 245)
-    HubLabel.Font = Enum.Font.GothamBold
-    HubLabel.TextSize = 14
-    HubLabel.TextXAlignment = Enum.TextXAlignment.Left
-    HubLabel.ZIndex = 12
-
-    local ActiveDiscordLink = "discord.gg/veridian"
-    
-    local DiscordBtn = Instance.new("TextButton", TitleContainer)
-    DiscordBtn.Name = "DiscordCopyButton"
-    DiscordBtn.Size = UDim2.new(1, 0, 0, 14)
-    DiscordBtn.Position = UDim2.new(0, 0, 0, 24)
-    DiscordBtn.BackgroundTransparency = 1
-    DiscordBtn.Text = "🔗 " .. ActiveDiscordLink
-    DiscordBtn.TextColor3 = Color3.fromRGB(150, 150, 170)
-    DiscordBtn.Font = Enum.Font.GothamSemibold
-    DiscordBtn.TextSize = 10
-    DiscordBtn.TextXAlignment = Enum.TextXAlignment.Left
-    DiscordBtn.ZIndex = 12
-
-    DiscordBtn.MouseEnter:Connect(function()
-        if DiscordBtn.Text:find("Copied") then return end
-        CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(100, 170, 255)}, 0.2)
-    end)
-
-    DiscordBtn.MouseLeave:Connect(function()
-        if DiscordBtn.Text:find("Copied") then return end
-        CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(150, 150, 170)}, 0.2)
-    end)
-
-    DiscordBtn.Activated:Connect(function()
-        pcall(function()
-            if setclipboard then
-                setclipboard(ActiveDiscordLink)
-                DiscordBtn.Text = "✅ Copied!"
-                CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(50, 200, 50)}, 0.1)
-                
-                task.delay(1.5, function()
-                    DiscordBtn.Text = "🔗 " .. ActiveDiscordLink
-                    CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(150, 150, 170)}, 0.2)
+    local computedImage = ""
+    if isfile(finalLogoPath) then
+        local getAsset = getcustomasset or getsynasset
+        if getAsset then
+            pcall(function()
+                computedImage = getAsset(finalLogoPath)
+            end)
+        end
+    else
+        local fallbackIcon = CONFIG and CONFIG.BgFolder and (CONFIG.BgFolder .. "/Icons/furry icon.png")
+        if fallbackIcon and isfile(fallbackIcon) then
+            local getAsset = getcustomasset or getsynasset
+            if getAsset then
+                pcall(function()
+                    computedImage = getAsset(fallbackIcon)
                 end)
             end
-        end)
+        end
+    end
+
+    HubLogo.Image = computedImage
+    Instance.new("UICorner", HubLogo).CornerRadius = UDim.new(1, 0)
+    Instance.new("UIStroke", HubLogo).Color = Color3.fromRGB(60, 60, 70)
+
+    local TitleContainer = Instance.new("Frame", TopBar)  
+    TitleContainer.Name = "TitleContainer"  
+    TitleContainer.Size = UDim2.new(0, 200, 1, 0)  
+    TitleContainer.Position = UDim2.new(0, 52, 0, 0)  
+    TitleContainer.BackgroundTransparency = 1  
+    TitleContainer.ZIndex = 11  
+
+    local HubLabel = Instance.new("TextLabel", TitleContainer)  
+    HubLabel.Name = "HubTitleLabel"  
+    HubLabel.Size = UDim2.new(1, 0, 0, 22)  
+    HubLabel.Position = UDim2.new(0, 0, 0, 4)  
+    HubLabel.BackgroundTransparency = 1  
+    HubLabel.Text = HubText  
+    HubLabel.TextColor3 = HubColor  
+    HubLabel.Font = HubFont  
+    HubLabel.TextSize = HubTextSize  
+    HubLabel.TextXAlignment = Enum.TextXAlignment.Left  
+    HubLabel.ZIndex = 12  
+
+    local ActiveDiscordLink = (typeof(Config) == "table" and Config.discord) or "discord.gg/veridian"
+      
+    local DiscordBtn = Instance.new("TextButton", TitleContainer)  
+    DiscordBtn.Name = "DiscordCopyButton"  
+    DiscordBtn.Size = UDim2.new(1, 0, 0, 14)  
+    DiscordBtn.Position = UDim2.new(0, 0, 0, 24)  
+    DiscordBtn.BackgroundTransparency = 1  
+    DiscordBtn.Text = "🔗 " .. ActiveDiscordLink  
+    DiscordBtn.TextColor3 = Color3.fromRGB(150, 150, 170)  
+    DiscordBtn.Font = Enum.Font.GothamSemibold  
+    DiscordBtn.TextSize = 10  
+    DiscordBtn.TextXAlignment = Enum.TextXAlignment.Left  
+    DiscordBtn.ZIndex = 12  
+
+    DiscordBtn.MouseEnter:Connect(function()  
+        if DiscordBtn.Text:find("Copied") then return end  
+        CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(100, 170, 255)}, 0.2)  
+    end)  
+
+    DiscordBtn.MouseLeave:Connect(function()  
+        if DiscordBtn.Text:find("Copied") then return end  
+        CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(150, 150, 170)}, 0.2)  
+    end)  
+
+    DiscordBtn.Activated:Connect(function()  
+        pcall(function()  
+            if setclipboard then  
+                setclipboard(ActiveDiscordLink)  
+                DiscordBtn.Text = "✅ Copied!"  
+                CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(50, 200, 50)}, 0.1)  
+                  
+                task.delay(1.5, function()  
+                    DiscordBtn.Text = "🔗 " .. ActiveDiscordLink  
+                    CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(150, 150, 170)}, 0.2)  
+                end)  
+            end  
+        end)  
+    end)
+
+    task.defer(function()
+        if WindowAPI and WindowAPI.UpdateHubInfo then
+            WindowAPI:UpdateHubInfo(Config)
+        end
     end)
 
 -- [[ DESTROY BUTTON & POPUP SYSTEM ]]
@@ -615,7 +652,7 @@ ClosedBtn.Size = UDim2.new(0, 80, 1, 0)
 ClosedBtn.Position = UDim2.new(1, -80, 0, 0)
 ClosedBtn.BackgroundColor3 = Color3.fromRGB(129, 129, 129)
 ClosedBtn.BackgroundTransparency = 0.9
-ClosedBtn.Text = "" 
+ClosedBtn.Text = ""
 ClosedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ClosedBtn.Font = Enum.Font.GothamBold
 ClosedBtn.TextSize = 12
@@ -1107,53 +1144,54 @@ end)
 function WindowAPI:UpdateHubInfo(cfg)
     if type(cfg) ~= "table" then return end
 
-    cfg.Name = cfg.Name or "Veridian Hub"
-    cfg.Discord = cfg.Discord or "No Discord"
+    if cfg.Name and HubLabel then    
+        HubLabel.Text = cfg.Name    
+    end    
 
-    local defaultFolder = CONFIG.BgFolder .. "/icon"
+    if cfg.discord then    
+        ActiveDiscordLink = cfg.discord    
+        if DiscordBtn then
+            DiscordBtn.Text = "🔗 " .. cfg.discord    
+        end
+    end    
 
-    local targetFolder = cfg.foldertarget or defaultFolder
-    local createFolder = cfg.createfolder
-    local fileName = cfg.createfile or "logo.png"
+    if cfg.Logo and cfg.Logo ~= "" and HubLogo then
+        local targetFolder = cfg.foldertarget or "VeridianConfig/icon"
+        
+        if cfg.createfolder and type(cfg.createfolder) == "string" and cfg.createfolder ~= "" then
+            targetFolder = targetFolder .. "/" .. cfg.createfolder
+        end
 
-    if createFolder then
-        targetFolder = targetFolder .. "/" .. createFolder
-    end
+        local fileName = cfg.createfile or "logo.png"
+        local logoPath = targetFolder .. "/" .. fileName
 
-    local logoPath = targetFolder .. "/" .. fileName
-
-    if cfg.Name then
-        HubLabel.Text = cfg.Name
-    end
-
-    if cfg.Discord then
-        ActiveDiscordLink = cfg.Discord
-        DiscordBtn.Text = "🔗 " .. cfg.Discord
-    end
-
-    if cfg.Logo then
-        task.spawn(function()
-
-            if not isfolder(targetFolder) then
-                makefolder(targetFolder)
+        task.spawn(function()    
+            local currentPath = ""
+            for folder in string.gmatch(targetFolder, "[^/]+") do
+                currentPath = currentPath == "" and folder or currentPath .. "/" .. folder
+                pcall(function()
+                    if not isfolder(currentPath) then
+                        makefolder(currentPath)
+                    end
+                end)
             end
 
-            if not isfile(logoPath) then
-                local success, imgData = pcall(game.HttpGet, game, cfg.Logo)
+            if not isfile(logoPath) then    
+                local success, imgData = pcall(game.HttpGet, game, cfg.Logo)    
+                if success and imgData and #imgData > 0 and not string.find(imgData, "<!DOCTYPE") then    
+                    pcall(writefile, logoPath, imgData)
+                end    
+            end    
 
-                if success and imgData and #imgData > 1000 then
-                    writefile(logoPath, imgData)
-                end
-            end
-
-            if isfile(logoPath) then
-                local getAsset = getcustomasset or getsynasset
-
-                if getAsset then
-                    HubLogo.Image = getAsset(logoPath)
-                end
-            end
-        end)
+            if isfile(logoPath) then    
+                local getAsset = getcustomasset or getsynasset    
+                if getAsset then    
+                    pcall(function()
+                        HubLogo.Image = getAsset(logoPath)
+                    end)
+                end    
+            end    
+        end)    
     end
 end
 
