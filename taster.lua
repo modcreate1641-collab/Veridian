@@ -155,7 +155,7 @@ MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainFrame.BackgroundColor3 = CONFIG.MainBgColor
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0.5
+MainFrame.GroupTransparency = 0.3
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local BgImage = Instance.new("ImageLabel", MainFrame)
@@ -557,14 +557,14 @@ HubLabel.TextXAlignment = Enum.TextXAlignment.Left
 HubLabel.TextYAlignment = Enum.TextYAlignment.Center
 HubLabel.ZIndex = 11
 
--- สร้างปุ่มหลัก (ซ่อน Text ไว้ก่อน)
+-- [[ DESTROY BUTTON & POPUP SYSTEM ]]
 local ClosedBtn = Instance.new("TextButton", TopBar)
 ClosedBtn.Name = "HubDestroyButton"
 ClosedBtn.Size = UDim2.new(0, 80, 1, 0)
 ClosedBtn.Position = UDim2.new(1, -80, 0, 0)
 ClosedBtn.BackgroundColor3 = Color3.fromRGB(129, 129, 129)
 ClosedBtn.BackgroundTransparency = 0.9
-ClosedBtn.Text = "" -- เริ่มต้นเป็นค่าว่างตามที่มึงอยากได้
+ClosedBtn.Text = "" 
 ClosedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ClosedBtn.Font = Enum.Font.GothamBold
 ClosedBtn.TextSize = 12
@@ -572,63 +572,151 @@ ClosedBtn.Active = true
 ClosedBtn.ZIndex = 12 
 Instance.new("UICorner", ClosedBtn)
 
--- ยัดไอคอนเข้าไปข้างในปุ่มโดยใช้ getcustomasset
 local BtnIcon = Instance.new("ImageLabel", ClosedBtn)
 BtnIcon.Name = "DestroyIcon"
-BtnIcon.Size = UDim2.new(0, 40, 0, 40) -- ปรับขนาดไอคอนตามใจชอบ
-BtnIcon.Position = UDim2.new(0.5, -10, 0.5, -10) -- จัดให้อยู่ตรงกลางเป๊ะ
+BtnIcon.Size = UDim2.new(0, 20, 0, 20)
+BtnIcon.Position = UDim2.new(0.5, -10, 0.5, -10)
 BtnIcon.BackgroundTransparency = 1
-BtnIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/destroy icon.png") -- ดึงไฟล์ไอคอนที่โหลดมา
+BtnIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/destroy icon.png")
 BtnIcon.ZIndex = 13
 
--- ฟังก์ชันคลีนๆ เอาไว้รีเซ็ตปุ่มกลับเป็นสถานะไอคอนเริ่มต้น (ลบโค้ดซ้ำซาก)
-local function resetBtn()
+-- [[ POPUP UI SETUP ]]
+local DestroyOverlay = Instance.new("Frame", MainFrame)
+DestroyOverlay.Name = "DestroyOverlay"
+DestroyOverlay.Size = UDim2.new(1, 0, 1, 0)
+DestroyOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 5)
+DestroyOverlay.BackgroundTransparency = 1
+DestroyOverlay.Visible = false
+DestroyOverlay.ZIndex = 900
+Instance.new("UICorner", DestroyOverlay).CornerRadius = UDim.new(0, 10)
+
+local ConfirmBox = Instance.new("Frame", DestroyOverlay)
+ConfirmBox.Name = "ConfirmBox"
+ConfirmBox.AnchorPoint = Vector2.new(0.5, 0.5)
+ConfirmBox.Size = UDim2.new(0, 0, 0, 0)
+ConfirmBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+ConfirmBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+ConfirmBox.ClipsDescendants = true
+ConfirmBox.ZIndex = 901
+Instance.new("UICorner", ConfirmBox).CornerRadius = UDim.new(0, 8)
+
+local ConfirmStroke = Instance.new("UIStroke", ConfirmBox)
+ConfirmStroke.Color = Color3.fromRGB(200, 50, 50)
+ConfirmStroke.Thickness = 1.5
+ConfirmStroke.Transparency = 1
+
+local WarningTitle = Instance.new("TextLabel", ConfirmBox)
+WarningTitle.Size = UDim2.new(1, 0, 0, 30)
+WarningTitle.Position = UDim2.new(0, 0, 0, 15)
+WarningTitle.BackgroundTransparency = 1
+WarningTitle.Text = "WARNING"
+WarningTitle.TextColor3 = Color3.fromRGB(255, 100, 100)
+WarningTitle.Font = Enum.Font.GothamBlack
+WarningTitle.TextSize = 18
+WarningTitle.ZIndex = 902
+
+local WarningDesc = Instance.new("TextLabel", ConfirmBox)
+WarningDesc.Size = UDim2.new(1, -20, 0, 40)
+WarningDesc.Position = UDim2.new(0, 10, 0, 45)
+WarningDesc.BackgroundTransparency = 1
+WarningDesc.Text = "Are you sure you want to close this hub?"
+WarningDesc.TextColor3 = Color3.fromRGB(200, 200, 200)
+WarningDesc.Font = Enum.Font.GothamSemibold
+WarningDesc.TextSize = 13
+WarningDesc.TextWrapped = true
+WarningDesc.ZIndex = 902
+
+local ActionBtn = Instance.new("TextButton", ConfirmBox)
+ActionBtn.Size = UDim2.new(0, 110, 0, 32)
+ActionBtn.Position = UDim2.new(0.5, 10, 1, -45)
+ActionBtn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
+ActionBtn.Text = "YES (1/2)"
+ActionBtn.TextColor3 = Color3.new(1, 1, 1)
+ActionBtn.Font = Enum.Font.GothamBold
+ActionBtn.TextSize = 13
+ActionBtn.ZIndex = 902
+Instance.new("UICorner", ActionBtn).CornerRadius = UDim.new(0, 6)
+
+local CancelBtn = Instance.new("TextButton", ConfirmBox)
+CancelBtn.Size = UDim2.new(0, 110, 0, 32)
+CancelBtn.Position = UDim2.new(0.5, -120, 1, -45)
+CancelBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+CancelBtn.Text = "CANCEL"
+CancelBtn.TextColor3 = Color3.new(1, 1, 1)
+CancelBtn.Font = Enum.Font.GothamBold
+CancelBtn.TextSize = 13
+CancelBtn.ZIndex = 902
+Instance.new("UICorner", CancelBtn).CornerRadius = UDim.new(0, 6)
+
+-- [[ LOGIC ]]
+local destroyStage = 0
+local timeoutTask = nil
+
+local function resetDestroySequence()
     destroyStage = 0
-    ClosedBtn.Text = ""
-    BtnIcon.Visible = true -- โชว์ไอคอนกลับมา
-    CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2)
+    if timeoutTask then 
+        task.cancel(timeoutTask) 
+        timeoutTask = nil 
+    end
+    
+    CreateTween(ConfirmBox, {Size = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    CreateTween(DestroyOverlay, {BackgroundTransparency = 1}, 0.3)
+    CreateTween(ConfirmStroke, {Transparency = 1}, 0.2)
+    
+    task.delay(0.3, function()
+        DestroyOverlay.Visible = false
+        WarningTitle.Text = "WARNING"
+        WarningTitle.TextColor3 = Color3.fromRGB(255, 100, 100)
+        WarningDesc.Text = "Are you sure you want to close this hub?"
+        ActionBtn.Text = "YES (1/2)"
+        ActionBtn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
+    end)
 end
 
--- ระบบ Hover เมาส์
-ClosedBtn.MouseEnter:Connect(function() 
-    if destroyStage == 0 then
-        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(180, 50, 50)}, 0.2) 
-    end
-end)
+ClosedBtn.MouseEnter:Connect(function() CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(180, 50, 50)}, 0.2) end)
+ClosedBtn.MouseLeave:Connect(function() CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) end)
 
-ClosedBtn.MouseLeave:Connect(function() 
+ClosedBtn.Activated:Connect(function()
     if destroyStage == 0 then
-        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
-    end
-end)
-
--- ระบบคลิกยืนยัน 3 สเต็ป
-ClosedBtn.Activated:Connect(function() 
-    destroyStage = destroyStage + 1
-    BtnIcon.Visible = false -- กดปุ๊บซ่อนไอคอน เพื่อหลีกทางให้ตัวหนังสือเตือน
-    
-    if destroyStage == 1 then
-        ClosedBtn.Text = "⚠️ Sure? (1/2)"
-        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(210, 100, 40)}, 0.1)
+        destroyStage = 1
+        DestroyOverlay.Visible = true
+        CreateTween(DestroyOverlay, {BackgroundTransparency = 0.5}, 0.3)
+        CreateTween(ConfirmBox, {Size = UDim2.new(0, 270, 0, 140)}, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        CreateTween(ConfirmStroke, {Transparency = 0}, 0.4)
         
-        task.delay(3, function()
-            if destroyStage == 1 then resetBtn() end
+        timeoutTask = task.delay(4, function()
+            if destroyStage > 0 then resetDestroySequence() end
+        end)
+    end
+end)
+
+ActionBtn.Activated:Connect(function()
+    if destroyStage == 1 then
+        destroyStage = 2
+        if timeoutTask then task.cancel(timeoutTask) end
+        
+        WarningTitle.Text = "LAST WARNING!"
+        WarningTitle.TextColor3 = Color3.fromRGB(255, 50, 50)
+        WarningDesc.Text = "This action cannot be undone. DESTROY HUB?"
+        ActionBtn.Text = "DESTROY"
+        ActionBtn.BackgroundColor3 = Color3.fromRGB(220, 30, 30)
+        
+        CreateTween(ConfirmBox, {Rotation = 4}, 0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.Out).Completed:Connect(function()
+            CreateTween(ConfirmBox, {Rotation = -4}, 0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Connect(function()
+                CreateTween(ConfirmBox, {Rotation = 0}, 0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+            end)
+        end)
+        
+        timeoutTask = task.delay(3, function()
+            if destroyStage > 0 then resetDestroySequence() end
         end)
         
     elseif destroyStage == 2 then
-        ClosedBtn.Text = "🔥 REALLY? (2/2)"
-        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(230, 40, 40)}, 0.1)
-        
-        task.delay(3, function()
-            if destroyStage == 2 then resetBtn() end
-        end)
-        
-    elseif destroyStage >= 3 then
-        if ScreenGui then
-            ScreenGui:Destroy()
-        end
+        if ScreenGui then ScreenGui:Destroy() end
     end
 end)
+
+CancelBtn.Activated:Connect(resetDestroySequence)
 
 local TopSettingBtn = Instance.new("TextButton", TopBar)
 TopSettingBtn.Name = "TopSettingsNavigationButton"
