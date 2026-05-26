@@ -539,7 +539,7 @@ local TopBar = Instance.new("Frame", MainFrame)
     TopBar.ZIndex = 10
     Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
 
-    local defaultLogoFolder = (CONFIG and CONFIG.BgFolder and CONFIG.BgFolder .. "/icon") or "VeridianConfig/icon"
+    local defaultLogoFolder = (CONFIG and CONFIG.BgFolder and CONFIG.BgFolder .. "/Icons") or "VeridianConfig/Icons"
     local targetLogoFolder = (typeof(Config) == "table" and Config.foldertarget) or defaultLogoFolder
 
     if typeof(Config) == "table" and Config.createfolder and type(Config.createfolder) == "string" and Config.createfolder ~= "" then
