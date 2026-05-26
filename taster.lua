@@ -60,7 +60,7 @@ local aimName = iconFolder .. "/aim icon.png"
 local aimUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/aim%20icon.png"
 
 local destroyName = iconFolder .. "/destroy icon.png"
-local destroyUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/destroy%20icon.png"
+local destroyUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/d416ad99167d8cd588a83d0d377fca0028a269fd6b8310b5b31aa6acd6a1d04b.0.png"
 
 local autoName = iconFolder .. "/auto.png"
 local autoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/auto.png"
@@ -144,34 +144,20 @@ function Veridianhub:CreateWindow(Config)
         TargetGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     end
 
--- [[ MAIN GUI CONTAINER LAYER ]] --
-local ScreenGui = Instance.new("ScreenGui", TargetGui)
-ScreenGui.Name = "VeridianHub_Official_Full"
-ScreenGui.IgnoreGuiInset = true
+    -- [[ MAIN GUI CONTAINER LAYER ]] --
+    local ScreenGui = Instance.new("ScreenGui", TargetGui)
+    ScreenGui.Name = "VeridianHub_Official_Full"
+    ScreenGui.IgnoreGuiInset = true
 
--- ตัวแปรคุมความโปร่งใสของเฟรมพื้นหลังโดยเฉพาะ (0.3 ตามที่มึงขอ)
-local BG_TRANSPARENCY = 0.3
-
-local MainFrame = Instance.new("CanvasGroup", ScreenGui)
+    local MainFrame = Instance.new("CanvasGroup", ScreenGui)
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
--- ตั้งพื้นหลังของตัวแม่เป็น 1 (โปร่งใส 100%) เพื่อไม่ให้สีกระดำกระด่างทับซ้อนกัน
-MainFrame.BackgroundTransparency = 1
+MainFrame.BackgroundColor3 = CONFIG.MainBgColor
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0 -- ให้ Group เป็น 0 เพื่อให้ปุ่ม/ตัวหนังสือชัดเจน 100% เสมอ
+MainFrame.GroupTransparency = 0.5
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
--- [[ เฟรมใหม่ที่เพิ่มเข้ามาภายใต้ MainFrame เพื่อทำหน้าที่เป็นพื้นหลังโปร่งใส 0.3 ]] --
-local CustomBgFrame = Instance.new("Frame", MainFrame)
-CustomBgFrame.Name = "CustomBgFrame"
-CustomBgFrame.Size = UDim2.new(1, 0, 1, 0)
-CustomBgFrame.BackgroundColor3 = CONFIG.MainBgColor
-CustomBgFrame.BackgroundTransparency = BG_TRANSPARENCY -- ตรงนี้แหละที่มึงต้องการให้โปร่งใส 0.3 เสมอ
-CustomBgFrame.ZIndex = 0 -- อยู่หลังสุดใต้ทุกอย่างยกเว้นรูปภาพ (ถ้ามี)
-Instance.new("UICorner", CustomBgFrame).CornerRadius = UDim.new(0, 10)
-
--- ตัวโชว์ภาพเฉยๆ ไม่เกี่ยวอะไรกับ MainFrame หรือ CustomBgFrame แล้ว ปรับอิสระได้เลย
 local BgImage = Instance.new("ImageLabel", MainFrame)
 BgImage.Size = UDim2.new(1, 0, 1, 0)
 BgImage.BackgroundTransparency = 1
@@ -218,8 +204,7 @@ local function ApplyAutoBackground(bgFileName)
                 if isfile and isfile(fullPath) then
                     BgImage.Image = getAsset(fullPath)
                     DarkOverlay.Visible = true
-                    -- เวลาใส่รูปพื้นหลัง ให้เฟรมโปร่งใสหลบไป (หรือคงไว้ตามเดิมแล้วแต่ใจมึง)
-                    CustomBgFrame.BackgroundTransparency = 1
+                    MainFrame.BackgroundTransparency = 1
                 end
             end
         end
@@ -261,6 +246,7 @@ local function makeDraggable(gui, targetFrame)
     local dragging, dragInput, dragStart, startPos
     
     local function startDrag(input)
+        ---[[ INTERCEPT DRAG IF GLOBAL LOCK IS ENABLED ]]---
         if _G.MainFrameLocked then return end
         
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UserInputService:GetFocusedTextBox() then
@@ -274,6 +260,7 @@ local function makeDraggable(gui, targetFrame)
     
     gui.InputBegan:Connect(startDrag)
     
+    ---[[ PREVENT BUTTON SINKING AND PREVENT JUMPING TO ROBLOX TOP BAR ]]---
     for _, child in pairs(gui:GetChildren()) do
         if child:IsA("TextButton") or child:IsA("ImageButton") then
             child.InputBegan:Connect(startDrag)
@@ -284,6 +271,7 @@ local function makeDraggable(gui, targetFrame)
     
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
+            ---[[ BREAK DRAG IMMEDIATELY IF LOCK TOGGLED MIDWAY ]]---
             if _G.MainFrameLocked then 
                 dragging = false 
                 return 
@@ -303,14 +291,11 @@ local function ToggleWindow(state)
     isWindowOpen = state
     if state then
         MainFrame.Visible = true
-        -- ตอนเปิดหน้าต่าง ให้เฟรมพื้นหลังค่อยๆ จางกลับมาที่ค่า BG_TRANSPARENCY ที่ตั้งไว้ (และคุม Group ให้เป็น 0 เพื่อปุ่มที่ชัดเจน)
         CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-        CreateTween(CustomBgFrame, {BackgroundTransparency = BG_TRANSPARENCY}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     else
         currentSize = MainFrame.Size
         local shrinkW = math.max(200, currentSize.X.Offset - 58)
         local shrinkH = math.max(100, currentSize.Y.Offset - 64)
-        -- ตอนปิดหน้าต่าง สั่งให้ทุกอย่างค่อยๆ จางหายไปพร้อมกัน (GroupTransparency = 1)
         local t = CreateTween(MainFrame, {Size = UDim2.new(0, shrinkW, 0, shrinkH), GroupTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
         t.Completed:Connect(function() if not isWindowOpen then MainFrame.Visible = false end end)
     end
@@ -590,7 +575,7 @@ Instance.new("UICorner", ClosedBtn)
 -- ยัดไอคอนเข้าไปข้างในปุ่มโดยใช้ getcustomasset
 local BtnIcon = Instance.new("ImageLabel", ClosedBtn)
 BtnIcon.Name = "DestroyIcon"
-BtnIcon.Size = UDim2.new(0, 20, 0, 20) -- ปรับขนาดไอคอนตามใจชอบ
+BtnIcon.Size = UDim2.new(0, 40, 0, 40) -- ปรับขนาดไอคอนตามใจชอบ
 BtnIcon.Position = UDim2.new(0.5, -10, 0.5, -10) -- จัดให้อยู่ตรงกลางเป๊ะ
 BtnIcon.BackgroundTransparency = 1
 BtnIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/destroy icon.png") -- ดึงไฟล์ไอคอนที่โหลดมา
@@ -969,32 +954,41 @@ function WindowAPI:UpdateTheme(newColor)
     -- [[ 1. Color Processing (Deepening Effect) ]]
     local BaseDark = Color3.fromRGB(15, 15, 20)
     local MutedColor = newColor:lerp(BaseDark, 0.7) 
-    local DeepOverlay = MutedColor:lerp(BaseDark, 0.8) -- โทนมืดสุดสำหรับพวก Background
+    local DeepOverlay = MutedColor:lerp(BaseDark, 0.8)
     local HighlightColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.3) 
     
-    -- ตั้งค่าความโปร่งใสที่มึงอยากให้เท่ากันเป๊ะตรงนี้ (ปรับเลขนี้จุดเดียว เปลี่ยนทั้ง UI)
     local GlobalTransparency = 0.5 
 
     CONFIG.NavBtnColor = MutedColor
     CONFIG.HoverColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.15)
     CONFIG.SearchBgColor = DeepOverlay 
-    -- อัปเดต CONFIG ตัวนี้อัตโนมัติ ให้สี Panel แมตช์กับธีมใหม่
     CONFIG.NavPanelColor = DeepOverlay:lerp(BaseDark, 0.2) 
 
     -- [[ 2. Top Bar, Global Controls & Side Panel ]]
+    if TopBar then 
+        CreateTween(TopBar, {
+            BackgroundColor3 = CONFIG.NavPanelColor,
+            BackgroundTransparency = GlobalTransparency
+        }, 0.5) 
+    end
+    
     if HubLabel then CreateTween(HubLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.3) end
     if ToggleBtn then CreateTween(ToggleBtn, {BackgroundColor3 = MutedColor}, 0.3) end
+    
     if SearchBox then 
-        CreateTween(SearchBox, {BackgroundColor3 = DeepOverlay, TextColor3 = Color3.new(0.9, 0.9, 0.9)}, 0.5) 
+        CreateTween(SearchBox, {
+            BackgroundColor3 = DeepOverlay, 
+            TextColor3 = Color3.new(0.9, 0.9, 0.9)
+        }, 0.5) 
     end
+    
     if TopSettingBtn then CreateTween(TopSettingBtn, {TextColor3 = HighlightColor}, 0.3) end
     if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.3) end
 
-    -- ยัดไอ้แผงข้างเจ้าปัญหาเข้ามาในนี้ซะ! เวลาเปลี่ยนธีม มันจะได้ไม่ยืนงง
     if NavSidePanel then 
         CreateTween(NavSidePanel, {
             BackgroundColor3 = CONFIG.NavPanelColor,
-            BackgroundTransparency = GlobalTransparency -- เท่ากันเป๊ะตามที่มึงสั่ง
+            BackgroundTransparency = GlobalTransparency
         }, 0.5)
     end
 
@@ -1003,9 +997,10 @@ function WindowAPI:UpdateTheme(newColor)
         if btn:IsA("TextButton") then
             CreateTween(btn, {
                 BackgroundColor3 = MutedColor,
-                BackgroundTransparency = GlobalTransparency, -- ให้ปุ่มโปร่งใสเท่าแผงข้างด้วย
+                BackgroundTransparency = GlobalTransparency,
                 TextColor3 = Color3.fromRGB(220, 220, 220)
             }, 0.5)
+            
             local st = btn:FindFirstChildOfClass("UIStroke")
             if st then CreateTween(st, {Color = HighlightColor:lerp(BaseDark, 0.5)}, 0.3) end
         end
@@ -1027,6 +1022,7 @@ function WindowAPI:UpdateTheme(newColor)
                         BackgroundColor3 = DeepOverlay,
                         BackgroundTransparency = GlobalTransparency
                     }, 0.5)
+                    
                     local fill = item:FindFirstChild("Fill", true) 
                     if fill then CreateTween(fill, {BackgroundColor3 = MutedColor}, 0.3) end
                 elseif item:IsA("TextLabel") then
