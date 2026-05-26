@@ -144,24 +144,37 @@ function Veridianhub:CreateWindow(Config)
         TargetGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     end
 
-    -- [[ MAIN GUI CONTAINER LAYER ]] --
-    local ScreenGui = Instance.new("ScreenGui", TargetGui)
-    ScreenGui.Name = "VeridianHub_Official_Full"
-    ScreenGui.IgnoreGuiInset = true
+-- [[ MAIN GUI CONTAINER LAYER ]] --
+local ScreenGui = Instance.new("ScreenGui", TargetGui)
+ScreenGui.Name = "VeridianHub_Official_Full"
+ScreenGui.IgnoreGuiInset = true
 
-    local MainFrame = Instance.new("CanvasGroup", ScreenGui)
+-- ตัวแปรคุมความโปร่งใสของเฟรมพื้นหลังโดยเฉพาะ (0.3 ตามที่มึงขอ)
+local BG_TRANSPARENCY = 0.3
+
+local MainFrame = Instance.new("CanvasGroup", ScreenGui)
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.BackgroundColor3 = CONFIG.MainBgColor
+-- ตั้งพื้นหลังของตัวแม่เป็น 1 (โปร่งใส 100%) เพื่อไม่ให้สีกระดำกระด่างทับซ้อนกัน
+MainFrame.BackgroundTransparency = 1
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0.5
-MainFrame.BackgroundTransparency = 0.3
+MainFrame.GroupTransparency = 0 -- ให้ Group เป็น 0 เพื่อให้ปุ่ม/ตัวหนังสือชัดเจน 100% เสมอ
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
+-- [[ เฟรมใหม่ที่เพิ่มเข้ามาภายใต้ MainFrame เพื่อทำหน้าที่เป็นพื้นหลังโปร่งใส 0.3 ]] --
+local CustomBgFrame = Instance.new("Frame", MainFrame)
+CustomBgFrame.Name = "CustomBgFrame"
+CustomBgFrame.Size = UDim2.new(1, 0, 1, 0)
+CustomBgFrame.BackgroundColor3 = CONFIG.MainBgColor
+CustomBgFrame.BackgroundTransparency = BG_TRANSPARENCY -- ตรงนี้แหละที่มึงต้องการให้โปร่งใส 0.3 เสมอ
+CustomBgFrame.ZIndex = 0 -- อยู่หลังสุดใต้ทุกอย่างยกเว้นรูปภาพ (ถ้ามี)
+Instance.new("UICorner", CustomBgFrame).CornerRadius = UDim.new(0, 10)
+
+-- ตัวโชว์ภาพเฉยๆ ไม่เกี่ยวอะไรกับ MainFrame หรือ CustomBgFrame แล้ว ปรับอิสระได้เลย
 local BgImage = Instance.new("ImageLabel", MainFrame)
 BgImage.Size = UDim2.new(1, 0, 1, 0)
-BgImage.BackgroundTransparency = 0.3
+BgImage.BackgroundTransparency = 1
 BgImage.ZIndex = 0
 BgImage.ScaleType = Enum.ScaleType.Crop
 local BgCorner = Instance.new("UICorner", BgImage)
@@ -205,7 +218,8 @@ local function ApplyAutoBackground(bgFileName)
                 if isfile and isfile(fullPath) then
                     BgImage.Image = getAsset(fullPath)
                     DarkOverlay.Visible = true
-                    MainFrame.BackgroundTransparency = 1
+                    -- เวลาใส่รูปพื้นหลัง ให้เฟรมโปร่งใสหลบไป (หรือคงไว้ตามเดิมแล้วแต่ใจมึง)
+                    CustomBgFrame.BackgroundTransparency = 1
                 end
             end
         end
@@ -247,7 +261,6 @@ local function makeDraggable(gui, targetFrame)
     local dragging, dragInput, dragStart, startPos
     
     local function startDrag(input)
-        ---[[ INTERCEPT DRAG IF GLOBAL LOCK IS ENABLED ]]---
         if _G.MainFrameLocked then return end
         
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UserInputService:GetFocusedTextBox() then
@@ -261,7 +274,6 @@ local function makeDraggable(gui, targetFrame)
     
     gui.InputBegan:Connect(startDrag)
     
-    ---[[ PREVENT BUTTON SINKING AND PREVENT JUMPING TO ROBLOX TOP BAR ]]---
     for _, child in pairs(gui:GetChildren()) do
         if child:IsA("TextButton") or child:IsA("ImageButton") then
             child.InputBegan:Connect(startDrag)
@@ -272,7 +284,6 @@ local function makeDraggable(gui, targetFrame)
     
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
-            ---[[ BREAK DRAG IMMEDIATELY IF LOCK TOGGLED MIDWAY ]]---
             if _G.MainFrameLocked then 
                 dragging = false 
                 return 
@@ -292,11 +303,14 @@ local function ToggleWindow(state)
     isWindowOpen = state
     if state then
         MainFrame.Visible = true
+        -- ตอนเปิดหน้าต่าง ให้เฟรมพื้นหลังค่อยๆ จางกลับมาที่ค่า BG_TRANSPARENCY ที่ตั้งไว้ (และคุม Group ให้เป็น 0 เพื่อปุ่มที่ชัดเจน)
         CreateTween(MainFrame, {Size = currentSize, GroupTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        CreateTween(CustomBgFrame, {BackgroundTransparency = BG_TRANSPARENCY}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     else
         currentSize = MainFrame.Size
         local shrinkW = math.max(200, currentSize.X.Offset - 58)
         local shrinkH = math.max(100, currentSize.Y.Offset - 64)
+        -- ตอนปิดหน้าต่าง สั่งให้ทุกอย่างค่อยๆ จางหายไปพร้อมกัน (GroupTransparency = 1)
         local t = CreateTween(MainFrame, {Size = UDim2.new(0, shrinkW, 0, shrinkH), GroupTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
         t.Completed:Connect(function() if not isWindowOpen then MainFrame.Visible = false end end)
     end
