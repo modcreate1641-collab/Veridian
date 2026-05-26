@@ -906,7 +906,7 @@ Instance.new("UICorner", NavSidePanel)
 local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
 EditorTriggerBtn.Name = "EditorOpenTriggerButton"
 EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 55)
-EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -49)
+EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -35)
 EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
 EditorTriggerBtn.Text = "" 
 EditorTriggerBtn.ZIndex = 5
@@ -914,13 +914,13 @@ Instance.new("UICorner", EditorTriggerBtn)
 
 local EditorIcon = Instance.new("ImageLabel", EditorTriggerBtn)
 EditorIcon.Size = UDim2.new(1, -8, 0, 55)
-EditorIcon.Position = UDim2.new(0, 4, 1, -49)
+EditorIcon.Position = UDim2.new(0, 4, 1, -35)
 EditorIcon.BackgroundTransparency = 1
 EditorIcon.ZIndex = 6
 
 task.spawn(function()
     local iconPath = CONFIG.BgFolder .. "/Icons/editor_icon_new.png"
-    local iconUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/947cc3983ace2b466e4af8bc1b353f27a28cea04eb0c5b569bd1d45d32d3b281.0.png"
+    local iconUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/1779757131863.png"
     
     if not isfile(iconPath) then
         pcall(function() 
