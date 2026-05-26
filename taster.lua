@@ -851,7 +851,7 @@ Instance.new("UICorner", EditorTriggerBtn)
 
 local EditorIcon = Instance.new("ImageLabel", EditorTriggerBtn)
 EditorIcon.Size = UDim2.new(1, -8, 0, 55)
-EditorIcon.Position = UDim2.new(0.5, -16, 0.5, -16)
+EditorIcon.Position = UDim2.new(0, 4, 1, -49)
 EditorIcon.BackgroundTransparency = 1
 EditorIcon.ZIndex = 6
 
@@ -1105,39 +1105,33 @@ end)
     local WindowAPI = {}
 
 function WindowAPI:UpdateHubInfo(cfg)
-        if type(cfg) ~= "table" then return end
-        
-        if cfg.Name then
-            HubLabel.Text = cfg.Name
-        end
-        
-        if cfg.Discord then
-            ActiveDiscordLink = cfg.Discord
-            DiscordBtn.Text = "🔗 " .. ActiveDiscordLink
-        end
-        
-        if cfg.Logo then
-            task.spawn(function()
-                local safeName = string.gsub(cfg.Name or "HubLogo", "[^%w]", "")
-                if safeName == "" then safeName = "default" end
-                
-                local logoPath = CONFIG.BgFolder .. "/Icons/" .. safeName .. "_api_logo.png"
-                
-                if not isfile(logoPath) then
-                    pcall(function()
-                        local imgData = game:HttpGet(cfg.Logo)
-                        if imgData and #imgData > 100 then
-                            writefile(logoPath, imgData)
-                        end
-                    end)
-                end
-                
-                if isfile(logoPath) then
-                    HubLogo.Image = getcustomasset(logoPath)
-                end
-            end)
-        end
+    if type(cfg) ~= "table" then return end
+    
+    if cfg.Name then
+        HubLabel.Text = cfg.Name
     end
+    
+    if cfg.Discord then
+        ActiveDiscordLink = cfg.Discord
+        DiscordBtn.Text = "🔗 " .. ActiveDiscordLink
+    end
+    
+    if cfg.Logo and cfg.Namefolder and cfg.NameFile then
+        task.spawn(function()
+            if not isfolder(cfg.Namefolder) then makefolder(cfg.Namefolder) end
+            local logoPath = cfg.Namefolder .. "/" .. cfg.NameFile
+            
+            if not isfile(logoPath) then
+                local success, imgData = pcall(game.HttpGet, game, cfg.Logo)
+                if success and imgData then writefile(logoPath, imgData) end
+            end
+            
+            if isfile(logoPath) then
+                HubLogo.Image = getcustomasset(logoPath)
+            end
+        end)
+    end
+end
 
 function WindowAPI:UpdateTheme(newColor)
     -- [[ 1. Color Processing (Deepening Effect) ]]
