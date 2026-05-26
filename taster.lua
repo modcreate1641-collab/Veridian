@@ -556,30 +556,56 @@ local TopBar = Instance.new("Frame", MainFrame)
     HubLogo.BackgroundTransparency = 1
     HubLogo.ZIndex = 11
     HubLogo.ScaleType = Enum.ScaleType.Crop
+    HubLogo.Image = "" -- ปล่อยว่างไว้ก่อนเดี๋ยวโหลดใส่ให้
 
-    local computedImage = ""
-    if isfile(finalLogoPath) then
-        local getAsset = getcustomasset or getsynasset
-        if getAsset then
-            pcall(function()
-                computedImage = getAsset(finalLogoPath)
-            end)
-        end
-    else
-        local fallbackIcon = CONFIG and CONFIG.BgFolder and (CONFIG.BgFolder .. "/Icons/furry icon.png")
-        if fallbackIcon and isfile(fallbackIcon) then
-            local getAsset = getcustomasset or getsynasset
-            if getAsset then
-                pcall(function()
-                    computedImage = getAsset(fallbackIcon)
-                end)
-            end
-        end
-    end
-
-    HubLogo.Image = computedImage
     Instance.new("UICorner", HubLogo).CornerRadius = UDim.new(1, 0)
     Instance.new("UIStroke", HubLogo).Color = Color3.fromRGB(60, 60, 70)
+
+    -- ใช้ task.spawn เพื่อไม่ให้ UI ค้างตอนดึงรูปหรือสร้างโฟลเดอร์
+    task.spawn(function()
+        -- 1. ระบบสร้างโฟลเดอร์อัตโนมัติ (รองรับโครงสร้างซ้อนกันหลายชั้น)
+        local currentPath = ""
+        for folder in string.gmatch(targetLogoFolder, "[^/]+") do
+            currentPath = currentPath == "" and folder or currentPath .. "/" .. folder
+            pcall(function()
+                if not isfolder(currentPath) then
+                    makefolder(currentPath)
+                end
+            end)
+        end
+
+        -- 2. ดาวน์โหลดรูปภาพถ้ามีการตั้งค่า Logo เป็น URL และไฟล์ยังไม่มีในเครื่อง
+        if typeof(Config) == "table" and Config.Logo and string.find(Config.Logo, "http") then
+            if not isfile(finalLogoPath) then
+                local success, imgData = pcall(game.HttpGet, game, Config.Logo)
+                if success and imgData and #imgData > 0 and not string.find(imgData, "<!DOCTYPE") then
+                    pcall(writefile, finalLogoPath, imgData)
+                end
+            end
+        end
+
+        -- 3. ระบบโหลดรูปเข้า HubLogo
+        local getAsset = getcustomasset or getsynasset
+        local computedImage = ""
+
+        if isfile(finalLogoPath) then
+            if getAsset then
+                pcall(function() computedImage = getAsset(finalLogoPath) end)
+            end
+        else
+            -- ระบบ Fallback กรณีโหลดพลาด
+            local fallbackIcon = CONFIG and CONFIG.BgFolder and (CONFIG.BgFolder .. "/Icons/furry icon.png")
+            if fallbackIcon and isfile(fallbackIcon) then
+                if getAsset then
+                    pcall(function() computedImage = getAsset(fallbackIcon) end)
+                end
+            end
+        end
+
+        if computedImage ~= "" then
+            HubLogo.Image = computedImage
+        end
+    end)
 
     local TitleContainer = Instance.new("Frame", TopBar)  
     TitleContainer.Name = "TitleContainer"  
@@ -1156,7 +1182,8 @@ function WindowAPI:UpdateHubInfo(cfg)
     end    
 
     if cfg.Logo and cfg.Logo ~= "" and HubLogo then
-        local targetFolder = cfg.foldertarget or "VeridianConfig/icon"
+        -- แก้ไข default folder ให้ตรงกับระบบหลัก (Icons ไม่ใช่ icon)
+        local targetFolder = cfg.foldertarget or "VeridianConfig/Icons"
         
         if cfg.createfolder and type(cfg.createfolder) == "string" and cfg.createfolder ~= "" then
             targetFolder = targetFolder .. "/" .. cfg.createfolder
@@ -1166,6 +1193,7 @@ function WindowAPI:UpdateHubInfo(cfg)
         local logoPath = targetFolder .. "/" .. fileName
 
         task.spawn(function()    
+            -- โครงสร้างตรวจสอบและสร้างโฟลเดอร์ (Modular Folder Building)
             local currentPath = ""
             for folder in string.gmatch(targetFolder, "[^/]+") do
                 currentPath = currentPath == "" and folder or currentPath .. "/" .. folder
@@ -1176,13 +1204,15 @@ function WindowAPI:UpdateHubInfo(cfg)
                 end)
             end
 
-            if not isfile(logoPath) then    
+            -- ตรวจสอบและดาวน์โหลดรูปจาก URL
+            if string.find(cfg.Logo, "http") and not isfile(logoPath) then    
                 local success, imgData = pcall(game.HttpGet, game, cfg.Logo)    
                 if success and imgData and #imgData > 0 and not string.find(imgData, "<!DOCTYPE") then    
                     pcall(writefile, logoPath, imgData)
                 end    
             end    
 
+            -- โหลดรูปเข้า UI (รองรับ Executor มาตรฐานทั้งหมด)
             if isfile(logoPath) then    
                 local getAsset = getcustomasset or getsynasset    
                 if getAsset then    
