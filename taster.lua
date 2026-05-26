@@ -914,7 +914,7 @@ Instance.new("UICorner", EditorTriggerBtn)
 
 local EditorIcon = Instance.new("ImageLabel", EditorTriggerBtn)
 EditorIcon.Size = UDim2.new(1, -8, 0, 55)
-EditorIcon.Position = UDim2.new(0, 4, 1, -79)
+EditorIcon.Position = UDim2.new(0, 4, 1, -65)
 EditorIcon.BackgroundTransparency = 1
 EditorIcon.BackgroundColor3 = CONFIG.NavBtnColor
 EditorIcon.ZIndex = 50
