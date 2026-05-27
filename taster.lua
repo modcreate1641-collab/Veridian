@@ -1315,7 +1315,6 @@ function WindowAPI:UpdateTheme(newColor)
 end
 
 function WindowAPI:CreateTab(name, target, isAuto)
-    -- หน้าต่างหลักแอบใสแบบเนียนๆ สบายตา
     local TabPage = Instance.new("ScrollingFrame", PageArea)
     TabPage.Size = UDim2.new(1, 0, 1, 0)
     TabPage.Position = UDim2.new(0, 20, 0, 0)
@@ -1326,14 +1325,13 @@ function WindowAPI:CreateTab(name, target, isAuto)
     TabPage.ZIndex = 11
     
     local ListLayout = Instance.new("UIListLayout", TabPage)
-    ListLayout.Padding = UDim.new(0, 10) -- เพิ่มช่องว่างให้ดูไม่อึดอัด
+    ListLayout.Padding = UDim.new(0, 12) 
     ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     
     local padding = Instance.new("UIPadding", TabPage)
-    padding.PaddingTop = UDim.new(0, 6)
+    padding.PaddingTop = UDim.new(0, 8)
     padding.PaddingLeft = UDim.new(0, 8)
 
-    -- ปุ่มเลือก Tab ด้านซ้าย
     local b = Instance.new("TextButton", NavArea)
     b.Size = UDim2.new(0, 110, 0, 36)
     b.BackgroundColor3 = CONFIG.NavBtnColor or Color3.fromRGB(35, 35, 40)
@@ -1342,7 +1340,7 @@ function WindowAPI:CreateTab(name, target, isAuto)
     b.TextColor3 = Color3.new(0.9, 0.9, 0.9)
     b.Font = Enum.Font.GothamBold
     b.TextSize = CONFIG.DefaultFontSize or 14
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 12)
     b.ZIndex = 12
     
     local bStroke = Instance.new("UIStroke", b)
@@ -1360,24 +1358,16 @@ function WindowAPI:CreateTab(name, target, isAuto)
 
     local TabAPI = {}
     
-    --------------------------------------------------------------------------
-    -- [ADAPTER LAYER] - แปลงฟังก์ชันให้รองรับรูปแบบสคริปต์ Rayfield ตรงๆ
-    --------------------------------------------------------------------------
+    -- [ ADAPTER LAYER FOR RAYFIELD ]
     
-    -- 1. CreateLabel (รองรับทั้ง String ตรงๆ และแบบ Table ของ Rayfield)
     function TabAPI:CreateLabel(cfg)
-        local labelText = ""
-        if type(cfg) == "table" then
-            labelText = cfg.Text or cfg.Name or "Label"
-        else
-            labelText = cfg
-        end
+        local labelText = type(cfg) == "table" and (cfg.Text or cfg.Name or "Label") or cfg
 
         local frame = Instance.new("Frame", TabPage)
-        frame.Size = UDim2.new(0.96, 0, 0, 32)
+        frame.Size = UDim2.new(0.96, 0, 0, 34)
         frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-        frame.BackgroundTransparency = 0.5 -- โปร่งใสแบบพอดีตามสั่ง
-        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
+        frame.BackgroundTransparency = 0.5
+        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
         frame.ZIndex = 14
         
         local stroke = Instance.new("UIStroke", frame)
@@ -1385,8 +1375,8 @@ function WindowAPI:CreateTab(name, target, isAuto)
         stroke.Transparency = 0.9
 
         local lbl = Instance.new("TextLabel", frame)
-        lbl.Size = UDim2.new(1, -12, 1, 0)
-        lbl.Position = UDim2.new(0, 12, 0, 0)
+        lbl.Size = UDim2.new(1, -16, 1, 0)
+        lbl.Position = UDim2.new(0, 16, 0, 0)
         lbl.BackgroundTransparency = 1
         lbl.Text = labelText
         lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
@@ -1394,21 +1384,23 @@ function WindowAPI:CreateTab(name, target, isAuto)
         lbl.TextSize = 13
         lbl.TextXAlignment = "Left"
         lbl.ZIndex = 15
-        return {Set = function(_, newText) lbl.Text = newText end} -- คืนค่าเผื่อสั่งเปลี่ยนข้อความทีหลัง
+        
+        return {
+            Set = function(_, newText) lbl.Text = newText end
+        }
     end
     
-    -- 2. CreateButton (สไตล์ Rayfield เป๊ะ)
     function TabAPI:CreateButton(cfg)
         local btn = Instance.new("TextButton", TabPage)
-        btn.Size = UDim2.new(0.96, 0, 0, 38)
+        btn.Size = UDim2.new(0.96, 0, 0, 42)
         btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-        btn.BackgroundTransparency = 0.5 -- ความโปร่งใส 0.5 สบายตา
+        btn.BackgroundTransparency = 0.5
         btn.Text = "  " .. (cfg.Name or "Button")
         btn.TextColor3 = Color3.new(1, 1, 1)
         btn.Font = Enum.Font.GothamBold
         btn.TextSize = 13
         btn.TextXAlignment = "Left"
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
         btn.ZIndex = 15
         
         local stroke = Instance.new("UIStroke", btn)
@@ -1423,15 +1415,14 @@ function WindowAPI:CreateTab(name, target, isAuto)
             CreateTween(btn, {BackgroundTransparency = 0.5}) 
             CreateTween(stroke, {Transparency = 0.8})
         end)
-        btn.MouseButton1Down:Connect(function() CreateTween(btn, {Size = UDim2.new(0.94, 0, 0, 36)}) end)
-        btn.MouseButton1Up:Connect(function() CreateTween(btn, {Size = UDim2.new(0.96, 0, 0, 38)}) end)
+        btn.MouseButton1Down:Connect(function() CreateTween(btn, {Size = UDim2.new(0.94, 0, 0, 40)}) end)
+        btn.MouseButton1Up:Connect(function() CreateTween(btn, {Size = UDim2.new(0.96, 0, 0, 42)}) end)
         btn.MouseButton1Click:Connect(function() pcall(cfg.Callback) end)
+        
         return {Callback = cfg.Callback}
     end
     
-    -- 3. CreateToggle (รองรับ CurrentValue ของ Rayfield)
     function TabAPI:CreateToggle(cfg)
-        -- ดึงค่าจาก CurrentValue (Rayfield) ถ้าไม่มีให้ใช้ Default หรือตั้งเป็น false
         local s = cfg.CurrentValue
         if s == nil then s = cfg.Default or false end
         
@@ -1439,12 +1430,12 @@ function WindowAPI:CreateTab(name, target, isAuto)
         local ColorOff = Color3.fromRGB(60, 60, 65)
 
         local btn = Instance.new("TextButton", TabPage)
-        btn.Size = UDim2.new(0.96, 0, 0, 40)
+        btn.Size = UDim2.new(0.96, 0, 0, 44)
         btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
         btn.BackgroundTransparency = 0.5
         btn.Text = ""
         btn.AutoButtonColor = false
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
         btn.ZIndex = 15
         
         local stroke = Instance.new("UIStroke", btn)
@@ -1452,8 +1443,8 @@ function WindowAPI:CreateTab(name, target, isAuto)
         stroke.Transparency = 0.9
 
         local title = Instance.new("TextLabel", btn)
-        title.Size = UDim2.new(1, -60, 1, 0)
-        title.Position = UDim2.new(0, 12, 0, 0)
+        title.Size = UDim2.new(1, -64, 1, 0)
+        title.Position = UDim2.new(0, 16, 0, 0)
         title.BackgroundTransparency = 1
         title.Text = cfg.Name or "Toggle"
         title.TextColor3 = Color3.new(1, 1, 1)
@@ -1463,15 +1454,15 @@ function WindowAPI:CreateTab(name, target, isAuto)
         title.ZIndex = 16
 
         local switchBg = Instance.new("Frame", btn)
-        switchBg.Size = UDim2.new(0, 36, 0, 18)
-        switchBg.Position = UDim2.new(1, -48, 0.5, -9)
+        switchBg.Size = UDim2.new(0, 38, 0, 20)
+        switchBg.Position = UDim2.new(1, -50, 0.5, -10)
         switchBg.BackgroundColor3 = s and ColorOn or ColorOff
         Instance.new("UICorner", switchBg).CornerRadius = UDim.new(1, 0)
         switchBg.ZIndex = 16
 
         local knob = Instance.new("Frame", switchBg)
-        knob.Size = UDim2.new(0, 14, 0, 14)
-        knob.Position = s and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
+        knob.Size = UDim2.new(0, 16, 0, 16)
+        knob.Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
         knob.BackgroundColor3 = Color3.new(1, 1, 1)
         Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
         knob.ZIndex = 17
@@ -1482,28 +1473,30 @@ function WindowAPI:CreateTab(name, target, isAuto)
         local function toggle(Value)
             if Value == nil then s = not s else s = Value end
             CreateTween(switchBg, {BackgroundColor3 = s and ColorOn or ColorOff}, 0.2)
-            CreateTween(knob, {Position = s and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            CreateTween(knob, {Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
             pcall(cfg.Callback, s)
         end
 
         btn.MouseButton1Click:Connect(function() toggle() end)
-        return {Set = function(_, Value) toggle(Value) end}
+        return {
+            Set = function(_, Value) toggle(Value) end,
+            CurrentValue = s
+        }
     end
 
-    -- 4. CreateSlider (รองรับ Range = {min, max} และ CurrentValue ของ Rayfield)
     function TabAPI:CreateSlider(cfg)
         local dragging = false
         
-        -- ดึงค่า Range สไตล์ Rayfield บรรทัดนี้คือเวทมนตร์ Adapter
         local min = cfg.Range and cfg.Range[1] or cfg.Min or 0
         local max = cfg.Range and cfg.Range[2] or cfg.Max or 100
         local val = cfg.CurrentValue or cfg.Default or min
+        local suffix = cfg.Suffix or ""
         
         local sf = Instance.new("Frame", TabPage)
-        sf.Size = UDim2.new(0.96, 0, 0, 52)
+        sf.Size = UDim2.new(0.96, 0, 0, 56)
         sf.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
         sf.BackgroundTransparency = 0.5
-        Instance.new("UICorner", sf).CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", sf).CornerRadius = UDim.new(0, 12)
         sf.ZIndex = 15
         sf.Active = true
         
@@ -1512,10 +1505,10 @@ function WindowAPI:CreateTab(name, target, isAuto)
         stroke.Transparency = 0.9
         
         local t = Instance.new("TextLabel", sf)
-        t.Size = UDim2.new(1, -20, 0, 20)
-        t.Position = UDim2.new(0, 12, 0, 6)
+        t.Size = UDim2.new(1, -24, 0, 24)
+        t.Position = UDim2.new(0, 16, 0, 6)
         t.BackgroundTransparency = 1
-        t.Text = (cfg.Name or "Slider") .. " : " .. val
+        t.Text = (cfg.Name or "Slider") .. " : " .. val .. suffix
         t.TextColor3 = Color3.new(1, 1, 1)
         t.Font = Enum.Font.GothamBold
         t.TextSize = 13
@@ -1523,17 +1516,18 @@ function WindowAPI:CreateTab(name, target, isAuto)
         t.ZIndex = 16
         
         local bar = Instance.new("Frame", sf)
-        bar.Size = UDim2.new(0.92, 0, 0, 4) -- เส้นบาร์บางเฉียบดูโมเดิร์น
-        bar.Position = UDim2.new(0.04, 0, 0, 36)
+        bar.Size = UDim2.new(0.92, 0, 0, 6)
+        bar.Position = UDim2.new(0.04, 0, 0, 38)
         bar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-        Instance.new("UICorner", bar)
+        bar.ClipsDescendants = true
+        Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
         bar.ZIndex = 16
         bar.Active = true
         
         local fill = Instance.new("Frame", bar)
         fill.Size = UDim2.new((val - min) / (max - min), 0, 1, 0)
         fill.BackgroundColor3 = CONFIG.NavBtnColor or Color3.fromRGB(52, 152, 219)
-        Instance.new("UICorner", fill)
+        Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
         fill.ZIndex = 17
         
         sf.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
@@ -1549,7 +1543,7 @@ function WindowAPI:CreateTab(name, target, isAuto)
                 CreateTween(fill, {Size = UDim2.new(p, 0, 1, 0)}, 0.1)
                 val = math.floor(min + (p * (max - min)))
             end
-            t.Text = (cfg.Name or "Slider") .. " : " .. val
+            t.Text = (cfg.Name or "Slider") .. " : " .. val .. suffix
             pcall(cfg.Callback, val)
         end
 
@@ -1564,15 +1558,14 @@ function WindowAPI:CreateTab(name, target, isAuto)
         return {Set = function(_, Value) updateSlider(Value) end}
     end
 
-    -- 5. CreateDropdown (รองรับ Options และ CurrentValue แฟลตฟอร์ม Rayfield)
     function TabAPI:CreateDropdown(cfg)
         local open = false
         local options = cfg.Options or {}
         local optionsCount = #options
-        local itemHeight = 30
-        local maxDisplayItems = 3.5
-        local closedSize = UDim2.new(0.96, 0, 0, 38)
-        local openedSize = UDim2.new(0.96, 0, 0, 38 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
+        local itemHeight = 32
+        local maxDisplayItems = 4
+        local closedSize = UDim2.new(0.96, 0, 0, 42)
+        local openedSize = UDim2.new(0.96, 0, 0, 42 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
 
         local df = Instance.new("Frame", TabPage)
         df.Size = closedSize
@@ -1580,19 +1573,18 @@ function WindowAPI:CreateTab(name, target, isAuto)
         df.BackgroundTransparency = 0.5
         df.ClipsDescendants = true
         df.ZIndex = 15
-        Instance.new("UICorner", df).CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", df).CornerRadius = UDim.new(0, 12)
 
         local stroke = Instance.new("UIStroke", df)
         stroke.Color = Color3.fromRGB(255, 255, 255)
         stroke.Transparency = 0.9
 
         local mb = Instance.new("TextButton", df)
-        mb.Size = UDim2.new(1, 0, 0, 38)
+        mb.Size = UDim2.new(1, 0, 0, 42)
         mb.BackgroundTransparency = 1
         
-        -- เช็คเผื่อมีค่าเริ่มต้นเซ็ตไว้แบบ Rayfield
-        local initialVal = cfg.CurrentValue or cfg.Default
-        mb.Text = "  " .. (cfg.Name or "Dropdown") .. (initialVal and (" : " .. tostring(initialVal)) or "")
+        local initialVal = cfg.CurrentValue or cfg.Default or ""
+        mb.Text = "  " .. (cfg.Name or "Dropdown") .. (initialVal ~= "" and (" : " .. tostring(initialVal)) or "")
         mb.TextColor3 = Color3.new(1, 1, 1)
         mb.Font = Enum.Font.GothamBold
         mb.TextSize = 13
@@ -1600,8 +1592,8 @@ function WindowAPI:CreateTab(name, target, isAuto)
         mb.ZIndex = 16
 
         local Arrow = Instance.new("TextLabel", mb)
-        Arrow.Size = UDim2.new(0, 35, 0, 38)
-        Arrow.Position = UDim2.new(1, -35, 0, 0)
+        Arrow.Size = UDim2.new(0, 40, 0, 42)
+        Arrow.Position = UDim2.new(1, -40, 0, 0)
         Arrow.BackgroundTransparency = 1
         Arrow.Text = "▼"
         Arrow.TextColor3 = Color3.fromRGB(180, 180, 185)
@@ -1609,8 +1601,8 @@ function WindowAPI:CreateTab(name, target, isAuto)
         Arrow.ZIndex = 17
 
         local DropScroll = Instance.new("ScrollingFrame", df)
-        DropScroll.Size = UDim2.new(1, -4, 1, -42)
-        DropScroll.Position = UDim2.new(0, 2, 0, 40)
+        DropScroll.Size = UDim2.new(1, -8, 1, -46)
+        DropScroll.Position = UDim2.new(0, 4, 0, 44)
         DropScroll.BackgroundTransparency = 1
         DropScroll.ScrollBarThickness = 2
         DropScroll.ScrollBarImageColor3 = CONFIG.NavBtnColor or Color3.new(1,1,1)
@@ -1619,7 +1611,7 @@ function WindowAPI:CreateTab(name, target, isAuto)
         DropScroll.Visible = false
 
         local DropList = Instance.new("UIListLayout", DropScroll)
-        DropList.Padding = UDim.new(0, 3)
+        DropList.Padding = UDim.new(0, 4)
         DropList.SortOrder = Enum.SortOrder.LayoutOrder
 
         df.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
@@ -1640,7 +1632,7 @@ function WindowAPI:CreateTab(name, target, isAuto)
             end
             for i, opt in pairs(options) do
                 local o = Instance.new("TextButton", DropScroll)
-                o.Size = UDim2.new(1, -6, 0, 28)
+                o.Size = UDim2.new(1, -8, 0, 28)
                 o.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
                 o.BackgroundTransparency = 0.3
                 o.Text = tostring(opt)
@@ -1648,7 +1640,7 @@ function WindowAPI:CreateTab(name, target, isAuto)
                 o.Font = Enum.Font.GothamSemibold
                 o.TextSize = 12
                 o.ZIndex = 17
-                Instance.new("UICorner", o).CornerRadius = UDim.new(0, 4)
+                Instance.new("UICorner", o).CornerRadius = UDim.new(0, 8)
 
                 o.MouseEnter:Connect(function() CreateTween(o, {BackgroundTransparency = 0, TextColor3 = Color3.new(1, 1, 1)}, 0.1) end)
                 o.MouseLeave:Connect(function() CreateTween(o, {BackgroundTransparency = 0.3, TextColor3 = Color3.fromRGB(200, 200, 205)}, 0.1) end)
@@ -1662,13 +1654,12 @@ function WindowAPI:CreateTab(name, target, isAuto)
         end
         createOptions()
 
-        -- ฟังชันเสริมสำหรับก๊อป Rayfield มาใช้ครบสูตร
         return {
             Refresh = function(_, newOptions, _) 
                 options = newOptions or {}
                 optionsCount = #options
                 DropScroll.CanvasSize = UDim2.new(0, 0, 0, optionsCount * itemHeight)
-                openedSize = UDim2.new(0.96, 0, 0, 38 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
+                openedSize = UDim2.new(0.96, 0, 0, 42 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
                 createOptions()
             end,
             Set = function(_, Value)
@@ -1678,9 +1669,6 @@ function WindowAPI:CreateTab(name, target, isAuto)
         }
     end
 
-    --------------------------------------------------------------------------
-    -- ส่วนจัดการเปิดปิด Tab คงเดิม เพิ่มเติมความลื่นไหลพริ้วๆ สบายตา
-    --------------------------------------------------------------------------
     local function OpenTab()
         if SearchBox then SearchBox.Text = "" end
         for _, v in pairs(PageArea:GetChildren()) do 
@@ -1695,12 +1683,12 @@ function WindowAPI:CreateTab(name, target, isAuto)
             if type(target) == "function" then target(TabPage, TabAPI)
             elseif type(target) == "string" and target:find("http") then
                 local lb = Instance.new("TextButton", TabPage)
-                lb.Size = UDim2.new(0.96, 0, 0, 38)
+                lb.Size = UDim2.new(0.96, 0, 0, 42)
                 lb.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-                lb.Text = "🐾 Load String: " .. name
+                lb.Text = " Load String: " .. name
                 lb.TextColor3 = Color3.new(1, 1, 1)
                 lb.Font = Enum.Font.GothamBold
-                Instance.new("UICorner", lb).CornerRadius = UDim.new(0, 6)
+                Instance.new("UICorner", lb).CornerRadius = UDim.new(0, 12)
                 lb.ZIndex = 15
                 lb.MouseButton1Click:Connect(function() pcall(function() loadstring(game:HttpGet(target))() end) end)
             end
