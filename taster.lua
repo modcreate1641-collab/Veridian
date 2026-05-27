@@ -1346,7 +1346,7 @@ function WindowAPI:CreateTab(name, target, isAuto)
     padding.PaddingLeft = UDim.new(0, 8)
 
     local b = Instance.new("TextButton", NavArea)
-    b.Size = UDim2.new(0, 110, 0, 36)
+    b.Size = UDim2.new(0, 105, 0, 36)
     b.BackgroundColor3 = CONFIG.NavBtnColor or Color3.fromRGB(35, 35, 40)
     b.BackgroundTransparency = 0.3
     b.Text = name
