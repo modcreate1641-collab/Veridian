@@ -652,7 +652,7 @@ local TopBar = Instance.new("Frame", MainFrame)
 
     DiscordBtn.Activated:Connect(function()  
         pcall(function()  
-            if setclipboard then  
+            if setclipboard and ActiveDiscordLink and ActiveDiscordLink ~= "" then  
                 setclipboard(ActiveDiscordLink)  
                 DiscordBtn.Text = "✅ Copied!"  
                 CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(50, 200, 50)}, 0.1)  
@@ -1175,12 +1175,13 @@ function WindowAPI:UpdateHubInfo(cfg)
         HubLabel.Text = cfg.Name    
     end    
 
-    if cfg.discord then    
-        ActiveDiscordLink = cfg.discord    
+    local discordLink = cfg.discord or cfg.Discord
+    if discordLink then    
+        ActiveDiscordLink = discordLink 
         if DiscordBtn then
-            DiscordBtn.Text = "🔗 " .. cfg.discord    
+            DiscordBtn.Text = "🔗 " .. discordLink    
         end
-    end    
+    end
 
     if cfg.Logo and cfg.Logo ~= "" and HubLogo then
         -- แก้ไข default folder ให้ตรงกับระบบหลัก (Icons ไม่ใช่ icon)
