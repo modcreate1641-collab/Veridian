@@ -8,7 +8,7 @@ local CONFIG = {
     NavBtnColor = Color3.fromRGB(90, 132, 255),
     HoverColor = Color3.fromRGB(110, 152, 255),
     ClickColor = Color3.fromRGB(70, 112, 235),
-    MainBgColor = Color3.fromRGB(35, 35, 40),
+    MainBgColor = Color3.fromRGB(45, 45, 50),
     NavPanelColor = Color3.fromRGB(45, 45, 50),
     SearchBgColor = Color3.fromRGB(76, 181, 191),
     DefaultFontSize = 12,
@@ -60,7 +60,7 @@ local aimName = iconFolder .. "/aim icon.png"
 local aimUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/aim%20icon.png"
 
 local destroyName = iconFolder .. "/destroy icon.png"
-local destroyUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/destroy%20icon.png"
+local destroyUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/d416ad99167d8cd588a83d0d377fca0028a269fd6b8310b5b31aa6acd6a1d04b.0.png"
 
 local autoName = iconFolder .. "/auto.png"
 local autoUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/auto.png"
@@ -155,7 +155,7 @@ MainFrame.Size = UDim2.new(0, 508, 0, 264)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainFrame.BackgroundColor3 = CONFIG.MainBgColor
 MainFrame.ClipsDescendants = true
-MainFrame.GroupTransparency = 0.5
+MainFrame.GroupTransparency = 0.3
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 local BgImage = Instance.new("ImageLabel", MainFrame)
@@ -531,40 +531,154 @@ local destroyStage = 0
 -- [[ MODERN FULL-WIDTH TOP NAVIGATION BAR ]] --
 -- [[ ======================================================= ]] --
 local TopBar = Instance.new("Frame", MainFrame)
-TopBar.Name = "ModernTopNavigationBar"
-TopBar.Size = UDim2.new(1, -12, 0, 42) -- Spans fully from left to right with slight padding
-TopBar.Position = UDim2.new(0, 6, 0, 6) -- Clean offset from the main frame borders
-TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25) -- Solid sleek dark base
-TopBar.BackgroundTransparency = 0.3 -- Adjust this value whenever you want it semi-transparent
-TopBar.ZIndex = 10
+    TopBar.Name = "ModernTopNavigationBar"
+    TopBar.Size = UDim2.new(1, -12, 0, 42)
+    TopBar.Position = UDim2.new(0, 6, 0, 6)
+    TopBar.BackgroundColor3 = CONFIG.NavPanelColor
+    TopBar.BackgroundTransparency = 0.5
+    TopBar.ZIndex = 10
+    Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
 
-local TopBarCorner = Instance.new("UICorner", TopBar)
-TopBarCorner.CornerRadius = UDim.new(0, 8) -- Smooth rounded edges for top bar setup
+    local defaultLogoFolder = (CONFIG and CONFIG.BgFolder and CONFIG.BgFolder .. "/Icons") or "VeridianConfig/Icons"
+    local targetLogoFolder = (typeof(Config) == "table" and Config.foldertarget) or defaultLogoFolder
 
--- [[ ======================================================= ]] --
--- [[ HUB TITLE LABEL SETUP (CLEAN TEXT-ONLY STYLE) ]] --
--- [[ ======================================================= ]] --
-local HubLabel = Instance.new("TextLabel", TopBar)
-HubLabel.Name = "HubTitleLabel"
-HubLabel.Size = UDim2.new(0, 150, 1, 0)
-HubLabel.Position = UDim2.new(0, 12, 0, 0) -- Clean indentation from the left edge
-HubLabel.BackgroundTransparency = 1 -- Removed the ugly green block background
-HubLabel.Text = HubName or "Veridian Hub"
-HubLabel.TextColor3 = Color3.fromRGB(245, 245, 245)
-HubLabel.Font = Enum.Font.GothamBold
-HubLabel.TextSize = 14
-HubLabel.TextXAlignment = Enum.TextXAlignment.Left
-HubLabel.TextYAlignment = Enum.TextYAlignment.Center
-HubLabel.ZIndex = 11
+    if typeof(Config) == "table" and Config.createfolder and type(Config.createfolder) == "string" and Config.createfolder ~= "" then
+        targetLogoFolder = targetLogoFolder .. "/" .. Config.createfolder
+    end
 
--- สร้างปุ่มหลัก (ซ่อน Text ไว้ก่อน)
+    local targetFileName = (typeof(Config) == "table" and Config.createfile) or "logo.png"
+    local finalLogoPath = targetLogoFolder .. "/" .. targetFileName
+
+    local HubLogo = Instance.new("ImageLabel", TopBar)
+    HubLogo.Name = "HubLogo"
+    HubLogo.Size = UDim2.new(0, 32, 0, 32)
+    HubLogo.Position = UDim2.new(0, 10, 0.5, -16)
+    HubLogo.BackgroundTransparency = 1
+    HubLogo.ZIndex = 11
+    HubLogo.ScaleType = Enum.ScaleType.Crop
+    HubLogo.Image = "" -- ปล่อยว่างไว้ก่อนเดี๋ยวโหลดใส่ให้
+
+    Instance.new("UICorner", HubLogo).CornerRadius = UDim.new(1, 0)
+    Instance.new("UIStroke", HubLogo).Color = Color3.fromRGB(60, 60, 70)
+
+    -- ใช้ task.spawn เพื่อไม่ให้ UI ค้างตอนดึงรูปหรือสร้างโฟลเดอร์
+    task.spawn(function()
+        -- 1. ระบบสร้างโฟลเดอร์อัตโนมัติ (รองรับโครงสร้างซ้อนกันหลายชั้น)
+        local currentPath = ""
+        for folder in string.gmatch(targetLogoFolder, "[^/]+") do
+            currentPath = currentPath == "" and folder or currentPath .. "/" .. folder
+            pcall(function()
+                if not isfolder(currentPath) then
+                    makefolder(currentPath)
+                end
+            end)
+        end
+
+        -- 2. ดาวน์โหลดรูปภาพถ้ามีการตั้งค่า Logo เป็น URL และไฟล์ยังไม่มีในเครื่อง
+        if typeof(Config) == "table" and Config.Logo and string.find(Config.Logo, "http") then
+            if not isfile(finalLogoPath) then
+                local success, imgData = pcall(game.HttpGet, game, Config.Logo)
+                if success and imgData and #imgData > 0 and not string.find(imgData, "<!DOCTYPE") then
+                    pcall(writefile, finalLogoPath, imgData)
+                end
+            end
+        end
+
+        -- 3. ระบบโหลดรูปเข้า HubLogo
+        local getAsset = getcustomasset or getsynasset
+        local computedImage = ""
+
+        if isfile(finalLogoPath) then
+            if getAsset then
+                pcall(function() computedImage = getAsset(finalLogoPath) end)
+            end
+        else
+            -- ระบบ Fallback กรณีโหลดพลาด
+            local fallbackIcon = CONFIG and CONFIG.BgFolder and (CONFIG.BgFolder .. "/Icons/furry icon.png")
+            if fallbackIcon and isfile(fallbackIcon) then
+                if getAsset then
+                    pcall(function() computedImage = getAsset(fallbackIcon) end)
+                end
+            end
+        end
+
+        if computedImage ~= "" then
+            HubLogo.Image = computedImage
+        end
+    end)
+
+    local TitleContainer = Instance.new("Frame", TopBar)  
+    TitleContainer.Name = "TitleContainer"  
+    TitleContainer.Size = UDim2.new(0, 200, 1, 0)  
+    TitleContainer.Position = UDim2.new(0, 52, 0, 0)  
+    TitleContainer.BackgroundTransparency = 1  
+    TitleContainer.ZIndex = 11  
+
+    local HubLabel = Instance.new("TextLabel", TitleContainer)  
+    HubLabel.Name = "HubTitleLabel"  
+    HubLabel.Size = UDim2.new(1, 0, 0, 22)  
+    HubLabel.Position = UDim2.new(0, 0, 0, 4)  
+    HubLabel.BackgroundTransparency = 1  
+    HubLabel.Text = HubText  
+    HubLabel.TextColor3 = HubColor  
+    HubLabel.Font = HubFont  
+    HubLabel.TextSize = HubTextSize  
+    HubLabel.TextXAlignment = Enum.TextXAlignment.Left  
+    HubLabel.ZIndex = 12  
+
+    local ActiveDiscordLink = (typeof(Config) == "table" and Config.discord) or "discord.gg/veridian"
+      
+    local DiscordBtn = Instance.new("TextButton", TitleContainer)  
+    DiscordBtn.Name = "DiscordCopyButton"  
+    DiscordBtn.Size = UDim2.new(1, 0, 0, 14)  
+    DiscordBtn.Position = UDim2.new(0, 0, 0, 24)  
+    DiscordBtn.BackgroundTransparency = 1  
+    DiscordBtn.Text = "🔗 " .. ActiveDiscordLink  
+    DiscordBtn.TextColor3 = Color3.fromRGB(150, 150, 170)  
+    DiscordBtn.Font = Enum.Font.GothamSemibold  
+    DiscordBtn.TextSize = 10  
+    DiscordBtn.TextXAlignment = Enum.TextXAlignment.Left  
+    DiscordBtn.ZIndex = 12  
+
+    DiscordBtn.MouseEnter:Connect(function()  
+        if DiscordBtn.Text:find("Copied") then return end  
+        CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(100, 170, 255)}, 0.2)  
+    end)  
+
+    DiscordBtn.MouseLeave:Connect(function()  
+        if DiscordBtn.Text:find("Copied") then return end  
+        CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(150, 150, 170)}, 0.2)  
+    end)  
+
+    DiscordBtn.Activated:Connect(function()  
+        pcall(function()  
+            if setclipboard then  
+                setclipboard(ActiveDiscordLink)  
+                DiscordBtn.Text = "✅ Copied!"  
+                CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(50, 200, 50)}, 0.1)  
+                  
+                task.delay(1.5, function()  
+                    DiscordBtn.Text = "🔗 " .. ActiveDiscordLink  
+                    CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(150, 150, 170)}, 0.2)  
+                end)  
+            end  
+        end)  
+    end)
+
+    task.defer(function()
+        if WindowAPI and WindowAPI.UpdateHubInfo then
+            WindowAPI:UpdateHubInfo(Config)
+        end
+    end)
+
+-- [[ DESTROY BUTTON & POPUP SYSTEM ]]
 local ClosedBtn = Instance.new("TextButton", TopBar)
 ClosedBtn.Name = "HubDestroyButton"
 ClosedBtn.Size = UDim2.new(0, 80, 1, 0)
 ClosedBtn.Position = UDim2.new(1, -80, 0, 0)
 ClosedBtn.BackgroundColor3 = Color3.fromRGB(129, 129, 129)
 ClosedBtn.BackgroundTransparency = 0.9
-ClosedBtn.Text = "" -- เริ่มต้นเป็นค่าว่างตามที่มึงอยากได้
+ClosedBtn.Text = ""
 ClosedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ClosedBtn.Font = Enum.Font.GothamBold
 ClosedBtn.TextSize = 12
@@ -572,63 +686,151 @@ ClosedBtn.Active = true
 ClosedBtn.ZIndex = 12 
 Instance.new("UICorner", ClosedBtn)
 
--- ยัดไอคอนเข้าไปข้างในปุ่มโดยใช้ getcustomasset
 local BtnIcon = Instance.new("ImageLabel", ClosedBtn)
 BtnIcon.Name = "DestroyIcon"
-BtnIcon.Size = UDim2.new(0, 20, 0, 20) -- ปรับขนาดไอคอนตามใจชอบ
-BtnIcon.Position = UDim2.new(0.5, -10, 0.5, -10) -- จัดให้อยู่ตรงกลางเป๊ะ
+BtnIcon.Size = UDim2.new(0, 20, 0, 20)
+BtnIcon.Position = UDim2.new(0.5, -10, 0.5, -10)
 BtnIcon.BackgroundTransparency = 1
-BtnIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/destroy icon.png") -- ดึงไฟล์ไอคอนที่โหลดมา
+BtnIcon.Image = getcustomasset(CONFIG.BgFolder .. "/Icons/destroy icon.png")
 BtnIcon.ZIndex = 13
 
--- ฟังก์ชันคลีนๆ เอาไว้รีเซ็ตปุ่มกลับเป็นสถานะไอคอนเริ่มต้น (ลบโค้ดซ้ำซาก)
-local function resetBtn()
+-- [[ POPUP UI SETUP ]]
+local DestroyOverlay = Instance.new("Frame", MainFrame)
+DestroyOverlay.Name = "DestroyOverlay"
+DestroyOverlay.Size = UDim2.new(1, 0, 1, 0)
+DestroyOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 5)
+DestroyOverlay.BackgroundTransparency = 1
+DestroyOverlay.Visible = false
+DestroyOverlay.ZIndex = 900
+Instance.new("UICorner", DestroyOverlay).CornerRadius = UDim.new(0, 10)
+
+local ConfirmBox = Instance.new("Frame", DestroyOverlay)
+ConfirmBox.Name = "ConfirmBox"
+ConfirmBox.AnchorPoint = Vector2.new(0.5, 0.5)
+ConfirmBox.Size = UDim2.new(0, 0, 0, 0)
+ConfirmBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+ConfirmBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+ConfirmBox.ClipsDescendants = true
+ConfirmBox.ZIndex = 901
+Instance.new("UICorner", ConfirmBox).CornerRadius = UDim.new(0, 8)
+
+local ConfirmStroke = Instance.new("UIStroke", ConfirmBox)
+ConfirmStroke.Color = Color3.fromRGB(200, 50, 50)
+ConfirmStroke.Thickness = 1.5
+ConfirmStroke.Transparency = 1
+
+local WarningTitle = Instance.new("TextLabel", ConfirmBox)
+WarningTitle.Size = UDim2.new(1, 0, 0, 30)
+WarningTitle.Position = UDim2.new(0, 0, 0, 15)
+WarningTitle.BackgroundTransparency = 1
+WarningTitle.Text = "WARNING"
+WarningTitle.TextColor3 = Color3.fromRGB(255, 100, 100)
+WarningTitle.Font = Enum.Font.GothamBlack
+WarningTitle.TextSize = 18
+WarningTitle.ZIndex = 902
+
+local WarningDesc = Instance.new("TextLabel", ConfirmBox)
+WarningDesc.Size = UDim2.new(1, -20, 0, 40)
+WarningDesc.Position = UDim2.new(0, 10, 0, 45)
+WarningDesc.BackgroundTransparency = 1
+WarningDesc.Text = "Are you sure you want to close this hub?"
+WarningDesc.TextColor3 = Color3.fromRGB(200, 200, 200)
+WarningDesc.Font = Enum.Font.GothamSemibold
+WarningDesc.TextSize = 13
+WarningDesc.TextWrapped = true
+WarningDesc.ZIndex = 902
+
+local ActionBtn = Instance.new("TextButton", ConfirmBox)
+ActionBtn.Size = UDim2.new(0, 110, 0, 32)
+ActionBtn.Position = UDim2.new(0.5, 10, 1, -45)
+ActionBtn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
+ActionBtn.Text = "YES (1/2)"
+ActionBtn.TextColor3 = Color3.new(1, 1, 1)
+ActionBtn.Font = Enum.Font.GothamBold
+ActionBtn.TextSize = 13
+ActionBtn.ZIndex = 902
+Instance.new("UICorner", ActionBtn).CornerRadius = UDim.new(0, 6)
+
+local CancelBtn = Instance.new("TextButton", ConfirmBox)
+CancelBtn.Size = UDim2.new(0, 110, 0, 32)
+CancelBtn.Position = UDim2.new(0.5, -120, 1, -45)
+CancelBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+CancelBtn.Text = "CANCEL"
+CancelBtn.TextColor3 = Color3.new(1, 1, 1)
+CancelBtn.Font = Enum.Font.GothamBold
+CancelBtn.TextSize = 13
+CancelBtn.ZIndex = 902
+Instance.new("UICorner", CancelBtn).CornerRadius = UDim.new(0, 6)
+
+-- [[ LOGIC ]]
+local destroyStage = 0
+local timeoutTask = nil
+
+local function resetDestroySequence()
     destroyStage = 0
-    ClosedBtn.Text = ""
-    BtnIcon.Visible = true -- โชว์ไอคอนกลับมา
-    CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2)
+    if timeoutTask then 
+        task.cancel(timeoutTask) 
+        timeoutTask = nil 
+    end
+    
+    CreateTween(ConfirmBox, {Size = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    CreateTween(DestroyOverlay, {BackgroundTransparency = 1}, 0.3)
+    CreateTween(ConfirmStroke, {Transparency = 1}, 0.2)
+    
+    task.delay(0.3, function()
+        DestroyOverlay.Visible = false
+        WarningTitle.Text = "WARNING"
+        WarningTitle.TextColor3 = Color3.fromRGB(255, 100, 100)
+        WarningDesc.Text = "Are you sure you want to close this hub?"
+        ActionBtn.Text = "YES (1/2)"
+        ActionBtn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
+    end)
 end
 
--- ระบบ Hover เมาส์
-ClosedBtn.MouseEnter:Connect(function() 
-    if destroyStage == 0 then
-        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(180, 50, 50)}, 0.2) 
-    end
-end)
+ClosedBtn.MouseEnter:Connect(function() CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(180, 50, 50)}, 0.2) end)
+ClosedBtn.MouseLeave:Connect(function() CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) end)
 
-ClosedBtn.MouseLeave:Connect(function() 
+ClosedBtn.Activated:Connect(function()
     if destroyStage == 0 then
-        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(129, 129, 129)}, 0.2) 
-    end
-end)
-
--- ระบบคลิกยืนยัน 3 สเต็ป
-ClosedBtn.Activated:Connect(function() 
-    destroyStage = destroyStage + 1
-    BtnIcon.Visible = false -- กดปุ๊บซ่อนไอคอน เพื่อหลีกทางให้ตัวหนังสือเตือน
-    
-    if destroyStage == 1 then
-        ClosedBtn.Text = "⚠️ Sure? (1/2)"
-        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(210, 100, 40)}, 0.1)
+        destroyStage = 1
+        DestroyOverlay.Visible = true
+        CreateTween(DestroyOverlay, {BackgroundTransparency = 0.5}, 0.3)
+        CreateTween(ConfirmBox, {Size = UDim2.new(0, 270, 0, 140)}, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        CreateTween(ConfirmStroke, {Transparency = 0}, 0.4)
         
-        task.delay(3, function()
-            if destroyStage == 1 then resetBtn() end
+        timeoutTask = task.delay(4, function()
+            if destroyStage > 0 then resetDestroySequence() end
+        end)
+    end
+end)
+
+ActionBtn.Activated:Connect(function()
+    if destroyStage == 1 then
+        destroyStage = 2
+        if timeoutTask then task.cancel(timeoutTask) end
+        
+        WarningTitle.Text = "LAST WARNING!"
+        WarningTitle.TextColor3 = Color3.fromRGB(255, 50, 50)
+        WarningDesc.Text = "This action cannot be undone. DESTROY HUB?"
+        ActionBtn.Text = "DESTROY"
+        ActionBtn.BackgroundColor3 = Color3.fromRGB(220, 30, 30)
+        
+        CreateTween(ConfirmBox, {Rotation = 4}, 0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.Out).Completed:Connect(function()
+            CreateTween(ConfirmBox, {Rotation = -4}, 0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut).Completed:Connect(function()
+                CreateTween(ConfirmBox, {Rotation = 0}, 0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+            end)
+        end)
+        
+        timeoutTask = task.delay(3, function()
+            if destroyStage > 0 then resetDestroySequence() end
         end)
         
     elseif destroyStage == 2 then
-        ClosedBtn.Text = "🔥 REALLY? (2/2)"
-        CreateTween(ClosedBtn, {BackgroundColor3 = Color3.fromRGB(230, 40, 40)}, 0.1)
-        
-        task.delay(3, function()
-            if destroyStage == 2 then resetBtn() end
-        end)
-        
-    elseif destroyStage >= 3 then
-        if ScreenGui then
-            ScreenGui:Destroy()
-        end
+        if ScreenGui then ScreenGui:Destroy() end
     end
 end)
+
+CancelBtn.Activated:Connect(resetDestroySequence)
 
 local TopSettingBtn = Instance.new("TextButton", TopBar)
 TopSettingBtn.Name = "TopSettingsNavigationButton"
@@ -694,7 +896,7 @@ makeDraggable(MainFrame)
 
 local NavSidePanel = Instance.new("Frame", MainFrame)
 NavSidePanel.Name = "NavSidePanel" -- ใส่ชื่อไว้หน่อยเวลาเช็คใน UpdateTheme จะได้ชัวร์
-NavSidePanel.Size = UDim2.new(0, 105, 1, -55)
+NavSidePanel.Size = UDim2.new(0, 110, 1, -55)
 NavSidePanel.Position = UDim2.new(0, 3, 0, 55)
 NavSidePanel.BackgroundColor3 = CONFIG.NavPanelColor
 NavSidePanel.BackgroundTransparency = 0.5 -- ค่าเริ่มต้นตอนเปิด
@@ -702,15 +904,35 @@ NavSidePanel.ZIndex = 2
 Instance.new("UICorner", NavSidePanel)
 
 local EditorTriggerBtn = Instance.new("TextButton", NavSidePanel)
-EditorTriggerBtn.Name = "EditorOpenTriggerButton"EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 55)
-EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -49)
+EditorTriggerBtn.Name = "EditorOpenTriggerButton"
+EditorTriggerBtn.Size = UDim2.new(1, -8, 0, 45)
+EditorTriggerBtn.Position = UDim2.new(0, 4, 1, -45)
 EditorTriggerBtn.BackgroundColor3 = CONFIG.NavBtnColor
-EditorTriggerBtn.Text = "CODE EDITOR"
-EditorTriggerBtn.TextColor3 = Color3.new(1, 1, 1)
-EditorTriggerBtn.Font = Enum.Font.GothamBold
-EditorTriggerBtn.TextSize = 11
-EditorTriggerBtn.ZIndex = 5
+EditorTriggerBtn.Text = "" 
+EditorTriggerBtn.ZIndex = 40
 Instance.new("UICorner", EditorTriggerBtn)
+
+local EditorIcon = Instance.new("ImageLabel", EditorTriggerBtn)
+EditorIcon.Size = UDim2.new(1, -8, 0, 55)
+EditorIcon.Position = UDim2.new(0, 4, 1, -50)
+EditorIcon.BackgroundTransparency = 1
+EditorIcon.BackgroundColor3 = CONFIG.NavBtnColor
+EditorIcon.ZIndex = 50
+
+task.spawn(function()
+    local iconPath = CONFIG.BgFolder .. "/Icons/editor_icon_new.png"
+    local iconUrl = "https://raw.githubusercontent.com/modcreate1641-collab/Fluffy/refs/heads/main/1779757131863.png"
+    
+    if not isfile(iconPath) then
+        pcall(function() 
+            writefile(iconPath, game:HttpGet(iconUrl)) 
+        end)
+    end
+    
+    if isfile(iconPath) then
+        EditorIcon.Image = getcustomasset(iconPath)
+    end
+end)
 
 local InGameEditorFrame = Instance.new("Frame", MainFrame)
 InGameEditorFrame.Name = "VeridianCoreCodeEditor"
@@ -771,28 +993,24 @@ end)
 
 LocalSearchBox.FocusLost:Connect(function(enterPressed)
     if enterPressed then
-        local searchPattern = LocalSearchBox.Text:lower()
-        if searchPattern == "" then 
+        local rawSearch = LocalSearchBox.Text:lower()
+        
+        if rawSearch:gsub("%s", "") == "" then 
             CodeTextBox.CursorPosition = 1
             CodeTextBox.SelectionStart = 1
             return 
         end
+        
         local textSource = CodeTextBox.Text:lower()
-        local startIdx = textSource:find(searchPattern, 1, true)
+        local safeSearch = rawSearch:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1")
+        local fuzzyPattern = safeSearch:gsub("%s+", "%%s*")
+        
+        local startIdx, endIdx = textSource:find(fuzzyPattern)
         if startIdx then
             CodeTextBox:CaptureFocus()
-            CodeTextBox.CursorPosition = startIdx + #searchPattern
+            CodeTextBox.CursorPosition = endIdx + 1
             CodeTextBox.SelectionStart = startIdx
         end
-    end
-end)
-
-pcall(function()
-    local RawUpdateTheme = WindowAPI.UpdateTheme
-    WindowAPI.UpdateTheme = function(self, newColor)
-        pcall(RawUpdateTheme, self, newColor)
-        if EditorStroke then EditorStroke.Color = newColor end
-        if EditorTriggerBtn then EditorTriggerBtn.BackgroundColor3 = newColor end
     end
 end)
 
@@ -950,36 +1168,103 @@ end)
 
     local WindowAPI = {}
 
+function WindowAPI:UpdateHubInfo(cfg)
+    if type(cfg) ~= "table" then return end
+
+    if cfg.Name and HubLabel then    
+        HubLabel.Text = cfg.Name    
+    end    
+
+    if cfg.discord then    
+        ActiveDiscordLink = cfg.discord    
+        if DiscordBtn then
+            DiscordBtn.Text = "🔗 " .. cfg.discord    
+        end
+    end    
+
+    if cfg.Logo and cfg.Logo ~= "" and HubLogo then
+        -- แก้ไข default folder ให้ตรงกับระบบหลัก (Icons ไม่ใช่ icon)
+        local targetFolder = cfg.foldertarget or "VeridianConfig/Icons"
+        
+        if cfg.createfolder and type(cfg.createfolder) == "string" and cfg.createfolder ~= "" then
+            targetFolder = targetFolder .. "/" .. cfg.createfolder
+        end
+
+        local fileName = cfg.createfile or "logo.png"
+        local logoPath = targetFolder .. "/" .. fileName
+
+        task.spawn(function()    
+            -- โครงสร้างตรวจสอบและสร้างโฟลเดอร์ (Modular Folder Building)
+            local currentPath = ""
+            for folder in string.gmatch(targetFolder, "[^/]+") do
+                currentPath = currentPath == "" and folder or currentPath .. "/" .. folder
+                pcall(function()
+                    if not isfolder(currentPath) then
+                        makefolder(currentPath)
+                    end
+                end)
+            end
+
+            -- ตรวจสอบและดาวน์โหลดรูปจาก URL
+            if string.find(cfg.Logo, "http") and not isfile(logoPath) then    
+                local success, imgData = pcall(game.HttpGet, game, cfg.Logo)    
+                if success and imgData and #imgData > 0 and not string.find(imgData, "<!DOCTYPE") then    
+                    pcall(writefile, logoPath, imgData)
+                end    
+            end    
+
+            -- โหลดรูปเข้า UI (รองรับ Executor มาตรฐานทั้งหมด)
+            if isfile(logoPath) then    
+                local getAsset = getcustomasset or getsynasset    
+                if getAsset then    
+                    pcall(function()
+                        HubLogo.Image = getAsset(logoPath)
+                    end)
+                end    
+            end    
+        end)    
+    end
+end
+
 function WindowAPI:UpdateTheme(newColor)
     -- [[ 1. Color Processing (Deepening Effect) ]]
     local BaseDark = Color3.fromRGB(15, 15, 20)
     local MutedColor = newColor:lerp(BaseDark, 0.7) 
-    local DeepOverlay = MutedColor:lerp(BaseDark, 0.8) -- โทนมืดสุดสำหรับพวก Background
+    local DeepOverlay = MutedColor:lerp(BaseDark, 0.8)
     local HighlightColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.3) 
     
-    -- ตั้งค่าความโปร่งใสที่มึงอยากให้เท่ากันเป๊ะตรงนี้ (ปรับเลขนี้จุดเดียว เปลี่ยนทั้ง UI)
-    local GlobalTransparency = 0.3 
+    local GlobalTransparency = 0.5 
 
     CONFIG.NavBtnColor = MutedColor
     CONFIG.HoverColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.15)
     CONFIG.SearchBgColor = DeepOverlay 
-    -- อัปเดต CONFIG ตัวนี้อัตโนมัติ ให้สี Panel แมตช์กับธีมใหม่
     CONFIG.NavPanelColor = DeepOverlay:lerp(BaseDark, 0.2) 
 
     -- [[ 2. Top Bar, Global Controls & Side Panel ]]
+    if TopBar then 
+        CreateTween(TopBar, {
+            BackgroundColor3 = CONFIG.NavPanelColor,
+            BackgroundTransparency = GlobalTransparency
+        }, 0.5) 
+    end
+    
     if HubLabel then CreateTween(HubLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.3) end
     if ToggleBtn then CreateTween(ToggleBtn, {BackgroundColor3 = MutedColor}, 0.3) end
+    
     if SearchBox then 
-        CreateTween(SearchBox, {BackgroundColor3 = DeepOverlay, TextColor3 = Color3.new(0.9, 0.9, 0.9)}, 0.5) 
+        CreateTween(SearchBox, {
+            BackgroundColor3 = DeepOverlay, 
+            TextColor3 = Color3.new(0.9, 0.9, 0.9)
+        }, 0.5) 
     end
+    
     if TopSettingBtn then CreateTween(TopSettingBtn, {TextColor3 = HighlightColor}, 0.3) end
     if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.3) end
 
-    -- ยัดไอ้แผงข้างเจ้าปัญหาเข้ามาในนี้ซะ! เวลาเปลี่ยนธีม มันจะได้ไม่ยืนงง
     if NavSidePanel then 
         CreateTween(NavSidePanel, {
             BackgroundColor3 = CONFIG.NavPanelColor,
-            BackgroundTransparency = GlobalTransparency -- เท่ากันเป๊ะตามที่มึงสั่ง
+            BackgroundTransparency = GlobalTransparency
         }, 0.5)
     end
 
@@ -988,9 +1273,10 @@ function WindowAPI:UpdateTheme(newColor)
         if btn:IsA("TextButton") then
             CreateTween(btn, {
                 BackgroundColor3 = MutedColor,
-                BackgroundTransparency = GlobalTransparency, -- ให้ปุ่มโปร่งใสเท่าแผงข้างด้วย
+                BackgroundTransparency = GlobalTransparency,
                 TextColor3 = Color3.fromRGB(220, 220, 220)
             }, 0.5)
+            
             local st = btn:FindFirstChildOfClass("UIStroke")
             if st then CreateTween(st, {Color = HighlightColor:lerp(BaseDark, 0.5)}, 0.3) end
         end
@@ -1011,7 +1297,8 @@ function WindowAPI:UpdateTheme(newColor)
                     CreateTween(item, {
                         BackgroundColor3 = DeepOverlay,
                         BackgroundTransparency = GlobalTransparency
-                    }, 0.3)
+                    }, 0.5)
+                    
                     local fill = item:FindFirstChild("Fill", true) 
                     if fill then CreateTween(fill, {BackgroundColor3 = MutedColor}, 0.3) end
                 elseif item:IsA("TextLabel") then
@@ -1027,228 +1314,393 @@ function WindowAPI:UpdateTheme(newColor)
     end
 end
 
-    function WindowAPI:CreateTab(name, target, isAuto)
-        local TabPage = Instance.new("ScrollingFrame", PageArea)
-        TabPage.Size = UDim2.new(1, 0, 1, 0); TabPage.Position = UDim2.new(0, 20, 0, 0); TabPage.BackgroundTransparency = 1; TabPage.Visible = false; TabPage.ScrollBarThickness = 3; TabPage.AutomaticCanvasSize = "Y"
-        TabPage.ZIndex = 11; TabPage.BackgroundTransparency = 1
-        Instance.new("UIListLayout", TabPage).Padding = UDim.new(0, 8)
-
-        local b = Instance.new("TextButton", NavArea)
-        b.Size = UDim2.new(0, 97, 0, 34); b.BackgroundColor3 = CONFIG.NavBtnColor; b.Text = name; b.TextColor3 = Color3.new(1,1,1); b.Font = Enum.Font.GothamBold; b.TextSize = CONFIG.DefaultFontSize; Instance.new("UICorner", b)
-        b.ZIndex = 12
-        
-        b.MouseEnter:Connect(function() CreateTween(b, {BackgroundColor3 = CONFIG.HoverColor}) end)
-        b.MouseLeave:Connect(function() CreateTween(b, {BackgroundColor3 = CONFIG.NavBtnColor}) end)
-
-        b.MouseButton1Click:Connect(function()
-            for _, v in pairs(PageArea:GetChildren()) do
-                if v:IsA("ScrollingFrame") or v:IsA("Frame") then v.Visible = false end
-            end
-            TabPage.Visible = true
-        end)
-        
-        local TabAPI = {}
-        function TabAPI:CreateLabel(text)
-            local lbl = Instance.new("TextLabel", TabPage)
-            lbl.Size = UDim2.new(0.95, 0, 0, 25); lbl.BackgroundTransparency = 1; lbl.Text = text; lbl.TextColor3 = Color3.new(0.9, 0.9, 0.9); lbl.Font = "GothamBold"; lbl.TextXAlignment = "Left"; lbl.ZIndex = 15
-        end
-        function TabAPI:CreateButton(cfg)
-            local btn = Instance.new("TextButton", TabPage)
-            btn.Size = UDim2.new(0.95, 0, 0, 35); btn.BackgroundColor3 = Color3.fromRGB(60, 60, 65); btn.Text = "⚡ " .. cfg.Name; btn.TextColor3 = Color3.new(1,1,1); btn.Font = "GothamBold"; Instance.new("UICorner", btn)
-            btn.ZIndex = 15; btn.Active = true
-            
-            btn.MouseEnter:Connect(function() CreateTween(btn, {BackgroundColor3 = Color3.fromRGB(80, 80, 85)}) end)
-            btn.MouseLeave:Connect(function() CreateTween(btn, {BackgroundColor3 = Color3.fromRGB(60, 60, 65)}) end)
-            btn.MouseButton1Down:Connect(function() CreateTween(btn, {Size = UDim2.new(0.92, 0, 0, 33)}) end)
-            btn.MouseButton1Up:Connect(function() CreateTween(btn, {Size = UDim2.new(0.95, 0, 0, 35)}) end)
-            btn.MouseButton1Click:Connect(function() pcall(cfg.Callback) end)
-        end
-        function TabAPI:CreateToggle(cfg)
-            local s = cfg.Default or false
-            local ColorOn = Color3.fromRGB(46, 204, 113)
-            local ColorOff = Color3.fromRGB(80, 80, 85)
-
-            local btn = Instance.new("TextButton", TabPage)
-            btn.Size = UDim2.new(0.95, 0, 0, 35)
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
-            btn.Text = ""
-            btn.AutoButtonColor = false
-            Instance.new("UICorner", btn)
-            btn.ZIndex = 15
-
-            local title = Instance.new("TextLabel", btn)
-            title.Size = UDim2.new(1, -60, 1, 0)
-            title.Position = UDim2.new(0, 10, 0, 0)
-            title.BackgroundTransparency = 1
-            title.Text = cfg.Name
-            title.TextColor3 = Color3.new(1, 1, 1)
-            title.Font = Enum.Font.GothamBold
-            title.TextXAlignment = Enum.TextXAlignment.Left
-            title.ZIndex = 16
-
-            local switchBg = Instance.new("Frame", btn)
-            switchBg.Size = UDim2.new(0, 40, 0, 20)
-            switchBg.Position = UDim2.new(1, -50, 0.5, -10)
-            switchBg.BackgroundColor3 = s and ColorOn or ColorOff
-            Instance.new("UICorner", switchBg).CornerRadius = UDim.new(1, 0)
-            switchBg.ZIndex = 16
-
-            local knob = Instance.new("Frame", switchBg)
-            knob.Size = UDim2.new(0, 16, 0, 16)
-            knob.Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-            knob.BackgroundColor3 = Color3.new(1, 1, 1)
-            Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
-            knob.ZIndex = 17
-
-            btn.MouseButton1Click:Connect(function()
-                s = not s
-                CreateTween(switchBg, {BackgroundColor3 = s and ColorOn or ColorOff}, 0.2)
-                CreateTween(knob, {Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-                pcall(cfg.Callback, s)
-            end)
-        end
-
-        function TabAPI:CreateSlider(cfg)
-            local dragging = false; local min, max = cfg.Min or 0, cfg.Max or 100; local val = cfg.Default or min
-            local sf = Instance.new("Frame", TabPage); sf.Size = UDim2.new(0.95, 0, 0, 50); sf.BackgroundColor3 = Color3.fromRGB(50, 50, 55); Instance.new("UICorner", sf)
-            sf.ZIndex = 15; sf.Active = true
-            
-            local t = Instance.new("TextLabel", sf); t.Name = "Title"; t.Size = UDim2.new(1, -20, 0, 20); t.Position = UDim2.new(0, 10, 0, 5); t.BackgroundTransparency = 1; t.Text = cfg.Name .. " : " .. val; t.TextColor3 = Color3.new(1,1,1); t.Font = "GothamBold"; t.TextXAlignment = "Left"; t.ZIndex = 16
-            local bar = Instance.new("Frame", sf); bar.Size = UDim2.new(0.9, 0, 0, 8); bar.Position = UDim2.new(0.05, 0, 0, 32); bar.BackgroundColor3 = Color3.fromRGB(30, 30, 35); Instance.new("UICorner", bar); bar.ZIndex = 16; bar.Active = true
-            local fill = Instance.new("Frame", bar); fill.Size = UDim2.new((val-min)/(max-min),0,1,0); fill.BackgroundColor3 = CONFIG.NavBtnColor; Instance.new("UICorner", fill); fill.ZIndex = 17
-            
-            local function up()
-                local p = math.clamp((UserInputService:GetMouseLocation().X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-                CreateTween(fill, {Size = UDim2.new(p,0,1,0)}, 0.1)
-                val = math.floor(min + (p*(max-min))); t.Text = cfg.Name .. " : " .. val; pcall(cfg.Callback, val)
-            end
-            bar.InputBegan:Connect(function(i) if (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch) then dragging = true end end)
-            UserInputService.InputEnded:Connect(function(i) if (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch) then dragging = false end end)
-            RunService.RenderStepped:Connect(function() if dragging then up() end end)
-        end
-function TabAPI:CreateDropdown(cfg)
-    local open = false
-    local optionsCount = #cfg.Options
-    local itemHeight = 32
-    local maxDisplayItems = 2.5 -- Limit view to 2.5 items
-    local closedSize = UDim2.new(0.95, 0, 0, 35)
-    local openedSize = UDim2.new(0.95, 0, 0, 35 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
-
-    -- Main Container
-    local df = Instance.new("Frame", TabPage)
-    df.Name = "DropdownContainer"
-    df.Size = closedSize
-    df.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
-    df.ClipsDescendants = true
-    df.ZIndex = 15
-    Instance.new("UICorner", df)
-
-    -- Header Button
-    local mb = Instance.new("TextButton", df)
-    mb.Name = "MainBtn"
-    mb.Size = UDim2.new(1, 0, 0, 35)
-    mb.BackgroundTransparency = 1
-    mb.Text = "  " .. cfg.Name -- Space for padding
-    mb.TextColor3 = Color3.new(1, 1, 1)
-    mb.Font = Enum.Font.GothamBold
-    mb.TextXAlignment = Enum.TextXAlignment.Left
-    mb.ZIndex = 16
-
-    -- Animated Arrow Icon
-    local Arrow = Instance.new("TextLabel", mb)
-    Arrow.Name = "Arrow"
-    Arrow.Size = UDim2.new(0, 35, 0, 35)
-    Arrow.Position = UDim2.new(1, -35, 0, 0)
-    Arrow.BackgroundTransparency = 1
-    Arrow.Text = "▼" -- Use icon or text
-    Arrow.TextColor3 = Color3.new(0.8, 0.8, 0.8)
-    Arrow.TextSize = 12
-    Arrow.ZIndex = 17
-
-    -- Scrollable Area for Options
-    local DropScroll = Instance.new("ScrollingFrame", df)
-    DropScroll.Name = "DropScroll"
-    DropScroll.Size = UDim2.new(1, -4, 1, -40) -- Padding from top bar
-    DropScroll.Position = UDim2.new(0, 2, 0, 38)
-    DropScroll.BackgroundTransparency = 1
-    DropScroll.ScrollBarThickness = 2
-    DropScroll.ScrollBarImageColor3 = CONFIG.NavBtnColor or Color3.new(1,1,1)
-    DropScroll.CanvasSize = UDim2.new(0, 0, 0, optionsCount * itemHeight)
-    DropScroll.ZIndex = 16
-    DropScroll.Visible = false -- Hide when closed
-
-    local ListLayout = Instance.new("UIListLayout", DropScroll)
-    ListLayout.Padding = UDim.new(0, 2)
+function WindowAPI:CreateTab(name, target, isAuto)
+    local TabPage = Instance.new("ScrollingFrame", PageArea)
+    TabPage.Size = UDim2.new(1, 0, 1, 0)
+    TabPage.Position = UDim2.new(0, 20, 0, 0)
+    TabPage.BackgroundTransparency = 1
+    TabPage.Visible = false
+    TabPage.ScrollBarThickness = 2 
+    TabPage.AutomaticCanvasSize = "Y"
+    TabPage.ZIndex = 11
+    
+    local ListLayout = Instance.new("UIListLayout", TabPage)
+    ListLayout.Padding = UDim.new(0, 12) 
     ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    
+    local padding = Instance.new("UIPadding", TabPage)
+    padding.PaddingTop = UDim.new(0, 8)
+    padding.PaddingLeft = UDim.new(0, 8)
 
-    -- Toggle Logic
-    mb.MouseButton1Click:Connect(function()
-        open = not open
-        
-        -- Animation for Container
-        local targetSize = open and openedSize or closedSize
-        CreateTween(df, {Size = targetSize}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-        
-        -- Animation for Arrow (Rotate 180 deg)
-        local arrowRot = open and 180 or 0
-        CreateTween(Arrow, {Rotation = arrowRot}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-
-        -- Handle Visibility of Scroll Area
-        if open then
-            DropScroll.Visible = true
-            CreateTween(DropScroll, {GroupTransparency = 0}, 0.2) -- If using CanvasGroup
-        else
-            task.delay(0.2, function() if not open then DropScroll.Visible = false end end)
-        end
+    local b = Instance.new("TextButton", NavArea)
+    b.Size = UDim2.new(0, 110, 0, 36)
+    b.BackgroundColor3 = CONFIG.NavBtnColor or Color3.fromRGB(35, 35, 40)
+    b.BackgroundTransparency = 0.3
+    b.Text = name
+    b.TextColor3 = Color3.new(0.9, 0.9, 0.9)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = CONFIG.DefaultFontSize or 14
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 12)
+    b.ZIndex = 12
+    
+    local bStroke = Instance.new("UIStroke", b)
+    bStroke.Color = Color3.new(1, 1, 1)
+    bStroke.Transparency = 0.85
+    
+    b.MouseEnter:Connect(function() 
+        CreateTween(b, {BackgroundTransparency = 0, TextColor3 = Color3.new(1, 1, 1)}) 
+        CreateTween(bStroke, {Transparency = 0.5})
+    end)
+    b.MouseLeave:Connect(function() 
+        CreateTween(b, {BackgroundTransparency = 0.3, TextColor3 = Color3.new(0.9, 0.9, 0.9)}) 
+        CreateTween(bStroke, {Transparency = 0.85})
     end)
 
-    -- Generate Options
-    for i, opt in pairs(cfg.Options) do
-        local o = Instance.new("TextButton", DropScroll)
-        o.Name = "Option_" .. opt
-        o.Size = UDim2.new(1, -6, 0, 30)
-        o.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-        o.Text = opt
-        o.TextColor3 = Color3.fromRGB(200, 200, 200)
-        o.Font = Enum.Font.GothamSemibold
-        o.ZIndex = 17
-        Instance.new("UICorner", o)
+    local TabAPI = {}
+    
+    -- [ ADAPTER LAYER FOR RAYFIELD ]
+    
+    function TabAPI:CreateLabel(cfg)
+        local labelText = type(cfg) == "table" and (cfg.Text or cfg.Name or "Label") or cfg
 
-        o.MouseEnter:Connect(function() CreateTween(o, {BackgroundColor3 = Color3.fromRGB(65, 65, 70)}, 0.2) end)
-        o.MouseLeave:Connect(function() CreateTween(o, {BackgroundColor3 = Color3.fromRGB(45, 45, 50)}, 0.2) end)
+        local frame = Instance.new("Frame", TabPage)
+        frame.Size = UDim2.new(0.96, 0, 0, 34)
+        frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        frame.BackgroundTransparency = 0.5
+        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+        frame.ZIndex = 14
+        
+        local stroke = Instance.new("UIStroke", frame)
+        stroke.Color = Color3.fromRGB(255, 255, 255)
+        stroke.Transparency = 0.9
 
-        o.MouseButton1Click:Connect(function()
-            mb.Text = "  " .. cfg.Name .. " : " .. opt
-            open = false
-            CreateTween(df, {Size = closedSize}, 0.3, Enum.EasingStyle.Quart)
-            CreateTween(Arrow, {Rotation = 0}, 0.3)
-            DropScroll.Visible = false
-            pcall(cfg.Callback, opt)
-        end)
+        local lbl = Instance.new("TextLabel", frame)
+        lbl.Size = UDim2.new(1, -16, 1, 0)
+        lbl.Position = UDim2.new(0, 16, 0, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = labelText
+        lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
+        lbl.Font = Enum.Font.GothamBold
+        lbl.TextSize = 13
+        lbl.TextXAlignment = "Left"
+        lbl.ZIndex = 15
+        
+        return {
+            Set = function(_, newText) lbl.Text = newText end
+        }
     end
-end
+    
+    function TabAPI:CreateButton(cfg)
+        local btn = Instance.new("TextButton", TabPage)
+        btn.Size = UDim2.new(0.96, 0, 0, 42)
+        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+        btn.BackgroundTransparency = 0.5
+        btn.Text = "  " .. (cfg.Name or "Button")
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 13
+        btn.TextXAlignment = "Left"
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+        btn.ZIndex = 15
+        
+        local stroke = Instance.new("UIStroke", btn)
+        stroke.Color = CONFIG.NavBtnColor or Color3.fromRGB(100, 100, 110)
+        stroke.Transparency = 0.8
+        
+        btn.MouseEnter:Connect(function() 
+            CreateTween(btn, {BackgroundTransparency = 0.3}) 
+            CreateTween(stroke, {Transparency = 0.4})
+        end)
+        btn.MouseLeave:Connect(function() 
+            CreateTween(btn, {BackgroundTransparency = 0.5}) 
+            CreateTween(stroke, {Transparency = 0.8})
+        end)
+        btn.MouseButton1Down:Connect(function() CreateTween(btn, {Size = UDim2.new(0.94, 0, 0, 40)}) end)
+        btn.MouseButton1Up:Connect(function() CreateTween(btn, {Size = UDim2.new(0.96, 0, 0, 42)}) end)
+        btn.MouseButton1Click:Connect(function() pcall(cfg.Callback) end)
+        
+        return {Callback = cfg.Callback}
+    end
+    
+    function TabAPI:CreateToggle(cfg)
+        local s = cfg.CurrentValue
+        if s == nil then s = cfg.Default or false end
+        
+        local ColorOn = CONFIG.NavBtnColor or Color3.fromRGB(46, 204, 113)
+        local ColorOff = Color3.fromRGB(60, 60, 65)
 
-        local function OpenTab()
-            SearchBox.Text = ""
-            for _, v in pairs(PageArea:GetChildren()) do 
-                if v.Visible then CreateTween(v, {BackgroundTransparency = 1, Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) end
+        local btn = Instance.new("TextButton", TabPage)
+        btn.Size = UDim2.new(0.96, 0, 0, 44)
+        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+        btn.BackgroundTransparency = 0.5
+        btn.Text = ""
+        btn.AutoButtonColor = false
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+        btn.ZIndex = 15
+        
+        local stroke = Instance.new("UIStroke", btn)
+        stroke.Color = Color3.fromRGB(255, 255, 255)
+        stroke.Transparency = 0.9
+
+        local title = Instance.new("TextLabel", btn)
+        title.Size = UDim2.new(1, -64, 1, 0)
+        title.Position = UDim2.new(0, 16, 0, 0)
+        title.BackgroundTransparency = 1
+        title.Text = cfg.Name or "Toggle"
+        title.TextColor3 = Color3.new(1, 1, 1)
+        title.Font = Enum.Font.GothamBold
+        title.TextSize = 13
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.ZIndex = 16
+
+        local switchBg = Instance.new("Frame", btn)
+        switchBg.Size = UDim2.new(0, 38, 0, 20)
+        switchBg.Position = UDim2.new(1, -50, 0.5, -10)
+        switchBg.BackgroundColor3 = s and ColorOn or ColorOff
+        Instance.new("UICorner", switchBg).CornerRadius = UDim.new(1, 0)
+        switchBg.ZIndex = 16
+
+        local knob = Instance.new("Frame", switchBg)
+        knob.Size = UDim2.new(0, 16, 0, 16)
+        knob.Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+        knob.BackgroundColor3 = Color3.new(1, 1, 1)
+        Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+        knob.ZIndex = 17
+
+        btn.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
+        btn.MouseLeave:Connect(function() CreateTween(stroke, {Transparency = 0.9}) end)
+
+        local function toggle(Value)
+            if Value == nil then s = not s else s = Value end
+            CreateTween(switchBg, {BackgroundColor3 = s and ColorOn or ColorOff}, 0.2)
+            CreateTween(knob, {Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            pcall(cfg.Callback, s)
+        end
+
+        btn.MouseButton1Click:Connect(function() toggle() end)
+        return {
+            Set = function(_, Value) toggle(Value) end,
+            CurrentValue = s
+        }
+    end
+
+    function TabAPI:CreateSlider(cfg)
+        local dragging = false
+        
+        local min = cfg.Range and cfg.Range[1] or cfg.Min or 0
+        local max = cfg.Range and cfg.Range[2] or cfg.Max or 100
+        local val = cfg.CurrentValue or cfg.Default or min
+        local suffix = cfg.Suffix or ""
+        
+        local sf = Instance.new("Frame", TabPage)
+        sf.Size = UDim2.new(0.96, 0, 0, 56)
+        sf.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+        sf.BackgroundTransparency = 0.5
+        Instance.new("UICorner", sf).CornerRadius = UDim.new(0, 12)
+        sf.ZIndex = 15
+        sf.Active = true
+        
+        local stroke = Instance.new("UIStroke", sf)
+        stroke.Color = Color3.fromRGB(255, 255, 255)
+        stroke.Transparency = 0.9
+        
+        local t = Instance.new("TextLabel", sf)
+        t.Size = UDim2.new(1, -24, 0, 24)
+        t.Position = UDim2.new(0, 16, 0, 6)
+        t.BackgroundTransparency = 1
+        t.Text = (cfg.Name or "Slider") .. " : " .. val .. suffix
+        t.TextColor3 = Color3.new(1, 1, 1)
+        t.Font = Enum.Font.GothamBold
+        t.TextSize = 13
+        t.TextXAlignment = "Left"
+        t.ZIndex = 16
+        
+        local bar = Instance.new("Frame", sf)
+        bar.Size = UDim2.new(0.92, 0, 0, 6)
+        bar.Position = UDim2.new(0.04, 0, 0, 38)
+        bar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        bar.ClipsDescendants = true
+        Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
+        bar.ZIndex = 16
+        bar.Active = true
+        
+        local fill = Instance.new("Frame", bar)
+        fill.Size = UDim2.new((val - min) / (max - min), 0, 1, 0)
+        fill.BackgroundColor3 = CONFIG.NavBtnColor or Color3.fromRGB(52, 152, 219)
+        Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+        fill.ZIndex = 17
+        
+        sf.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
+        sf.MouseLeave:Connect(function() CreateTween(stroke, {Transparency = 0.9}) end)
+
+        local function updateSlider(customVal)
+            if customVal then
+                val = math.clamp(customVal, min, max)
+                local p = (val - min) / (max - min)
+                CreateTween(fill, {Size = UDim2.new(p, 0, 1, 0)}, 0.1)
+            else
+                local p = math.clamp((UserInputService:GetMouseLocation().X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
+                CreateTween(fill, {Size = UDim2.new(p, 0, 1, 0)}, 0.1)
+                val = math.floor(min + (p * (max - min)))
             end
-            TabPage.Visible = true
-            CreateTween(TabPage, {BackgroundTransparency = 1, Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
-            
-            if not TabPage:FindFirstChild("HasRan") then
-                if type(target) == "function" then target(TabPage, TabAPI)
-                elseif type(target) == "string" and target:find("http") then
-                    local lb = Instance.new("TextButton", TabPage); lb.Size = UDim2.new(0.95, 0, 0, 40); lb.BackgroundColor3 = Color3.fromRGB(60, 60, 65); lb.Text = "🐾 Load: " .. name; lb.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", lb); lb.ZIndex = 15
-                    lb.MouseButton1Click:Connect(function() pcall(function() loadstring(game:HttpGet(target))() end) end)
-                end
-                Instance.new("BoolValue", TabPage).Name = "HasRan"
+            t.Text = (cfg.Name or "Slider") .. " : " .. val .. suffix
+            pcall(cfg.Callback, val)
+        end
+
+        bar.InputBegan:Connect(function(i) 
+            if (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch) then dragging = true end 
+        end)
+        UserInputService.InputEnded:Connect(function(i) 
+            if (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch) then dragging = false end 
+        end)
+        RunService.RenderStepped:Connect(function() if dragging then updateSlider() end end)
+        
+        return {Set = function(_, Value) updateSlider(Value) end}
+    end
+
+    function TabAPI:CreateDropdown(cfg)
+        local open = false
+        local options = cfg.Options or {}
+        local optionsCount = #options
+        local itemHeight = 32
+        local maxDisplayItems = 4
+        local closedSize = UDim2.new(0.96, 0, 0, 42)
+        local openedSize = UDim2.new(0.96, 0, 0, 42 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
+
+        local df = Instance.new("Frame", TabPage)
+        df.Size = closedSize
+        df.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+        df.BackgroundTransparency = 0.5
+        df.ClipsDescendants = true
+        df.ZIndex = 15
+        Instance.new("UICorner", df).CornerRadius = UDim.new(0, 12)
+
+        local stroke = Instance.new("UIStroke", df)
+        stroke.Color = Color3.fromRGB(255, 255, 255)
+        stroke.Transparency = 0.9
+
+        local mb = Instance.new("TextButton", df)
+        mb.Size = UDim2.new(1, 0, 0, 42)
+        mb.BackgroundTransparency = 1
+        
+        local initialVal = cfg.CurrentValue or cfg.Default or ""
+        mb.Text = "  " .. (cfg.Name or "Dropdown") .. (initialVal ~= "" and (" : " .. tostring(initialVal)) or "")
+        mb.TextColor3 = Color3.new(1, 1, 1)
+        mb.Font = Enum.Font.GothamBold
+        mb.TextSize = 13
+        mb.TextXAlignment = Enum.TextXAlignment.Left
+        mb.ZIndex = 16
+
+        local Arrow = Instance.new("TextLabel", mb)
+        Arrow.Size = UDim2.new(0, 40, 0, 42)
+        Arrow.Position = UDim2.new(1, -40, 0, 0)
+        Arrow.BackgroundTransparency = 1
+        Arrow.Text = "▼"
+        Arrow.TextColor3 = Color3.fromRGB(180, 180, 185)
+        Arrow.TextSize = 10
+        Arrow.ZIndex = 17
+
+        local DropScroll = Instance.new("ScrollingFrame", df)
+        DropScroll.Size = UDim2.new(1, -8, 1, -46)
+        DropScroll.Position = UDim2.new(0, 4, 0, 44)
+        DropScroll.BackgroundTransparency = 1
+        DropScroll.ScrollBarThickness = 2
+        DropScroll.ScrollBarImageColor3 = CONFIG.NavBtnColor or Color3.new(1,1,1)
+        DropScroll.CanvasSize = UDim2.new(0, 0, 0, optionsCount * itemHeight)
+        DropScroll.ZIndex = 16
+        DropScroll.Visible = false
+
+        local DropList = Instance.new("UIListLayout", DropScroll)
+        DropList.Padding = UDim.new(0, 4)
+        DropList.SortOrder = Enum.SortOrder.LayoutOrder
+
+        df.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
+        df.MouseLeave:Connect(function() CreateTween(stroke, {Transparency = 0.9}) end)
+
+        local function toggleDropdown()
+            open = not open
+            CreateTween(df, {Size = open and openedSize or closedSize}, 0.25, Enum.EasingStyle.Quart)
+            CreateTween(Arrow, {Rotation = open and 180 or 0}, 0.25)
+            if open then DropScroll.Visible = true else task.delay(0.2, function() if not open then DropScroll.Visible = false end end) end
+        end
+
+        mb.MouseButton1Click:Connect(toggleDropdown)
+
+        local function createOptions()
+            for _, child in pairs(DropScroll:GetChildren()) do
+                if child:IsA("TextButton") then child:Destroy() end
+            end
+            for i, opt in pairs(options) do
+                local o = Instance.new("TextButton", DropScroll)
+                o.Size = UDim2.new(1, -8, 0, 28)
+                o.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+                o.BackgroundTransparency = 0.3
+                o.Text = tostring(opt)
+                o.TextColor3 = Color3.fromRGB(200, 200, 205)
+                o.Font = Enum.Font.GothamSemibold
+                o.TextSize = 12
+                o.ZIndex = 17
+                Instance.new("UICorner", o).CornerRadius = UDim.new(0, 8)
+
+                o.MouseEnter:Connect(function() CreateTween(o, {BackgroundTransparency = 0, TextColor3 = Color3.new(1, 1, 1)}, 0.1) end)
+                o.MouseLeave:Connect(function() CreateTween(o, {BackgroundTransparency = 0.3, TextColor3 = Color3.fromRGB(200, 200, 205)}, 0.1) end)
+
+                o.MouseButton1Click:Connect(function()
+                    mb.Text = "  " .. (cfg.Name or "Dropdown") .. " : " .. tostring(opt)
+                    toggleDropdown()
+                    pcall(cfg.Callback, opt)
+                end)
             end
         end
-        b.MouseButton1Click:Connect(OpenTab)
-        if isAuto then OpenTab() end
-        return TabAPI
+        createOptions()
+
+        return {
+            Refresh = function(_, newOptions, _) 
+                options = newOptions or {}
+                optionsCount = #options
+                DropScroll.CanvasSize = UDim2.new(0, 0, 0, optionsCount * itemHeight)
+                openedSize = UDim2.new(0.96, 0, 0, 42 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
+                createOptions()
+            end,
+            Set = function(_, Value)
+                mb.Text = "  " .. (cfg.Name or "Dropdown") .. " : " .. tostring(Value)
+                pcall(cfg.Callback, Value)
+            end
+        }
     end
+
+    local function OpenTab()
+        if SearchBox then SearchBox.Text = "" end
+        for _, v in pairs(PageArea:GetChildren()) do 
+            if v.Visible then 
+                CreateTween(v, {BackgroundTransparency = 1, Position = UDim2.new(0, 20, 0, 0)}, 0.15).Completed:Connect(function() v.Visible = false end) 
+            end
+        end
+        TabPage.Visible = true
+        CreateTween(TabPage, {BackgroundTransparency = 1, Position = UDim2.new(0, 0, 0, 0)}, 0.2, Enum.EasingStyle.Sine)
+        
+        if not TabPage:FindFirstChild("HasRan") then
+            if type(target) == "function" then target(TabPage, TabAPI)
+            elseif type(target) == "string" and target:find("http") then
+                local lb = Instance.new("TextButton", TabPage)
+                lb.Size = UDim2.new(0.96, 0, 0, 42)
+                lb.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+                lb.Text = " Load String: " .. name
+                lb.TextColor3 = Color3.new(1, 1, 1)
+                lb.Font = Enum.Font.GothamBold
+                Instance.new("UICorner", lb).CornerRadius = UDim.new(0, 12)
+                lb.ZIndex = 15
+                lb.MouseButton1Click:Connect(function() pcall(function() loadstring(game:HttpGet(target))() end) end)
+            end
+            Instance.new("BoolValue", TabPage).Name = "HasRan"
+        end
+    end
+    
+    b.MouseButton1Click:Connect(OpenTab)
+    if isAuto then OpenTab() end
+    
+    return TabAPI 
+end
 
     local SettingPage = Instance.new("ScrollingFrame", PageArea)
     SettingPage.Size = UDim2.new(1, 0, 1, 0)
