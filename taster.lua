@@ -626,14 +626,23 @@ local TopBar = Instance.new("Frame", MainFrame)
     HubLabel.TextXAlignment = Enum.TextXAlignment.Left  
     HubLabel.ZIndex = 12  
 
-    local ActiveDiscordLink = (typeof(Config) == "table" and Config.discord) or "discord.gg/veridian"
-      
+    local rawDiscord = (typeof(Config) == "table" and (Config.discord or Config.Discord)) or "discord.gg/veridian"
+    
+    local ActiveDiscordLink = rawDiscord
+    if not string.find(ActiveDiscordLink, "http") then
+        ActiveDiscordLink = "https://" .. ActiveDiscordLink
+    end
+
+    local DisplayText = string.gsub(rawDiscord, "https://", "")
+    DisplayText = string.gsub(DisplayText, "http://", "")
+
     local DiscordBtn = Instance.new("TextButton", TitleContainer)  
     DiscordBtn.Name = "DiscordCopyButton"  
     DiscordBtn.Size = UDim2.new(1, 0, 0, 14)  
     DiscordBtn.Position = UDim2.new(0, 0, 0, 24)  
     DiscordBtn.BackgroundTransparency = 1  
-    DiscordBtn.Text = "🔗 " .. ActiveDiscordLink  
+    
+    DiscordBtn.Text = "🔗 " .. DisplayText  
     DiscordBtn.TextColor3 = Color3.fromRGB(150, 150, 170)  
     DiscordBtn.Font = Enum.Font.GothamSemibold  
     DiscordBtn.TextSize = 10  
@@ -653,12 +662,15 @@ local TopBar = Instance.new("Frame", MainFrame)
     DiscordBtn.Activated:Connect(function()  
         pcall(function()  
             if setclipboard and ActiveDiscordLink and ActiveDiscordLink ~= "" then  
+                
                 setclipboard(ActiveDiscordLink)  
+                
                 DiscordBtn.Text = "✅ Copied!"  
                 CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(50, 200, 50)}, 0.1)  
                   
                 task.delay(1.5, function()  
-                    DiscordBtn.Text = "🔗 " .. ActiveDiscordLink  
+
+                    DiscordBtn.Text = "🔗 " .. DisplayText  
                     CreateTween(DiscordBtn, {TextColor3 = Color3.fromRGB(150, 150, 170)}, 0.2)  
                 end)  
             end  
