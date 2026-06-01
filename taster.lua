@@ -1616,7 +1616,7 @@ end
     SettingPage.ZIndex = 11
     
     CONFIG.SaveFileName = "DefaultConfig"
-    CONFIG.ConfigFolderName = "Configs" -- เพิ่มตัวแปรจัดการโฟลเดอร์
+    CONFIG.ConfigFolderName = "Configs" 
     CONFIG.AutoLoad = false
 
     local HttpService = game:GetService("HttpService")
@@ -1940,9 +1940,6 @@ end
             end
         end)
 
-        ----------------------------------------------------------------
-        -- ⚡ ADVANCED CONFIGURATION UI (หน้าตาโคตรพรีเมียม + เชื่อมระบบจริง) ⚡
-        ----------------------------------------------------------------
         local configTitle = Instance.new("TextLabel", SettingPage)
         configTitle.Size = UDim2.new(1, 0, 0, 30)
         configTitle.Text = "⚡ Advanced Configuration"
@@ -1952,7 +1949,6 @@ end
         configTitle.TextSize = 16
         configTitle.ZIndex = 15
 
-        -- // 1. แถบใส่ชื่อโฟลเดอร์ (Folder Name)
         local FolderBoxFrame = Instance.new("Frame", SettingPage)
         FolderBoxFrame.Size = UDim2.new(0.95, 0, 0, 35)
         FolderBoxFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
@@ -1977,7 +1973,6 @@ end
         FolderInput.ClearTextOnFocus = false
         FolderInput.TextXAlignment = Enum.TextXAlignment.Left
 
-        -- // 2. แถบใส่ชื่อไฟล์ (File Name)
         local FileBoxFrame = Instance.new("Frame", SettingPage)
         FileBoxFrame.Size = UDim2.new(0.95, 0, 0, 35)
         FileBoxFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
@@ -2002,7 +1997,6 @@ end
         FileNameInput.ClearTextOnFocus = false
         FileNameInput.TextXAlignment = Enum.TextXAlignment.Left
 
-        -- // 3. Dropdown เลือกไฟล์เซฟ (File Selector)
         local DropOpen = false
         local DropFrame = Instance.new("Frame", SettingPage)
         DropFrame.Size = UDim2.new(0.95, 0, 0, 35)
@@ -2037,7 +2031,6 @@ end
         local ConfigListLayout = Instance.new("UIListLayout", ConfigScroll)
         ConfigListLayout.Padding = UDim.new(0, 2)
 
-        -- ฟังก์ชันช่วยเหลือระบบไฟล์
         local function GetCurrentFolderPath()
             local fName = FolderInput.Text
             if fName == "" then fName = "Configs" end
@@ -2051,7 +2044,6 @@ end
             return GetCurrentFolderPath() .. "/" .. fName
         end
 
-        -- ระบบดึงรายชื่อไฟล์เข้า Dropdown
         local function RefreshFileList()
             for _, child in pairs(ConfigScroll:GetChildren()) do
                 if child:IsA("TextButton") then child:Destroy() end
@@ -2080,7 +2072,6 @@ end
                         btn.MouseButton1Click:Connect(function()
                             FileNameInput.Text = nameOnly
                             DropBtn.Text = "  ▼ Selected: " .. nameOnly
-                            -- ปิด Dropdown
                             DropOpen = false
                             CreateTween(DropFrame, {Size = UDim2.new(0.95, 0, 0, 35)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
                             task.delay(0.2, function() ConfigScroll.Visible = false end)
@@ -2113,7 +2104,6 @@ end
             end
         end)
 
-        -- // 4. ปุ่ม Action (Save, Load, Delete)
         local ActionContainer = Instance.new("Frame", SettingPage)
         ActionContainer.Size = UDim2.new(0.95, 0, 0, 35)
         ActionContainer.BackgroundTransparency = 1
@@ -2150,40 +2140,32 @@ end
         DeleteBtn.TextSize = 13
         Instance.new("UICorner", DeleteBtn)
 
-        -- ฟังก์ชัน Save (เรียกใช้จากฟังก์ชันหลักด้านบน)
         SaveBtn.MouseButton1Click:Connect(function()
-            -- ส่งชื่อไฟล์และโฟลเดอร์จากช่องกรอกข้อความไปให้ SaveConfiguration ทำงาน
             local success = SaveConfiguration(FileNameInput.Text, FolderInput.Text)
-            
             if success then
                 SaveBtn.Text = "✅ SAVED!"
-                if RefreshFileList then RefreshFileList() end -- อัพเดทลิสต์ไฟล์ใน Dropdown
+                if RefreshFileList then RefreshFileList() end
             else
                 SaveBtn.Text = "❌ ERROR"
             end
             task.delay(1, function() SaveBtn.Text = "💾 SAVE" end)
         end)
 
-        -- ฟังก์ชัน Load (เรียกใช้จากฟังก์ชันหลักด้านบน)
         LoadBtn.MouseButton1Click:Connect(function()
             local success = LoadConfiguration(FileNameInput.Text, FolderInput.Text)
-
             if success then
-                -- หลังจาก Load ตัวแปรใน CONFIG สำเร็จ เราจะมาทำ Animation อัพเดทหน้าตา UI
                 if switchBg and knob then
                     CreateTween(switchBg, {BackgroundColor3 = CONFIG.KeybindEnabled and ColorOn or ColorOff}, 0.2)
                     CreateTween(knob, {Position = CONFIG.KeybindEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2)
                 end
                 if title then title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")" end
 
-                -- อัพเดทหน้าตา Auto Load Toggle ตัวล่างสุดด้วย
                 local autoSwitchBg = SettingPage:FindFirstChild("AutoLoadSwitchBg", true)
                 local autoKnob = SettingPage:FindFirstChild("AutoLoadKnob", true)
                 if autoSwitchBg and autoKnob then
                     CreateTween(autoSwitchBg, {BackgroundColor3 = CONFIG.AutoLoad and ColorOn or ColorOff}, 0.2)
                     CreateTween(autoKnob, {Position = CONFIG.AutoLoad and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)}, 0.2)
                 end
-
                 LoadBtn.Text = "✅ LOADED!"
             else
                 LoadBtn.Text = "⚠️ NOT FOUND"
@@ -2191,7 +2173,6 @@ end
             task.delay(1, function() LoadBtn.Text = "📂 LOAD" end)
         end)
 
-        -- ฟังก์ชัน Delete (ลบไฟล์ตรงๆ ได้เลย เพราะไม่มีในฟังก์ชันหลัก)
         DeleteBtn.MouseButton1Click:Connect(function()
             local fName = (FolderInput.Text == "") and "Configs" or FolderInput.Text
             local file = (FileNameInput.Text == "") and CONFIG.SaveFileName or FileNameInput.Text
@@ -2212,7 +2193,6 @@ end
             task.delay(1, function() DeleteBtn.Text = "🗑️ DELETE" end)
         end)
 
-        -- // 5. Toggle Auto Load (สไตล์พรีเมียม)
         local autoLoadFrame = Instance.new("TextButton", SettingPage)
         autoLoadFrame.Size = UDim2.new(0.95, 0, 0, 40)
         autoLoadFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
@@ -2232,7 +2212,7 @@ end
         autoLoadTitle.TextXAlignment = Enum.TextXAlignment.Left
 
         local autoSwitchBg = Instance.new("TextButton", autoLoadFrame)
-        autoSwitchBg.Name = "AutoLoadSwitchBg" -- ตั้งชื่อเพื่อให้ Load หาเจอ
+        autoSwitchBg.Name = "AutoLoadSwitchBg"
         autoSwitchBg.Size = UDim2.new(0, 36, 0, 18)
         autoSwitchBg.Position = UDim2.new(1, -45, 0.5, -9)
         autoSwitchBg.BackgroundColor3 = CONFIG.AutoLoad and ColorOn or ColorOff
@@ -2241,7 +2221,7 @@ end
         Instance.new("UICorner", autoSwitchBg).CornerRadius = UDim.new(1, 0)
 
         local autoKnob = Instance.new("Frame", autoSwitchBg)
-        autoKnob.Name = "AutoLoadKnob" -- ตั้งชื่อเพื่อให้ Load หาเจอ
+        autoKnob.Name = "AutoLoadKnob"
         autoKnob.Size = UDim2.new(0, 14, 0, 14)
         autoKnob.Position = CONFIG.AutoLoad and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
         autoKnob.BackgroundColor3 = Color3.new(1, 1, 1)
