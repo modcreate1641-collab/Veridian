@@ -1085,18 +1085,21 @@ function WindowAPI:UpdateHubInfo(cfg)
     end
 
     if cfg.Logo and cfg.Logo ~= "" and HubLogo then
-        -- แก้ไข default folder ให้ตรงกับระบบหลัก (Icons ไม่ใช่ icon)
         local targetFolder = cfg.foldertarget or "VeridianConfig/Icons"
         
         if cfg.createfolder and type(cfg.createfolder) == "string" and cfg.createfolder ~= "" then
             targetFolder = targetFolder .. "/" .. cfg.createfolder
         end
 
-        local fileName = cfg.createfile or "logo.png"
+        local fileName = cfg.createfile
+        if not fileName or fileName == "" then
+            local cleanHubName = (cfg.Name or "default"):gsub("[%s%p]", ""):lower()
+            fileName = cleanHubName .. "_logo.png"
+        end
+        
         local logoPath = targetFolder .. "/" .. fileName
 
         task.spawn(function()    
-            -- โครงสร้างตรวจสอบและสร้างโฟลเดอร์ (Modular Folder Building)
             local currentPath = ""
             for folder in string.gmatch(targetFolder, "[^/]+") do
                 currentPath = currentPath == "" and folder or currentPath .. "/" .. folder
@@ -1107,7 +1110,6 @@ function WindowAPI:UpdateHubInfo(cfg)
                 end)
             end
 
-            -- ตรวจสอบและดาวน์โหลดรูปจาก URL
             if string.find(cfg.Logo, "http") and not isfile(logoPath) then    
                 local success, imgData = pcall(game.HttpGet, game, cfg.Logo)    
                 if success and imgData and #imgData > 0 and not string.find(imgData, "<!DOCTYPE") then    
@@ -1115,7 +1117,6 @@ function WindowAPI:UpdateHubInfo(cfg)
                 end    
             end    
 
-            -- โหลดรูปเข้า UI (รองรับ Executor มาตรฐานทั้งหมด)
             if isfile(logoPath) then    
                 local getAsset = getcustomasset or getsynasset    
                 if getAsset then    
@@ -1127,6 +1128,7 @@ function WindowAPI:UpdateHubInfo(cfg)
         end)    
     end
 end
+
 
 function WindowAPI:UpdateTheme(newColor)
     -- [[ 1. Color Processing (Deepening Effect) ]]
@@ -1612,6 +1614,60 @@ end
     SettingPage.ScrollBarThickness = 3
     SettingPage.AutomaticCanvasSize = "Y"
     SettingPage.ZIndex = 11
+    
+    CONFIG.SaveFileName = "DefaultConfig"
+    CONFIG.AutoLoad = false
+
+    local HttpService = game:GetService("HttpService")
+    local ConfigFolderPath = CONFIG.BgFolder .. "/Configs"
+
+    local function CheckFolders()
+        if not isfolder(CONFIG.BgFolder) then makefolder(CONFIG.BgFolder) end
+        if not isfolder(ConfigFolderPath) then makefolder(ConfigFolderPath) end
+    end
+
+    local function SaveConfiguration()
+        CheckFolders()
+        local path = ConfigFolderPath .. "/" .. CONFIG.SaveFileName .. ".json"
+        
+        local dataToSave = {
+            AutoLoad = CONFIG.AutoLoad,
+            KeybindEnabled = CONFIG.KeybindEnabled,
+            ToggleKey = CONFIG.ToggleKey.Name
+        }
+        
+        local success, err = pcall(function()
+            writefile(path, HttpService:JSONEncode(dataToSave))
+        end)
+        
+        if success then
+            print("Saved: " .. CONFIG.SaveFileName)
+        else
+            warn("Save Error: " .. tostring(err))
+        end
+    end
+
+    local function LoadConfiguration(fileName)
+        local path = ConfigFolderPath .. "/" .. fileName .. ".json"
+        if isfile(path) then
+            local success, data = pcall(function()
+                return HttpService:JSONDecode(readfile(path))
+            end)
+            
+            if success and type(data) == "table" then
+                CONFIG.AutoLoad = data.AutoLoad or false
+                if data.ToggleKey then
+                    CONFIG.ToggleKey = Enum.KeyCode[data.ToggleKey]
+                end
+                CONFIG.KeybindEnabled = data.KeybindEnabled or false
+                
+                print("Loaded: " .. fileName)
+                return true
+            end
+        end
+        warn("Config file not found")
+        return false
+    end
 
     local function RenderSettings()
         SettingPage:ClearAllChildren()
@@ -1643,7 +1699,6 @@ end
         title.Size = UDim2.new(1, -60, 1, 0)
         title.Position = UDim2.new(0, 10, 0, 0)
         title.BackgroundTransparency = 1
-        -- Dynamic text based on current configuration
         title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")"
         title.TextColor3 = Color3.new(1, 1, 1)
         title.Font = Enum.Font.GothamBold
@@ -1651,7 +1706,6 @@ end
         title.TextXAlignment = Enum.TextXAlignment.Left
         title.ZIndex = 16
 
-        -- Transformed from Frame to TextButton to isolate toggle clicks
         local switchBg = Instance.new("TextButton", kb)
         switchBg.Size = UDim2.new(0, 40, 0, 20)
         switchBg.Position = UDim2.new(1, -50, 0.5, -10)
@@ -1668,46 +1722,43 @@ end
         Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
         knob.ZIndex = 17
 
-        -- Independent Master Toggle Event Listener
         switchBg.MouseButton1Click:Connect(function()
             CONFIG.KeybindEnabled = not CONFIG.KeybindEnabled
             CreateTween(switchBg, {BackgroundColor3 = CONFIG.KeybindEnabled and ColorOn or ColorOff}, 0.2)
             CreateTween(knob, {Position = CONFIG.KeybindEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         end)
 
-        -- Premium Garbage-Cleaned Keybind Selector Logic
-       local bindConnection = nil
-local isListening = false
+        local bindConnection = nil
+        local isListening = false
 
-kb.MouseButton1Click:Connect(function()
-    if isListening then return end
-    isListening = true
-    title.Text = "Press any key..."
+        kb.MouseButton1Click:Connect(function()
+            if isListening then return end
+            isListening = true
+            title.Text = "Press any key..."
 
-    if bindConnection then
-        bindConnection:Disconnect()
-        bindConnection = nil
-    end
-
-    bindConnection = UserInputService.InputBegan:Connect(function(input, gpe)
-        if not gpe and input.UserInputType == Enum.UserInputType.Keyboard then
-            if input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode ~= Enum.KeyCode.Escape then
-                CONFIG.ToggleKey = input.KeyCode
-                title.Text = "Keybind (" .. input.KeyCode.Name .. ")"
-            else
-                title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")"
-            end
-            
-            isListening = false
             if bindConnection then
                 bindConnection:Disconnect()
                 bindConnection = nil
             end
-        end
-    end)
-end)
 
-        local HttpService = game:GetService("HttpService")
+            bindConnection = UserInputService.InputBegan:Connect(function(input, gpe)
+                if not gpe and input.UserInputType == Enum.UserInputType.Keyboard then
+                    if input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode ~= Enum.KeyCode.Escape then
+                        CONFIG.ToggleKey = input.KeyCode
+                        title.Text = "Keybind (" .. input.KeyCode.Name .. ")"
+                    else
+                        title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")"
+                    end
+                    
+                    isListening = false
+                    if bindConnection then
+                        bindConnection:Disconnect()
+                        bindConnection = nil
+                    end
+                end
+            end)
+        end)
+
         local extThemes = {["Default"] = CONFIG.NavBtnColor}
         local urls = {"https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/theme.json"}
 
@@ -1870,6 +1921,121 @@ end)
                 pcall(function() ApplyAutoBackground(s) end)
             end
         end)
+
+        local configTitle = Instance.new("TextLabel", SettingPage)
+        configTitle.Size = UDim2.new(1, 0, 0, 30)
+        configTitle.Text = "Configuration"
+        configTitle.BackgroundTransparency = 1
+        configTitle.TextColor3 = ColorOn
+        configTitle.Font = Enum.Font.GothamBold
+        configTitle.TextSize = CONFIG.DefaultFontSize
+        configTitle.ZIndex = 15
+
+        local NameBoxFrame = Instance.new("Frame", SettingPage)
+        NameBoxFrame.Size = UDim2.new(0.95, 0, 0, 35)
+        NameBoxFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+        Instance.new("UICorner", NameBoxFrame)
+
+        local FileNameInput = Instance.new("TextBox", NameBoxFrame)
+        FileNameInput.Size = UDim2.new(1, -20, 1, 0)
+        FileNameInput.Position = UDim2.new(0, 10, 0, 0)
+        FileNameInput.BackgroundTransparency = 1
+        FileNameInput.Text = CONFIG.SaveFileName
+        FileNameInput.PlaceholderText = "Filename..."
+        FileNameInput.TextColor3 = Color3.new(1, 1, 1)
+        FileNameInput.Font = Enum.Font.GothamBold
+        FileNameInput.TextSize = 14
+        FileNameInput.ClearTextOnFocus = false
+        FileNameInput.TextXAlignment = Enum.TextXAlignment.Left
+
+        FileNameInput.FocusLost:Connect(function()
+            if FileNameInput.Text == "" then
+                FileNameInput.Text = "DefaultConfig"
+            end
+            CONFIG.SaveFileName = FileNameInput.Text
+        end)
+
+        local ButtonContainer = Instance.new("Frame", SettingPage)
+        ButtonContainer.Size = UDim2.new(0.95, 0, 0, 35)
+        ButtonContainer.BackgroundTransparency = 1
+
+        local layoutContainer = Instance.new("UIListLayout", ButtonContainer)
+        layoutContainer.FillDirection = Enum.FillDirection.Horizontal
+        layoutContainer.Padding = UDim.new(0, 10)
+        layoutContainer.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+        local SaveBtn = Instance.new("TextButton", ButtonContainer)
+        SaveBtn.Size = UDim2.new(0.5, -5, 1, 0)
+        SaveBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+        SaveBtn.Text = "SAVE"
+        SaveBtn.TextColor3 = Color3.new(0, 0, 0)
+        SaveBtn.Font = Enum.Font.GothamBold
+        SaveBtn.TextSize = 14
+        Instance.new("UICorner", SaveBtn)
+
+        local LoadBtn = Instance.new("TextButton", ButtonContainer)
+        LoadBtn.Size = UDim2.new(0.5, -5, 1, 0)
+        LoadBtn.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
+        LoadBtn.Text = "LOAD"
+        LoadBtn.TextColor3 = Color3.new(0, 0, 0)
+        LoadBtn.Font = Enum.Font.GothamBold
+        LoadBtn.TextSize = 14
+        Instance.new("UICorner", LoadBtn)
+
+        SaveBtn.MouseButton1Click:Connect(function()
+            SaveConfiguration()
+            SaveBtn.Text = "SAVED!"
+            task.delay(1, function() SaveBtn.Text = "SAVE" end)
+        end)
+
+        LoadBtn.MouseButton1Click:Connect(function()
+            local success = LoadConfiguration(CONFIG.SaveFileName)
+            if success then
+                LoadBtn.Text = "LOADED!"
+                RenderSettings()
+            else
+                LoadBtn.Text = "ERROR!"
+            end
+            task.delay(1, function() LoadBtn.Text = "LOAD" end)
+        end)
+
+        local autoLoadFrame = Instance.new("TextButton", SettingPage)
+        autoLoadFrame.Size = UDim2.new(0.95, 0, 0, 40)
+        autoLoadFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+        autoLoadFrame.Text = ""
+        autoLoadFrame.AutoButtonColor = false
+        Instance.new("UICorner", autoLoadFrame)
+
+        local autoLoadTitle = Instance.new("TextLabel", autoLoadFrame)
+        autoLoadTitle.Size = UDim2.new(1, -60, 1, 0)
+        autoLoadTitle.Position = UDim2.new(0, 10, 0, 0)
+        autoLoadTitle.BackgroundTransparency = 1
+        autoLoadTitle.Text = "Auto Load Config"
+        autoLoadTitle.TextColor3 = Color3.new(1, 1, 1)
+        autoLoadTitle.Font = Enum.Font.GothamBold
+        autoLoadTitle.TextSize = 14
+        autoLoadTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+        local autoSwitchBg = Instance.new("TextButton", autoLoadFrame)
+        autoSwitchBg.Size = UDim2.new(0, 40, 0, 20)
+        autoSwitchBg.Position = UDim2.new(1, -50, 0.5, -10)
+        autoSwitchBg.BackgroundColor3 = CONFIG.AutoLoad and ColorOn or ColorOff
+        autoSwitchBg.Text = ""
+        autoSwitchBg.AutoButtonColor = false
+        Instance.new("UICorner", autoSwitchBg).CornerRadius = UDim.new(1, 0)
+
+        local autoKnob = Instance.new("Frame", autoSwitchBg)
+        autoKnob.Size = UDim2.new(0, 16, 0, 16)
+        autoKnob.Position = CONFIG.AutoLoad and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+        autoKnob.BackgroundColor3 = Color3.new(1, 1, 1)
+        Instance.new("UICorner", autoKnob).CornerRadius = UDim.new(1, 0)
+
+        autoSwitchBg.MouseButton1Click:Connect(function()
+            CONFIG.AutoLoad = not CONFIG.AutoLoad
+            CreateTween(autoSwitchBg, {BackgroundColor3 = CONFIG.AutoLoad and ColorOn or ColorOff}, 0.2)
+            CreateTween(autoKnob, {Position = CONFIG.AutoLoad and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            SaveConfiguration() 
+        end)
     end
     
     RenderSettings()
@@ -1882,6 +2048,18 @@ end)
         end
         SettingPage.Visible = true
         CreateTween(SettingPage, {Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
+    end)
+
+    task.spawn(function()
+        local path = CONFIG.BgFolder .. "/Configs/" .. CONFIG.SaveFileName .. ".json"
+        if isfile(path) then
+            local success, data = pcall(function()
+                return HttpService:JSONDecode(readfile(path))
+            end)
+            if success and data and data.AutoLoad then
+                LoadConfiguration(CONFIG.SaveFileName)
+            end
+        end
     end)
 
     return WindowAPI
