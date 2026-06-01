@@ -1941,22 +1941,23 @@ end
         end)
 
         ----------------------------------------------------------------
-        -- ⚡ PREMIUM MOBILE-FRIENDLY CONFIGURATION UI ⚡
+        -- ⚡ PREMIUM MOBILE-FRIENDLY CONFIGURATION UI (FIXED 100%) ⚡
         ----------------------------------------------------------------
         local configTitle = Instance.new("TextLabel", SettingPage)
         configTitle.Size = UDim2.new(1, 0, 0, 35)
         configTitle.Text = "⚡ Advanced Configuration"
         configTitle.BackgroundTransparency = 1
-        configTitle.TextColor3 = Color3.fromRGB(255, 180, 50) -- สีทองพรีเมียม
+        configTitle.TextColor3 = Color3.fromRGB(255, 180, 50) 
         configTitle.Font = Enum.Font.GothamBlack
         configTitle.TextSize = 15
         configTitle.ZIndex = 15
 
         -- // 1. แถบใส่ชื่อโฟลเดอร์ (Folder Name)
         local FolderBoxFrame = Instance.new("Frame", SettingPage)
-        FolderBoxFrame.Size = UDim2.new(0.95, 0, 0, 42) -- ใหญ่ขึ้นสำหรับมือถือ
+        FolderBoxFrame.Size = UDim2.new(0.95, 0, 0, 42)
         FolderBoxFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
         FolderBoxFrame.ZIndex = 10 
+        FolderBoxFrame.Active = true -- ป้องกันนิ้วทะลุ
         Instance.new("UICorner", FolderBoxFrame).CornerRadius = UDim.new(0, 8)
         Instance.new("UIStroke", FolderBoxFrame).Color = Color3.fromRGB(50, 50, 55)
 
@@ -1965,24 +1966,33 @@ end
         FolderIcon.BackgroundTransparency = 1
         FolderIcon.Text = "📁"
         FolderIcon.TextSize = 18
+        FolderIcon.ZIndex = 11
 
         local FolderInput = Instance.new("TextBox", FolderBoxFrame)
         FolderInput.Size = UDim2.new(1, -50, 1, 0)
         FolderInput.Position = UDim2.new(0, 40, 0, 0)
         FolderInput.BackgroundTransparency = 1
-        FolderInput.Text = "Configs"
+        FolderInput.Text = CONFIG.ConfigFolderName or "Configs"
         FolderInput.PlaceholderText = "ชื่อโฟลเดอร์ (Folder)..."
         FolderInput.TextColor3 = Color3.new(1, 1, 1)
         FolderInput.Font = Enum.Font.GothamSemibold
         FolderInput.TextSize = 14
         FolderInput.ClearTextOnFocus = false
         FolderInput.TextXAlignment = Enum.TextXAlignment.Left
+        FolderInput.ZIndex = 11
 
-        -- // 2. แถบใส่ชื่อไฟล์ (File Name) - ลบตัวซ้ำออกให้แล้วสัส!
+        -- [!] สำคัญมาก: ระบบดักตอนพิมพ์เสร็จ ไม่งั้นมันไม่จำค่า!
+        FolderInput.FocusLost:Connect(function()
+            if FolderInput.Text == "" then FolderInput.Text = "Configs" end
+            CONFIG.ConfigFolderName = FolderInput.Text
+        end)
+
+        -- // 2. แถบใส่ชื่อไฟล์ (File Name)
         local FileBoxFrame = Instance.new("Frame", SettingPage)
         FileBoxFrame.Size = UDim2.new(0.95, 0, 0, 42)
         FileBoxFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
         FileBoxFrame.ZIndex = 10 
+        FileBoxFrame.Active = true -- ป้องกันนิ้วทะลุ
         Instance.new("UICorner", FileBoxFrame).CornerRadius = UDim.new(0, 8)
         Instance.new("UIStroke", FileBoxFrame).Color = Color3.fromRGB(50, 50, 55)
 
@@ -1991,6 +2001,7 @@ end
         FileIcon.BackgroundTransparency = 1
         FileIcon.Text = "📄"
         FileIcon.TextSize = 18
+        FileIcon.ZIndex = 11
 
         local FileNameInput = Instance.new("TextBox", FileBoxFrame)
         FileNameInput.Size = UDim2.new(1, -50, 1, 0)
@@ -2003,6 +2014,13 @@ end
         FileNameInput.TextSize = 14
         FileNameInput.ClearTextOnFocus = false
         FileNameInput.TextXAlignment = Enum.TextXAlignment.Left
+        FileNameInput.ZIndex = 11
+
+        -- [!] สำคัญมาก: ระบบดักตอนพิมพ์เสร็จ
+        FileNameInput.FocusLost:Connect(function()
+            if FileNameInput.Text == "" then FileNameInput.Text = "DefaultConfig" end
+            CONFIG.SaveFileName = FileNameInput.Text
+        end)
 
         -- // 3. Dropdown เลือกไฟล์เซฟ (File Selector)
         local DropOpen = false
@@ -2010,7 +2028,8 @@ end
         DropFrame.Size = UDim2.new(0.95, 0, 0, 42)
         DropFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
         DropFrame.ClipsDescendants = true
-        DropFrame.ZIndex = 11 
+        DropFrame.ZIndex = 100 -- [!] อัด Z-Index ให้ทะลุเพดาน บังปุ่มอื่นมิดเวลาเปิด!
+        DropFrame.Active = true 
         Instance.new("UICorner", DropFrame).CornerRadius = UDim.new(0, 8)
         Instance.new("UIStroke", DropFrame).Color = Color3.fromRGB(60, 60, 65)
 
@@ -2022,6 +2041,7 @@ end
         DropBtn.Font = Enum.Font.GothamBold
         DropBtn.TextSize = 13
         DropBtn.TextXAlignment = Enum.TextXAlignment.Left
+        DropBtn.ZIndex = 101
 
         local RefreshListBtn = Instance.new("TextButton", DropBtn)
         RefreshListBtn.Size = UDim2.new(0, 40, 0, 42)
@@ -2029,6 +2049,7 @@ end
         RefreshListBtn.BackgroundTransparency = 1
         RefreshListBtn.Text = "🔄"
         RefreshListBtn.TextSize = 16
+        RefreshListBtn.ZIndex = 102
 
         local ConfigScroll = Instance.new("ScrollingFrame", DropFrame)
         ConfigScroll.Size = UDim2.new(1, -8, 1, -46)
@@ -2036,6 +2057,7 @@ end
         ConfigScroll.BackgroundTransparency = 1
         ConfigScroll.ScrollBarThickness = 3
         ConfigScroll.Visible = false
+        ConfigScroll.ZIndex = 101 -- ให้สูงกว่าพื้น DropFrame
 
         local ConfigListLayout = Instance.new("UIListLayout", ConfigScroll)
         ConfigListLayout.Padding = UDim.new(0, 4)
@@ -2063,17 +2085,19 @@ end
                     local nameOnly = file:match("([^/\\]+)%.json$")
                     if nameOnly then
                         local btn = Instance.new("TextButton", ConfigScroll)
-                        btn.Size = UDim2.new(1, -4, 0, 32) -- ปุ่มตัวเลือกใหญ่ขึ้น
+                        btn.Size = UDim2.new(1, -4, 0, 32)
                         btn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
                         btn.Text = "  📄 " .. nameOnly
                         btn.TextColor3 = Color3.new(1, 1, 1)
                         btn.Font = Enum.Font.GothamSemibold
                         btn.TextSize = 13
                         btn.TextXAlignment = Enum.TextXAlignment.Left
+                        btn.ZIndex = 102
                         Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 
                         btn.MouseButton1Click:Connect(function()
                             FileNameInput.Text = nameOnly
+                            CONFIG.SaveFileName = nameOnly
                             DropBtn.Text = "   ▼  Selected: " .. nameOnly
                             DropOpen = false
                             CreateTween(DropFrame, {Size = UDim2.new(0.95, 0, 0, 42)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
@@ -2107,11 +2131,12 @@ end
             end
         end)
 
-        -- // 4. ปุ่ม Action (จัดใหม่แบบ Grid 2 แถวสำหรับมือถือ)
+        -- // 4. ปุ่ม Action
         local ActionRow1 = Instance.new("Frame", SettingPage)
         ActionRow1.Size = UDim2.new(0.95, 0, 0, 40)
         ActionRow1.BackgroundTransparency = 1
         ActionRow1.ZIndex = 10 
+        ActionRow1.Active = true
         
         local SaveBtn = Instance.new("TextButton", ActionRow1)
         SaveBtn.Size = UDim2.new(0.48, 0, 1, 0)
@@ -2121,6 +2146,7 @@ end
         SaveBtn.TextColor3 = Color3.new(0, 0, 0)
         SaveBtn.Font = Enum.Font.GothamBold
         SaveBtn.TextSize = 14
+        SaveBtn.ZIndex = 11
         Instance.new("UICorner", SaveBtn).CornerRadius = UDim.new(0, 6)
 
         local LoadBtn = Instance.new("TextButton", ActionRow1)
@@ -2132,13 +2158,14 @@ end
         LoadBtn.TextColor3 = Color3.new(0, 0, 0)
         LoadBtn.Font = Enum.Font.GothamBold
         LoadBtn.TextSize = 14
+        LoadBtn.ZIndex = 11
         Instance.new("UICorner", LoadBtn).CornerRadius = UDim.new(0, 6)
 
-        -- แถวที่ 2 สำหรับปุ่ม Delete (ป้องกันการกดผิดลบไฟล์)
         local ActionRow2 = Instance.new("Frame", SettingPage)
         ActionRow2.Size = UDim2.new(0.95, 0, 0, 40)
         ActionRow2.BackgroundTransparency = 1
         ActionRow2.ZIndex = 10 
+        ActionRow2.Active = true
 
         local DeleteBtn = Instance.new("TextButton", ActionRow2)
         DeleteBtn.Size = UDim2.new(1, 0, 1, 0)
@@ -2147,6 +2174,7 @@ end
         DeleteBtn.TextColor3 = Color3.new(1, 1, 1)
         DeleteBtn.Font = Enum.Font.GothamBold
         DeleteBtn.TextSize = 14
+        DeleteBtn.ZIndex = 11
         Instance.new("UICorner", DeleteBtn).CornerRadius = UDim.new(0, 6)
 
         SaveBtn.MouseButton1Click:Connect(function()
@@ -2163,12 +2191,14 @@ end
         LoadBtn.MouseButton1Click:Connect(function()
             local success = LoadConfiguration(FileNameInput.Text, FolderInput.Text)
             if success then
+                -- อัปเดต Toggle Keybind UI ถ้ามี
                 if switchBg and knob then
                     CreateTween(switchBg, {BackgroundColor3 = CONFIG.KeybindEnabled and ColorOn or ColorOff}, 0.2)
                     CreateTween(knob, {Position = CONFIG.KeybindEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2)
                 end
                 if title then title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")" end
 
+                -- อัปเดต Toggle AutoLoad UI 
                 local autoSwitchBg = SettingPage:FindFirstChild("AutoLoadSwitchBg", true)
                 local autoKnob = SettingPage:FindFirstChild("AutoLoadKnob", true)
                 if autoSwitchBg and autoKnob then
@@ -2193,6 +2223,7 @@ end
                 if success then
                     DeleteBtn.Text = "💀 DELETED!"
                     FileNameInput.Text = "" 
+                    CONFIG.SaveFileName = "DefaultConfig"
                     DropBtn.Text = "   ▼  Select Existing Config..."
                     if RefreshFileList then RefreshFileList() end
                 end
@@ -2204,10 +2235,12 @@ end
 
         -- // 5. Toggle Auto Load
         local autoLoadFrame = Instance.new("TextButton", SettingPage)
-        autoLoadFrame.Size = UDim2.new(0.95, 0, 0, 48) -- ขยายให้กดง่ายขึ้น
+        autoLoadFrame.Size = UDim2.new(0.95, 0, 0, 48) 
         autoLoadFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
         autoLoadFrame.Text = ""
         autoLoadFrame.AutoButtonColor = false
+        autoLoadFrame.ZIndex = 10
+        autoLoadFrame.Active = true
         Instance.new("UICorner", autoLoadFrame).CornerRadius = UDim.new(0, 8)
         Instance.new("UIStroke", autoLoadFrame).Color = Color3.fromRGB(60, 60, 65)
 
@@ -2220,14 +2253,16 @@ end
         autoLoadTitle.Font = Enum.Font.GothamBold
         autoLoadTitle.TextSize = 14
         autoLoadTitle.TextXAlignment = Enum.TextXAlignment.Left
+        autoLoadTitle.ZIndex = 11
 
         local autoSwitchBg = Instance.new("TextButton", autoLoadFrame)
         autoSwitchBg.Name = "AutoLoadSwitchBg"
-        autoSwitchBg.Size = UDim2.new(0, 40, 0, 22) -- สวิตช์ใหญ่ขึ้นเต็มตา
+        autoSwitchBg.Size = UDim2.new(0, 40, 0, 22)
         autoSwitchBg.Position = UDim2.new(1, -50, 0.5, -11)
         autoSwitchBg.BackgroundColor3 = CONFIG.AutoLoad and ColorOn or ColorOff
         autoSwitchBg.Text = ""
         autoSwitchBg.AutoButtonColor = false
+        autoSwitchBg.ZIndex = 11
         Instance.new("UICorner", autoSwitchBg).CornerRadius = UDim.new(1, 0)
 
         local autoKnob = Instance.new("Frame", autoSwitchBg)
@@ -2235,6 +2270,7 @@ end
         autoKnob.Size = UDim2.new(0, 18, 0, 18)
         autoKnob.Position = CONFIG.AutoLoad and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
         autoKnob.BackgroundColor3 = Color3.new(1, 1, 1)
+        autoKnob.ZIndex = 12
         Instance.new("UICorner", autoKnob).CornerRadius = UDim.new(1, 0)
 
         autoSwitchBg.MouseButton1Click:Connect(function()
