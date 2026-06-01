@@ -1,4 +1,4 @@
-local Veridianhub = {}
+local VeridianLibrary = {}
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -128,7 +128,7 @@ local function CreateTween(instance, properties, time, style, direction)
     return info
 end
 
-function Veridianhub:CreateWindow(Config)
+function VeridianLibrary:CreateWindow(Config)
     -- [[ CONFIGURATION PARSING WITH FALLBACK PROTECTION ]] --
     local HubText = typeof(Config) == "table" and Config.Name or Config or "Veridian Hub"
     local HubTextSize = typeof(Config) == "table" and Config.TextSize or 14
@@ -1915,4 +1915,4 @@ end)
     return WindowAPI
 end 
 
-return Veridianhub
+return VeridianLibrary
