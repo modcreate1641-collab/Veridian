@@ -1621,23 +1621,26 @@ end
 
     local HttpService = game:GetService("HttpService")
 
-    -- ฟังก์ชันช่วยจัดการ Path ไฟล์ให้เป๊ะเสมอ
+    -- ฟังก์ชันช่วยจัดการ Path ไฟล์ให้เป๊ะเสมอ (กูใส่ดัก BgFolder ให้เผื่อลืมตั้งค่า)
     local function GetConfigPath(fileName, folderName)
-        local folder = (folderName == "" or not folderName) and CONFIG.ConfigFolderName or folderName
-        local file = (fileName == "" or not fileName) and CONFIG.SaveFileName or fileName
+        local folder = (folderName == nil or folderName == "") and CONFIG.ConfigFolderName or folderName
+        local file = (fileName == nil or fileName == "") and CONFIG.SaveFileName or fileName
         if not file:match("%.json$") then file = file .. ".json" end
-        return CONFIG.BgFolder .. "/" .. folder .. "/" .. file
+        
+        local baseFolder = CONFIG.BgFolder or "VeridianConfig"
+        return baseFolder .. "/" .. folder .. "/" .. file
     end
 
     local function CheckFolders(folderName)
-        local folder = (folderName == "" or not folderName) and CONFIG.ConfigFolderName or folderName
-        local targetFolder = CONFIG.BgFolder .. "/" .. folder
+        local folder = (folderName == nil or folderName == "") and CONFIG.ConfigFolderName or folderName
+        local baseFolder = CONFIG.BgFolder or "VeridianConfig"
+        local targetFolder = baseFolder .. "/" .. folder
 
-        if not isfolder(CONFIG.BgFolder) then makefolder(CONFIG.BgFolder) end
-        if not isfolder(targetFolder) then makefolder(targetFolder) end
+        if not isfolder(baseFolder) then pcall(function() makefolder(baseFolder) end) end
+        if not isfolder(targetFolder) then pcall(function() makefolder(targetFolder) end) end
     end
 
-    -- ปรับปรุงให้รับค่าชื่อไฟล์และโฟลเดอร์ได้ (ถ้าไม่ใส่จะใช้ค่าเริ่มต้น)
+    -- 💾 ระบบเซฟ (ถ้ามึงมีฟังก์ชันอื่น ต้องมาพิมพ์เพิ่มใน dataToSave ด้วยนะเว้ย!)
     local function SaveConfiguration(fileName, folderName)
         CheckFolders(folderName)
         local path = GetConfigPath(fileName, folderName)
@@ -1645,7 +1648,8 @@ end
         local dataToSave = {
             AutoLoad = CONFIG.AutoLoad,
             KeybindEnabled = CONFIG.KeybindEnabled,
-            ToggleKey = CONFIG.ToggleKey.Name
+            -- ดักไว้เผื่อเป็น Enum จะได้ไม่พังตอนดึงชื่อ
+            ToggleKey = typeof(CONFIG.ToggleKey) == "EnumItem" and CONFIG.ToggleKey.Name or "RightControl"
         }
         
         local success, err = pcall(function()
@@ -1653,37 +1657,46 @@ end
         end)
         
         if success then
-            -- อัพเดทค่าปัจจุบันเมื่อเซฟสำเร็จ
             if fileName and fileName ~= "" then CONFIG.SaveFileName = fileName end
             if folderName and folderName ~= "" then CONFIG.ConfigFolderName = folderName end
-            print("Saved: " .. path)
+            print("[✅ VERIDIAN] เซฟไฟล์โคตรตึงที่: " .. path)
             return true
         else
-            warn("Save Error: " .. tostring(err))
+            warn("[❌ VERIDIAN ERROR] บึ้มตอนเซฟเพราะ: " .. tostring(err))
             return false
         end
     end
 
-    -- ปรับปรุงให้รับค่าชื่อไฟล์และโฟลเดอร์ได้
+    -- 📂 ระบบโหลด 
     local function LoadConfiguration(fileName, folderName)
         local path = GetConfigPath(fileName, folderName)
+        
         if isfile(path) then
             local success, data = pcall(function()
                 return HttpService:JSONDecode(readfile(path))
             end)
             
             if success and type(data) == "table" then
+                -- โหลดค่ากลับเข้าตัวแปร
                 CONFIG.AutoLoad = data.AutoLoad or false
-                if data.ToggleKey then
-                    CONFIG.ToggleKey = Enum.KeyCode[data.ToggleKey]
-                end
                 CONFIG.KeybindEnabled = data.KeybindEnabled or false
                 
-                print("Loaded: " .. path)
+                if data.ToggleKey then
+                    -- ดัก pcall ไว้เผื่อค่าคีย์บอร์ดที่เซฟมามันมั่ว จะได้ไม่ Error
+                    pcall(function()
+                        CONFIG.ToggleKey = Enum.KeyCode[data.ToggleKey]
+                    end)
+                end
+                
+                print("[✅ VERIDIAN] โหลดคอนฟิกกลับมาแล้วไอ้ชาย!: " .. path)
+                
                 return true
+            else
+                warn("[❌ VERIDIAN ERROR] ไฟล์พังหรือถอดรหัส JSON ไม่ได้: " .. path)
             end
+        else
+            warn("[⚠️ VERIDIAN] หาไฟล์ไม่เจอโว้ยย!: " .. path)
         end
-        warn("Config file not found: " .. path)
         return false
     end
 
