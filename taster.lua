@@ -1952,6 +1952,7 @@ end
         local FolderBoxFrame = Instance.new("Frame", SettingPage)
         FolderBoxFrame.Size = UDim2.new(0.95, 0, 0, 35)
         FolderBoxFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+        FolderBoxFrame.ZIndex = 10 -- เพิ่มตรงนี้!
         Instance.new("UICorner", FolderBoxFrame)
         Instance.new("UIStroke", FolderBoxFrame).Color = Color3.fromRGB(60, 60, 65)
 
@@ -1974,8 +1975,10 @@ end
         FolderInput.TextXAlignment = Enum.TextXAlignment.Left
 
         local FileBoxFrame = Instance.new("Frame", SettingPage)
+        local FileBoxFrame = Instance.new("Frame", SettingPage)
         FileBoxFrame.Size = UDim2.new(0.95, 0, 0, 35)
         FileBoxFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+        FileBoxFrame.ZIndex = 10 -- เพิ่มตรงนี้!
         Instance.new("UICorner", FileBoxFrame)
         Instance.new("UIStroke", FileBoxFrame).Color = Color3.fromRGB(60, 60, 65)
 
@@ -2002,6 +2005,7 @@ end
         DropFrame.Size = UDim2.new(0.95, 0, 0, 35)
         DropFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
         DropFrame.ClipsDescendants = true
+        DropFrame.ZIndex = 11 -- ให้สูงกว่า Box อื่นๆ 
         Instance.new("UICorner", DropFrame)
         Instance.new("UIStroke", DropFrame).Color = Color3.fromRGB(60, 60, 65)
 
@@ -2104,9 +2108,10 @@ end
             end
         end)
 
-        local ActionContainer = Instance.new("Frame", SettingPage)
+       local ActionContainer = Instance.new("Frame", SettingPage)
         ActionContainer.Size = UDim2.new(0.95, 0, 0, 35)
         ActionContainer.BackgroundTransparency = 1
+        ActionContainer.ZIndex = 10 -- เพิ่มตรงนี้!
 
         local ActionLayout = Instance.new("UIListLayout", ActionContainer)
         ActionLayout.FillDirection = Enum.FillDirection.Horizontal
