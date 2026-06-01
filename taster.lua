@@ -2232,13 +2232,16 @@ end
             CreateTween(autoSwitchBg, {BackgroundColor3 = CONFIG.AutoLoad and ColorOn or ColorOff}, 0.2)
             CreateTween(autoKnob, {Position = CONFIG.AutoLoad and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         end)
-    
+    end -- [ปิด RenderSettings]
+
     RenderSettings()
     
     TopSettingBtn.MouseButton1Click:Connect(function() 
         for _, v in pairs(PageArea:GetChildren()) do 
-            if v.Visible then 
-                CreateTween(v, {Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) 
+            if v:IsA("ScrollingFrame") or v:IsA("Frame") then
+                if v.Visible then 
+                    CreateTween(v, {Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) 
+                end
             end
         end
         SettingPage.Visible = true
@@ -2257,7 +2260,7 @@ end
         end
     end)
 
-    return WindowAPI
+    return WindowAPI 
 end 
 
 return Veridianhub
