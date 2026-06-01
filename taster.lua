@@ -1621,53 +1621,58 @@ end
 
     local HttpService = game:GetService("HttpService")
 
-    -- ฟังก์ชันช่วยจัดการ Path ไฟล์ให้เป๊ะเสมอ (กูใส่ดัก BgFolder ให้เผื่อลืมตั้งค่า)
+    -- ฟังก์ชันจัดการ Path ใหม่อิงตามช่องที่ 4 (Target Folder)
     local function GetConfigPath(fileName, folderName)
-        local folder = (folderName == nil or folderName == "") and CONFIG.ConfigFolderName or folderName
-        local file = (fileName == nil or fileName == "") and CONFIG.SaveFileName or fileName
+        local target = CONFIG.BgFolder or "VeridianConfig"
+        local folder = (folderName == "" or not folderName) and CONFIG.ConfigFolderName or folderName
+        local file = (fileName == "" or not fileName) and CONFIG.SaveFileName or fileName
         if not file:match("%.json$") then file = file .. ".json" end
-        
-        local baseFolder = CONFIG.BgFolder or "VeridianConfig"
-        return baseFolder .. "/" .. folder .. "/" .. file
+        return target .. "/" .. folder .. "/" .. file
     end
 
     local function CheckFolders(folderName)
-        local folder = (folderName == nil or folderName == "") and CONFIG.ConfigFolderName or folderName
-        local baseFolder = CONFIG.BgFolder or "VeridianConfig"
-        local targetFolder = baseFolder .. "/" .. folder
-
-        if not isfolder(baseFolder) then pcall(function() makefolder(baseFolder) end) end
-        if not isfolder(targetFolder) then pcall(function() makefolder(targetFolder) end) end
+        local target = CONFIG.BgFolder or "VeridianConfig"
+        local folder = (folderName == "" or not folderName) and CONFIG.ConfigFolderName or folderName
+        
+        if not isfolder(target) then pcall(function() makefolder(target) end) end
+        if not isfolder(target .. "/" .. folder) then pcall(function() makefolder(target .. "/" .. folder) end) end
     end
 
-    -- 💾 ระบบเซฟ (ถ้ามึงมีฟังก์ชันอื่น ต้องมาพิมพ์เพิ่มใน dataToSave ด้วยนะเว้ย!)
+    -- 💾 ระบบกวาดล้างเซฟทุกสรรพสิ่งใน CONFIG
     local function SaveConfiguration(fileName, folderName)
         CheckFolders(folderName)
         local path = GetConfigPath(fileName, folderName)
+        local dataToSave = {}
         
-        local dataToSave = {
-            AutoLoad = CONFIG.AutoLoad,
-            KeybindEnabled = CONFIG.KeybindEnabled,
-            -- ดักไว้เผื่อเป็น Enum จะได้ไม่พังตอนดึงชื่อ
-            ToggleKey = typeof(CONFIG.ToggleKey) == "EnumItem" and CONFIG.ToggleKey.Name or "RightControl"
-        }
+        -- ดูดทุกอย่างจาก CONFIG มาแปลงสภาพให้ JSON เข้าใจ
+        for key, value in pairs(CONFIG) do
+            local valType = typeof(value)
+            
+            if valType == "string" or valType == "number" or valType == "boolean" or valType == "table" then
+                dataToSave[key] = value
+            elseif valType == "Color3" then
+                -- แปลงสีเป็นตาราง เพราะ JSON เซฟ Color3 ตรงๆ ไม่ได้เว้ยสัส!
+                dataToSave[key] = {R = value.R, G = value.G, B = value.B, _isColor = true}
+            elseif valType == "EnumItem" then
+                -- แปลงปุ่มเป็นชื่อ
+                dataToSave[key] = {Name = value.Name, _isEnum = true}
+            end
+        end
         
         local success, err = pcall(function()
             writefile(path, HttpService:JSONEncode(dataToSave))
         end)
         
         if success then
-            if fileName and fileName ~= "" then CONFIG.SaveFileName = fileName end
-            if folderName and folderName ~= "" then CONFIG.ConfigFolderName = folderName end
-            print("[✅ VERIDIAN] เซฟไฟล์โคตรตึงที่: " .. path)
+            print("[✅ VERIDIAN] กวาดข้อมูลเซฟหมดตูดแล้วที่: " .. path)
             return true
         else
-            warn("[❌ VERIDIAN ERROR] บึ้มตอนเซฟเพราะ: " .. tostring(err))
+            warn("[❌ VERIDIAN] บึ้มตอนเซฟ: " .. tostring(err))
             return false
         end
     end
 
-    -- 📂 ระบบโหลด 
+    -- 📂 ระบบโหลดและอัปเดตกลับ
     local function LoadConfiguration(fileName, folderName)
         local path = GetConfigPath(fileName, folderName)
         
@@ -1677,26 +1682,26 @@ end
             end)
             
             if success and type(data) == "table" then
-                -- โหลดค่ากลับเข้าตัวแปร
-                CONFIG.AutoLoad = data.AutoLoad or false
-                CONFIG.KeybindEnabled = data.KeybindEnabled or false
-                
-                if data.ToggleKey then
-                    -- ดัก pcall ไว้เผื่อค่าคีย์บอร์ดที่เซฟมามันมั่ว จะได้ไม่ Error
-                    pcall(function()
-                        CONFIG.ToggleKey = Enum.KeyCode[data.ToggleKey]
-                    end)
+                -- โหลดทุกอย่างกลับเข้า CONFIG
+                for key, value in pairs(data) do
+                    if type(value) == "table" and value._isColor then
+                        CONFIG[key] = Color3.new(value.R, value.G, value.B) -- แปลงกลับเป็นสีให้ UI
+                    elseif type(value) == "table" and value._isEnum then
+                        pcall(function() CONFIG[key] = Enum.KeyCode[value.Name] end) -- แปลงกลับเป็นปุ่ม
+                    else
+                        CONFIG[key] = value
+                    end
                 end
                 
-                print("[✅ VERIDIAN] โหลดคอนฟิกกลับมาแล้วไอ้ชาย!: " .. path)
+                print("[✅ VERIDIAN] โหลดคอนฟิกกลับมาครบทุกรูขุมขน!: " .. path)
+                
+                -- [!] ตรงนี้มึงต้องเรียกฟังก์ชันอัปเดต UI ของมึงนะ!
+                -- เช่น UpdateAllColors(), RefreshToggles() บลาๆ
                 
                 return true
-            else
-                warn("[❌ VERIDIAN ERROR] ไฟล์พังหรือถอดรหัส JSON ไม่ได้: " .. path)
             end
-        else
-            warn("[⚠️ VERIDIAN] หาไฟล์ไม่เจอโว้ยย!: " .. path)
         end
+        warn("[⚠️ VERIDIAN] หาไฟล์ไม่เจอ!: " .. path)
         return false
     end
 
@@ -1998,6 +2003,39 @@ end
         FolderInput.FocusLost:Connect(function()
             if FolderInput.Text == "" then FolderInput.Text = "Configs" end
             CONFIG.ConfigFolderName = FolderInput.Text
+        end)
+        -- // [ใหม่!] แถบใส่ชื่อ Target Folder (ล็อกเป้าหมายหลัก)
+        local TargetBoxFrame = Instance.new("Frame", SettingPage)
+        TargetBoxFrame.Size = UDim2.new(0.95, 0, 0, 42)
+        TargetBoxFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+        TargetBoxFrame.ZIndex = 10 
+        TargetBoxFrame.Active = true 
+        Instance.new("UICorner", TargetBoxFrame).CornerRadius = UDim.new(0, 8)
+        Instance.new("UIStroke", TargetBoxFrame).Color = Color3.fromRGB(50, 50, 55)
+
+        local TargetIcon = Instance.new("TextLabel", TargetBoxFrame)
+        TargetIcon.Size = UDim2.new(0, 40, 1, 0)
+        TargetIcon.BackgroundTransparency = 1
+        TargetIcon.Text = "🎯"
+        TargetIcon.TextSize = 18
+        TargetIcon.ZIndex = 11
+
+        local TargetInput = Instance.new("TextBox", TargetBoxFrame)
+        TargetInput.Size = UDim2.new(1, -50, 1, 0)
+        TargetInput.Position = UDim2.new(0, 40, 0, 0)
+        TargetInput.BackgroundTransparency = 1
+        TargetInput.Text = CONFIG.BgFolder or "VeridianConfig"
+        TargetInput.PlaceholderText = "Target Folder (ล็อกเป้าหมาย)..."
+        TargetInput.TextColor3 = Color3.new(1, 1, 1)
+        TargetInput.Font = Enum.Font.GothamSemibold
+        TargetInput.TextSize = 14
+        TargetInput.ClearTextOnFocus = false
+        TargetInput.TextXAlignment = Enum.TextXAlignment.Left
+        TargetInput.ZIndex = 11
+
+        TargetInput.FocusLost:Connect(function()
+            if TargetInput.Text == "" then TargetInput.Text = "VeridianConfig" end
+            CONFIG.BgFolder = TargetInput.Text -- ล็อกเป้าหมายลงระบบหลังบ้าน
         end)
 
         -- // 2. แถบใส่ชื่อไฟล์ (File Name)
