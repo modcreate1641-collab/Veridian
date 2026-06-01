@@ -1067,544 +1067,546 @@ SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
-    local WindowAPI = {}
+-- =====================================================================
+-- 🔥 ฟังก์ชันสร้างหน้าต่าง (CreateWindow) สไตล์มืออาชีพ
+-- =====================================================================
+function VeridianLibrary:CreateWindow(WindowConfig)
+    local Window = {}
 
-function WindowAPI:UpdateHubInfo(cfg)
-    if type(cfg) ~= "table" then return end
+    function Window:UpdateHubInfo(cfg)
+        if type(cfg) ~= "table" then return end
 
-    if cfg.Name and HubLabel then    
-        HubLabel.Text = cfg.Name    
-    end    
+        if cfg.Name and HubLabel then    
+            HubLabel.Text = cfg.Name    
+        end    
 
-    local discordLink = cfg.discord or cfg.Discord
-    if discordLink then    
-        ActiveDiscordLink = discordLink 
-        if DiscordBtn then
-            DiscordBtn.Text = "🔗 " .. discordLink    
-        end
-    end
-
-    if cfg.Logo and cfg.Logo ~= "" and HubLogo then
-        local targetFolder = cfg.foldertarget or "VeridianConfig/Icons"
-        
-        if cfg.createfolder and type(cfg.createfolder) == "string" and cfg.createfolder ~= "" then
-            targetFolder = targetFolder .. "/" .. cfg.createfolder
+        local discordLink = cfg.discord or cfg.Discord
+        if discordLink then    
+            ActiveDiscordLink = discordLink 
+            if DiscordBtn then
+                DiscordBtn.Text = "🔗 " .. discordLink    
+            end
         end
 
-        local fileName = cfg.createfile
-        if not fileName or fileName == "" then
-            local cleanHubName = (cfg.Name or "default"):gsub("[%s%p]", ""):lower()
-            fileName = cleanHubName .. "_logo.png"
-        end
-        
-        local logoPath = targetFolder .. "/" .. fileName
-
-        task.spawn(function()    
-            local currentPath = ""
-            for folder in string.gmatch(targetFolder, "[^/]+") do
-                currentPath = currentPath == "" and folder or currentPath .. "/" .. folder
-                pcall(function()
-                    if not isfolder(currentPath) then
-                        makefolder(currentPath)
-                    end
-                end)
+        if cfg.Logo and cfg.Logo ~= "" and HubLogo then
+            -- แก้ไข default folder ให้ตรงกับระบบหลัก (Icons ไม่ใช่ icon)
+            local targetFolder = cfg.foldertarget or "VeridianConfig/Icons"
+            
+            if cfg.createfolder and type(cfg.createfolder) == "string" and cfg.createfolder ~= "" then
+                targetFolder = targetFolder .. "/" .. cfg.createfolder
             end
 
-            if string.find(cfg.Logo, "http") and not isfile(logoPath) then    
-                local success, imgData = pcall(game.HttpGet, game, cfg.Logo)    
-                if success and imgData and #imgData > 0 and not string.find(imgData, "<!DOCTYPE") then    
-                    pcall(writefile, logoPath, imgData)
-                end    
-            end    
+            local fileName = cfg.createfile or "logo.png"
+            local logoPath = targetFolder .. "/" .. fileName
 
-            if isfile(logoPath) then    
-                local getAsset = getcustomasset or getsynasset    
-                if getAsset then    
+            task.spawn(function()    
+                -- โครงสร้างตรวจสอบและสร้างโฟลเดอร์ (Modular Folder Building)
+                local currentPath = ""
+                for folder in string.gmatch(targetFolder, "[^/]+") do
+                    currentPath = currentPath == "" and folder or currentPath .. "/" .. folder
                     pcall(function()
-                        HubLogo.Image = getAsset(logoPath)
+                        if not isfolder(currentPath) then
+                            makefolder(currentPath)
+                        end
                     end)
+                end
+
+                -- ตรวจสอบและดาวน์โหลดรูปจาก URL
+                if string.find(cfg.Logo, "http") and not isfile(logoPath) then    
+                    local success, imgData = pcall(game.HttpGet, game, cfg.Logo)    
+                    if success and imgData and #imgData > 0 and not string.find(imgData, "<!DOCTYPE") then    
+                        pcall(writefile, logoPath, imgData)
+                    end    
                 end    
-            end    
-        end)    
-    end
-end
 
-
-function WindowAPI:UpdateTheme(newColor)
-    -- [[ 1. Color Processing (Deepening Effect) ]]
-    local BaseDark = Color3.fromRGB(15, 15, 20)
-    local MutedColor = newColor:lerp(BaseDark, 0.7) 
-    local DeepOverlay = MutedColor:lerp(BaseDark, 0.8)
-    local HighlightColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.3) 
-    
-    local GlobalTransparency = 0.5 
-
-    CONFIG.NavBtnColor = MutedColor
-    CONFIG.HoverColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.15)
-    CONFIG.SearchBgColor = DeepOverlay 
-    CONFIG.NavPanelColor = DeepOverlay:lerp(BaseDark, 0.2) 
-
-    -- [[ 2. Top Bar, Global Controls & Side Panel ]]
-    if TopBar then 
-        CreateTween(TopBar, {
-            BackgroundColor3 = CONFIG.NavPanelColor,
-            BackgroundTransparency = GlobalTransparency
-        }, 0.5) 
-    end
-    
-    if HubLabel then CreateTween(HubLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.3) end
-    if ToggleBtn then CreateTween(ToggleBtn, {BackgroundColor3 = MutedColor}, 0.3) end
-    
-    if SearchBox then 
-        CreateTween(SearchBox, {
-            BackgroundColor3 = DeepOverlay, 
-            TextColor3 = Color3.new(0.9, 0.9, 0.9)
-        }, 0.5) 
-    end
-    
-    if TopSettingBtn then CreateTween(TopSettingBtn, {TextColor3 = HighlightColor}, 0.3) end
-    if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.3) end
-
-    if NavSidePanel then 
-        CreateTween(NavSidePanel, {
-            BackgroundColor3 = CONFIG.NavPanelColor,
-            BackgroundTransparency = GlobalTransparency
-        }, 0.5)
-    end
-
-    -- [[ 3. Navigation Buttons (Left Panel) ]]
-    for _, btn in pairs(NavArea:GetChildren()) do
-        if btn:IsA("TextButton") then
-            CreateTween(btn, {
-                BackgroundColor3 = MutedColor,
-                BackgroundTransparency = GlobalTransparency,
-                TextColor3 = Color3.fromRGB(220, 220, 220)
-            }, 0.5)
-            
-            local st = btn:FindFirstChildOfClass("UIStroke")
-            if st then CreateTween(st, {Color = HighlightColor:lerp(BaseDark, 0.5)}, 0.3) end
+                -- โหลดรูปเข้า UI (รองรับ Executor มาตรฐานทั้งหมด)
+                if isfile(logoPath) then    
+                    local getAsset = getcustomasset or getsynasset    
+                    if getAsset then    
+                        pcall(function()
+                            HubLogo.Image = getAsset(logoPath)
+                        end)
+                    end    
+                end    
+            end)    
         end
     end
 
-    -- [[ 4. Tab Content Deep-Sync (The "Global Overwrite") ]]
-    for _, tab in pairs(PageArea:GetChildren()) do
-        if tab:IsA("ScrollingFrame") or tab:IsA("Frame") then
-            for _, item in pairs(tab:GetChildren()) do
-                if item:IsA("TextButton") then
-                    if not item:FindFirstChild("IsToggle") then 
+    function Window:UpdateTheme(newColor)
+        -- [[ 1. Color Processing (Deepening Effect) ]]
+        local BaseDark = Color3.fromRGB(15, 15, 20)
+        local MutedColor = newColor:lerp(BaseDark, 0.7) 
+        local DeepOverlay = MutedColor:lerp(BaseDark, 0.8)
+        local HighlightColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.3) 
+        
+        local GlobalTransparency = 0.5 
+
+        CONFIG.NavBtnColor = MutedColor
+        CONFIG.HoverColor = MutedColor:lerp(Color3.new(1, 1, 1), 0.15)
+        CONFIG.SearchBgColor = DeepOverlay 
+        CONFIG.NavPanelColor = DeepOverlay:lerp(BaseDark, 0.2) 
+
+        -- [[ 2. Top Bar, Global Controls & Side Panel ]]
+        if TopBar then 
+            CreateTween(TopBar, {
+                BackgroundColor3 = CONFIG.NavPanelColor,
+                BackgroundTransparency = GlobalTransparency
+            }, 0.5) 
+        end
+        
+        if HubLabel then CreateTween(HubLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.3) end
+        if ToggleBtn then CreateTween(ToggleBtn, {BackgroundColor3 = MutedColor}, 0.3) end
+        
+        if SearchBox then 
+            CreateTween(SearchBox, {
+                BackgroundColor3 = DeepOverlay, 
+                TextColor3 = Color3.new(0.9, 0.9, 0.9)
+            }, 0.5) 
+        end
+        
+        if TopSettingBtn then CreateTween(TopSettingBtn, {TextColor3 = HighlightColor}, 0.3) end
+        if UIStroke then CreateTween(UIStroke, {Color = MutedColor}, 0.3) end
+
+        if NavSidePanel then 
+            CreateTween(NavSidePanel, {
+                BackgroundColor3 = CONFIG.NavPanelColor,
+                BackgroundTransparency = GlobalTransparency
+            }, 0.5)
+        end
+
+        -- [[ 3. Navigation Buttons (Left Panel) ]]
+        for _, btn in pairs(NavArea:GetChildren()) do
+            if btn:IsA("TextButton") then
+                CreateTween(btn, {
+                    BackgroundColor3 = MutedColor,
+                    BackgroundTransparency = GlobalTransparency,
+                    TextColor3 = Color3.fromRGB(220, 220, 220)
+                }, 0.5)
+                
+                local st = btn:FindFirstChildOfClass("UIStroke")
+                if st then CreateTween(st, {Color = HighlightColor:lerp(BaseDark, 0.5)}, 0.3) end
+            end
+        end
+
+        -- [[ 4. Tab Content Deep-Sync (The "Global Overwrite") ]]
+        for _, tab in pairs(PageArea:GetChildren()) do
+            if tab:IsA("ScrollingFrame") or tab:IsA("Frame") then
+                for _, item in pairs(tab:GetChildren()) do
+                    if item:IsA("TextButton") then
+                        if not item:FindFirstChild("IsToggle") then 
+                            CreateTween(item, {
+                                BackgroundColor3 = DeepOverlay:lerp(MutedColor, 0.2),
+                                BackgroundTransparency = GlobalTransparency
+                            }, 0.5)
+                        end
+                    elseif item:IsA("Frame") then
                         CreateTween(item, {
-                            BackgroundColor3 = DeepOverlay:lerp(MutedColor, 0.2),
+                            BackgroundColor3 = DeepOverlay,
                             BackgroundTransparency = GlobalTransparency
                         }, 0.5)
+                        
+                        local fill = item:FindFirstChild("Fill", true) 
+                        if fill then CreateTween(fill, {BackgroundColor3 = MutedColor}, 0.3) end
+                    elseif item:IsA("TextLabel") then
+                        CreateTween(item, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.5)
                     end
-                elseif item:IsA("Frame") then
-                    CreateTween(item, {
-                        BackgroundColor3 = DeepOverlay,
-                        BackgroundTransparency = GlobalTransparency
-                    }, 0.5)
-                    
-                    local fill = item:FindFirstChild("Fill", true) 
-                    if fill then CreateTween(fill, {BackgroundColor3 = MutedColor}, 0.3) end
-                elseif item:IsA("TextLabel") then
-                    CreateTween(item, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.5)
                 end
             end
         end
+        
+        -- [[ 5. Visual Polish (Darkened Canvas) ]]
+        if MainFrame then
+            CreateTween(MainFrame, {GroupColor3 = Color3.fromRGB(230, 230, 245)}, 0.5)
+        end
     end
-    
-    -- [[ 5. Visual Polish (Darkened Canvas) ]]
-    if MainFrame then
-        CreateTween(MainFrame, {GroupColor3 = Color3.fromRGB(230, 230, 245)}, 0.5)
-    end
-end
 
-function WindowAPI:CreateTab(name, target, isAuto)
-    local TabPage = Instance.new("ScrollingFrame", PageArea)
-    TabPage.Size = UDim2.new(1, 0, 1, 0)
-    TabPage.Position = UDim2.new(0, 20, 0, 0)
-    TabPage.BackgroundTransparency = 1
-    TabPage.Visible = false
-    TabPage.ScrollBarThickness = 2 
-    TabPage.AutomaticCanvasSize = "Y"
-    TabPage.ZIndex = 11
-    
-    local ListLayout = Instance.new("UIListLayout", TabPage)
-    ListLayout.Padding = UDim.new(0, 12) 
-    ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    
-    local padding = Instance.new("UIPadding", TabPage)
-    padding.PaddingTop = UDim.new(0, 8)
-    padding.PaddingLeft = UDim.new(0, 8)
-
-    local b = Instance.new("TextButton", NavArea)
-    b.Size = UDim2.new(0, 105, 0, 36)
-    b.BackgroundColor3 = CONFIG.NavBtnColor or Color3.fromRGB(35, 35, 40)
-    b.BackgroundTransparency = 0.3
-    b.Text = name
-    b.TextColor3 = Color3.new(0.9, 0.9, 0.9)
-    b.Font = Enum.Font.GothamBold
-    b.TextSize = CONFIG.DefaultFontSize or 14
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 12)
-    b.ZIndex = 12
-    
-    local bStroke = Instance.new("UIStroke", b)
-    bStroke.Color = Color3.new(1, 1, 1)
-    bStroke.Transparency = 0.85
-    
-    b.MouseEnter:Connect(function() 
-        CreateTween(b, {BackgroundTransparency = 0, TextColor3 = Color3.new(1, 1, 1)}) 
-        CreateTween(bStroke, {Transparency = 0.5})
-    end)
-    b.MouseLeave:Connect(function() 
-        CreateTween(b, {BackgroundTransparency = 0.3, TextColor3 = Color3.new(0.9, 0.9, 0.9)}) 
-        CreateTween(bStroke, {Transparency = 0.85})
-    end)
-
-    local TabAPI = {}
-    
-    -- [ ADAPTER LAYER FOR RAYFIELD ]
-    
-    function TabAPI:CreateLabel(cfg)
-        local labelText = type(cfg) == "table" and (cfg.Text or cfg.Name or "Label") or cfg
-
-        local frame = Instance.new("Frame", TabPage)
-        frame.Size = UDim2.new(0.96, 0, 0, 34)
-        frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-        frame.BackgroundTransparency = 0.5
-        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
-        frame.ZIndex = 14
+    function Window:CreateTab(name, target, isAuto)
+        local TabPage = Instance.new("ScrollingFrame", PageArea)
+        TabPage.Size = UDim2.new(1, 0, 1, 0)
+        TabPage.Position = UDim2.new(0, 20, 0, 0)
+        TabPage.BackgroundTransparency = 1
+        TabPage.Visible = false
+        TabPage.ScrollBarThickness = 2 
+        TabPage.AutomaticCanvasSize = "Y"
+        TabPage.ZIndex = 11
         
-        local stroke = Instance.new("UIStroke", frame)
-        stroke.Color = Color3.fromRGB(255, 255, 255)
-        stroke.Transparency = 0.9
+        local ListLayout = Instance.new("UIListLayout", TabPage)
+        ListLayout.Padding = UDim.new(0, 12) 
+        ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        
+        local padding = Instance.new("UIPadding", TabPage)
+        padding.PaddingTop = UDim.new(0, 8)
+        padding.PaddingLeft = UDim.new(0, 8)
 
-        local lbl = Instance.new("TextLabel", frame)
-        lbl.Size = UDim2.new(1, -16, 1, 0)
-        lbl.Position = UDim2.new(0, 16, 0, 0)
-        lbl.BackgroundTransparency = 1
-        lbl.Text = labelText
-        lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
-        lbl.Font = Enum.Font.GothamBold
-        lbl.TextSize = 13
-        lbl.TextXAlignment = "Left"
-        lbl.ZIndex = 15
+        local b = Instance.new("TextButton", NavArea)
+        b.Size = UDim2.new(0, 105, 0, 36)
+        b.BackgroundColor3 = CONFIG.NavBtnColor or Color3.fromRGB(35, 35, 40)
+        b.BackgroundTransparency = 0.3
+        b.Text = name
+        b.TextColor3 = Color3.new(0.9, 0.9, 0.9)
+        b.Font = Enum.Font.GothamBold
+        b.TextSize = CONFIG.DefaultFontSize or 14
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 12)
+        b.ZIndex = 12
         
-        return {
-            Set = function(_, newText) lbl.Text = newText end
-        }
-    end
-    
-    function TabAPI:CreateButton(cfg)
-        local btn = Instance.new("TextButton", TabPage)
-        btn.Size = UDim2.new(0.96, 0, 0, 42)
-        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-        btn.BackgroundTransparency = 0.5
-        btn.Text = "  " .. (cfg.Name or "Button")
-        btn.TextColor3 = Color3.new(1, 1, 1)
-        btn.Font = Enum.Font.GothamBold
-        btn.TextSize = 13
-        btn.TextXAlignment = "Left"
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
-        btn.ZIndex = 15
+        local bStroke = Instance.new("UIStroke", b)
+        bStroke.Color = Color3.new(1, 1, 1)
+        bStroke.Transparency = 0.85
         
-        local stroke = Instance.new("UIStroke", btn)
-        stroke.Color = CONFIG.NavBtnColor or Color3.fromRGB(100, 100, 110)
-        stroke.Transparency = 0.8
-        
-        btn.MouseEnter:Connect(function() 
-            CreateTween(btn, {BackgroundTransparency = 0.3}) 
-            CreateTween(stroke, {Transparency = 0.4})
+        b.MouseEnter:Connect(function() 
+            CreateTween(b, {BackgroundTransparency = 0, TextColor3 = Color3.new(1, 1, 1)}) 
+            CreateTween(bStroke, {Transparency = 0.5})
         end)
-        btn.MouseLeave:Connect(function() 
-            CreateTween(btn, {BackgroundTransparency = 0.5}) 
-            CreateTween(stroke, {Transparency = 0.8})
+        b.MouseLeave:Connect(function() 
+            CreateTween(b, {BackgroundTransparency = 0.3, TextColor3 = Color3.new(0.9, 0.9, 0.9)}) 
+            CreateTween(bStroke, {Transparency = 0.85})
         end)
-        btn.MouseButton1Down:Connect(function() CreateTween(btn, {Size = UDim2.new(0.94, 0, 0, 40)}) end)
-        btn.MouseButton1Up:Connect(function() CreateTween(btn, {Size = UDim2.new(0.96, 0, 0, 42)}) end)
-        btn.MouseButton1Click:Connect(function() pcall(cfg.Callback) end)
+
+        local TabAPI = {}
         
-        return {Callback = cfg.Callback}
-    end
-    
-    function TabAPI:CreateToggle(cfg)
-        local s = cfg.CurrentValue
-        if s == nil then s = cfg.Default or false end
+        -- [ ADAPTER LAYER FOR RAYFIELD ]
         
-        local ColorOn = CONFIG.NavBtnColor or Color3.fromRGB(46, 204, 113)
-        local ColorOff = Color3.fromRGB(60, 60, 65)
+        function TabAPI:CreateLabel(cfg)
+            local labelText = type(cfg) == "table" and (cfg.Text or cfg.Name or "Label") or cfg
 
-        local btn = Instance.new("TextButton", TabPage)
-        btn.Size = UDim2.new(0.96, 0, 0, 44)
-        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-        btn.BackgroundTransparency = 0.5
-        btn.Text = ""
-        btn.AutoButtonColor = false
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
-        btn.ZIndex = 15
+            local frame = Instance.new("Frame", TabPage)
+            frame.Size = UDim2.new(0.96, 0, 0, 34)
+            frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+            frame.BackgroundTransparency = 0.5
+            Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+            frame.ZIndex = 14
+            
+            local stroke = Instance.new("UIStroke", frame)
+            stroke.Color = Color3.fromRGB(255, 255, 255)
+            stroke.Transparency = 0.9
+
+            local lbl = Instance.new("TextLabel", frame)
+            lbl.Size = UDim2.new(1, -16, 1, 0)
+            lbl.Position = UDim2.new(0, 16, 0, 0)
+            lbl.BackgroundTransparency = 1
+            lbl.Text = labelText
+            lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
+            lbl.Font = Enum.Font.GothamBold
+            lbl.TextSize = 13
+            lbl.TextXAlignment = "Left"
+            lbl.ZIndex = 15
+            
+            return {
+                Set = function(_, newText) lbl.Text = newText end
+            }
+        end
         
-        local stroke = Instance.new("UIStroke", btn)
-        stroke.Color = Color3.fromRGB(255, 255, 255)
-        stroke.Transparency = 0.9
+        function TabAPI:CreateButton(cfg)
+            local btn = Instance.new("TextButton", TabPage)
+            btn.Size = UDim2.new(0.96, 0, 0, 42)
+            btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+            btn.BackgroundTransparency = 0.5
+            btn.Text = "  " .. (cfg.Name or "Button")
+            btn.TextColor3 = Color3.new(1, 1, 1)
+            btn.Font = Enum.Font.GothamBold
+            btn.TextSize = 13
+            btn.TextXAlignment = "Left"
+            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+            btn.ZIndex = 15
+            
+            local stroke = Instance.new("UIStroke", btn)
+            stroke.Color = CONFIG.NavBtnColor or Color3.fromRGB(100, 100, 110)
+            stroke.Transparency = 0.8
+            
+            btn.MouseEnter:Connect(function() 
+                CreateTween(btn, {BackgroundTransparency = 0.3}) 
+                CreateTween(stroke, {Transparency = 0.4})
+            end)
+            btn.MouseLeave:Connect(function() 
+                CreateTween(btn, {BackgroundTransparency = 0.5}) 
+                CreateTween(stroke, {Transparency = 0.8})
+            end)
+            btn.MouseButton1Down:Connect(function() CreateTween(btn, {Size = UDim2.new(0.94, 0, 0, 40)}) end)
+            btn.MouseButton1Up:Connect(function() CreateTween(btn, {Size = UDim2.new(0.96, 0, 0, 42)}) end)
+            btn.MouseButton1Click:Connect(function() pcall(cfg.Callback) end)
+            
+            return {Callback = cfg.Callback}
+        end
+        
+        function TabAPI:CreateToggle(cfg)
+            local s = cfg.CurrentValue
+            if s == nil then s = cfg.Default or false end
+            
+            local ColorOn = CONFIG.NavBtnColor or Color3.fromRGB(46, 204, 113)
+            local ColorOff = Color3.fromRGB(60, 60, 65)
 
-        local title = Instance.new("TextLabel", btn)
-        title.Size = UDim2.new(1, -64, 1, 0)
-        title.Position = UDim2.new(0, 16, 0, 0)
-        title.BackgroundTransparency = 1
-        title.Text = cfg.Name or "Toggle"
-        title.TextColor3 = Color3.new(1, 1, 1)
-        title.Font = Enum.Font.GothamBold
-        title.TextSize = 13
-        title.TextXAlignment = Enum.TextXAlignment.Left
-        title.ZIndex = 16
+            local btn = Instance.new("TextButton", TabPage)
+            btn.Size = UDim2.new(0.96, 0, 0, 44)
+            btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+            btn.BackgroundTransparency = 0.5
+            btn.Text = ""
+            btn.AutoButtonColor = false
+            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+            btn.ZIndex = 15
+            
+            local stroke = Instance.new("UIStroke", btn)
+            stroke.Color = Color3.fromRGB(255, 255, 255)
+            stroke.Transparency = 0.9
 
-        local switchBg = Instance.new("Frame", btn)
-        switchBg.Size = UDim2.new(0, 38, 0, 20)
-        switchBg.Position = UDim2.new(1, -50, 0.5, -10)
-        switchBg.BackgroundColor3 = s and ColorOn or ColorOff
-        Instance.new("UICorner", switchBg).CornerRadius = UDim.new(1, 0)
-        switchBg.ZIndex = 16
+            local title = Instance.new("TextLabel", btn)
+            title.Size = UDim2.new(1, -64, 1, 0)
+            title.Position = UDim2.new(0, 16, 0, 0)
+            title.BackgroundTransparency = 1
+            title.Text = cfg.Name or "Toggle"
+            title.TextColor3 = Color3.new(1, 1, 1)
+            title.Font = Enum.Font.GothamBold
+            title.TextSize = 13
+            title.TextXAlignment = Enum.TextXAlignment.Left
+            title.ZIndex = 16
 
-        local knob = Instance.new("Frame", switchBg)
-        knob.Size = UDim2.new(0, 16, 0, 16)
-        knob.Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-        knob.BackgroundColor3 = Color3.new(1, 1, 1)
-        Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
-        knob.ZIndex = 17
+            local switchBg = Instance.new("Frame", btn)
+            switchBg.Size = UDim2.new(0, 38, 0, 20)
+            switchBg.Position = UDim2.new(1, -50, 0.5, -10)
+            switchBg.BackgroundColor3 = s and ColorOn or ColorOff
+            Instance.new("UICorner", switchBg).CornerRadius = UDim.new(1, 0)
+            switchBg.ZIndex = 16
 
-        btn.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
-        btn.MouseLeave:Connect(function() CreateTween(stroke, {Transparency = 0.9}) end)
+            local knob = Instance.new("Frame", switchBg)
+            knob.Size = UDim2.new(0, 16, 0, 16)
+            knob.Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            knob.BackgroundColor3 = Color3.new(1, 1, 1)
+            Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+            knob.ZIndex = 17
 
-        local function toggle(Value)
-            if Value == nil then s = not s else s = Value end
-            CreateTween(switchBg, {BackgroundColor3 = s and ColorOn or ColorOff}, 0.2)
-            CreateTween(knob, {Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-            pcall(cfg.Callback, s)
+            btn.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
+            btn.MouseLeave:Connect(function() CreateTween(stroke, {Transparency = 0.9}) end)
+
+            local function toggle(Value)
+                if Value == nil then s = not s else s = Value end
+                CreateTween(switchBg, {BackgroundColor3 = s and ColorOn or ColorOff}, 0.2)
+                CreateTween(knob, {Position = s and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+                pcall(cfg.Callback, s)
+            end
+
+            btn.MouseButton1Click:Connect(function() toggle() end)
+            return {
+                Set = function(_, Value) toggle(Value) end,
+                CurrentValue = s
+            }
         end
 
-        btn.MouseButton1Click:Connect(function() toggle() end)
-        return {
-            Set = function(_, Value) toggle(Value) end,
-            CurrentValue = s
-        }
-    end
-
-    function TabAPI:CreateSlider(cfg)
-        local dragging = false
-        
-        local min = cfg.Range and cfg.Range[1] or cfg.Min or 0
-        local max = cfg.Range and cfg.Range[2] or cfg.Max or 100
-        local val = cfg.CurrentValue or cfg.Default or min
-        local suffix = cfg.Suffix or ""
-        
-        local sf = Instance.new("Frame", TabPage)
-        sf.Size = UDim2.new(0.96, 0, 0, 56)
-        sf.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-        sf.BackgroundTransparency = 0.5
-        Instance.new("UICorner", sf).CornerRadius = UDim.new(0, 12)
-        sf.ZIndex = 15
-        sf.Active = true
-        
-        local stroke = Instance.new("UIStroke", sf)
-        stroke.Color = Color3.fromRGB(255, 255, 255)
-        stroke.Transparency = 0.9
-        
-        local t = Instance.new("TextLabel", sf)
-        t.Size = UDim2.new(1, -24, 0, 24)
-        t.Position = UDim2.new(0, 16, 0, 6)
-        t.BackgroundTransparency = 1
-        t.Text = (cfg.Name or "Slider") .. " : " .. val .. suffix
-        t.TextColor3 = Color3.new(1, 1, 1)
-        t.Font = Enum.Font.GothamBold
-        t.TextSize = 13
-        t.TextXAlignment = "Left"
-        t.ZIndex = 16
-        
-        local bar = Instance.new("Frame", sf)
-        bar.Size = UDim2.new(0.92, 0, 0, 6)
-        bar.Position = UDim2.new(0.04, 0, 0, 38)
-        bar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-        bar.ClipsDescendants = true
-        Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
-        bar.ZIndex = 16
-        bar.Active = true
-        
-        local fill = Instance.new("Frame", bar)
-        fill.Size = UDim2.new((val - min) / (max - min), 0, 1, 0)
-        fill.BackgroundColor3 = CONFIG.NavBtnColor or Color3.fromRGB(52, 152, 219)
-        Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
-        fill.ZIndex = 17
-        
-        sf.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
-        sf.MouseLeave:Connect(function() CreateTween(stroke, {Transparency = 0.9}) end)
-
-        local function updateSlider(customVal)
-            if customVal then
-                val = math.clamp(customVal, min, max)
-                local p = (val - min) / (max - min)
-                CreateTween(fill, {Size = UDim2.new(p, 0, 1, 0)}, 0.1)
-            else
-                local p = math.clamp((UserInputService:GetMouseLocation().X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-                CreateTween(fill, {Size = UDim2.new(p, 0, 1, 0)}, 0.1)
-                val = math.floor(min + (p * (max - min)))
-            end
+        function TabAPI:CreateSlider(cfg)
+            local dragging = false
+            
+            local min = cfg.Range and cfg.Range[1] or cfg.Min or 0
+            local max = cfg.Range and cfg.Range[2] or cfg.Max or 100
+            local val = cfg.CurrentValue or cfg.Default or min
+            local suffix = cfg.Suffix or ""
+            
+            local sf = Instance.new("Frame", TabPage)
+            sf.Size = UDim2.new(0.96, 0, 0, 56)
+            sf.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+            sf.BackgroundTransparency = 0.5
+            Instance.new("UICorner", sf).CornerRadius = UDim.new(0, 12)
+            sf.ZIndex = 15
+            sf.Active = true
+            
+            local stroke = Instance.new("UIStroke", sf)
+            stroke.Color = Color3.fromRGB(255, 255, 255)
+            stroke.Transparency = 0.9
+            
+            local t = Instance.new("TextLabel", sf)
+            t.Size = UDim2.new(1, -24, 0, 24)
+            t.Position = UDim2.new(0, 16, 0, 6)
+            t.BackgroundTransparency = 1
             t.Text = (cfg.Name or "Slider") .. " : " .. val .. suffix
-            pcall(cfg.Callback, val)
+            t.TextColor3 = Color3.new(1, 1, 1)
+            t.Font = Enum.Font.GothamBold
+            t.TextSize = 13
+            t.TextXAlignment = "Left"
+            t.ZIndex = 16
+            
+            local bar = Instance.new("Frame", sf)
+            bar.Size = UDim2.new(0.92, 0, 0, 6)
+            bar.Position = UDim2.new(0.04, 0, 0, 38)
+            bar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+            bar.ClipsDescendants = true
+            Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
+            bar.ZIndex = 16
+            bar.Active = true
+            
+            local fill = Instance.new("Frame", bar)
+            fill.Size = UDim2.new((val - min) / (max - min), 0, 1, 0)
+            fill.BackgroundColor3 = CONFIG.NavBtnColor or Color3.fromRGB(52, 152, 219)
+            Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+            fill.ZIndex = 17
+            
+            sf.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
+            sf.MouseLeave:Connect(function() CreateTween(stroke, {Transparency = 0.9}) end)
+
+            local function updateSlider(customVal)
+                if customVal then
+                    val = math.clamp(customVal, min, max)
+                    local p = (val - min) / (max - min)
+                    CreateTween(fill, {Size = UDim2.new(p, 0, 1, 0)}, 0.1)
+                else
+                    local p = math.clamp((UserInputService:GetMouseLocation().X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
+                    CreateTween(fill, {Size = UDim2.new(p, 0, 1, 0)}, 0.1)
+                    val = math.floor(min + (p * (max - min)))
+                end
+                t.Text = (cfg.Name or "Slider") .. " : " .. val .. suffix
+                pcall(cfg.Callback, val)
+            end
+
+            bar.InputBegan:Connect(function(i) 
+                if (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch) then dragging = true end 
+            end)
+            UserInputService.InputEnded:Connect(function(i) 
+                if (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch) then dragging = false end 
+            end)
+            RunService.RenderStepped:Connect(function() if dragging then updateSlider() end end)
+            
+            return {Set = function(_, Value) updateSlider(Value) end}
         end
 
-        bar.InputBegan:Connect(function(i) 
-            if (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch) then dragging = true end 
-        end)
-        UserInputService.InputEnded:Connect(function(i) 
-            if (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch) then dragging = false end 
-        end)
-        RunService.RenderStepped:Connect(function() if dragging then updateSlider() end end)
+        function TabAPI:CreateDropdown(cfg)
+            local open = false
+            local options = cfg.Options or {}
+            local optionsCount = #options
+            local itemHeight = 32
+            local maxDisplayItems = 4
+            local closedSize = UDim2.new(0.96, 0, 0, 42)
+            local openedSize = UDim2.new(0.96, 0, 0, 42 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
+
+            local df = Instance.new("Frame", TabPage)
+            df.Size = closedSize
+            df.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+            df.BackgroundTransparency = 0.5
+            df.ClipsDescendants = true
+            df.ZIndex = 15
+            Instance.new("UICorner", df).CornerRadius = UDim.new(0, 12)
+
+            local stroke = Instance.new("UIStroke", df)
+            stroke.Color = Color3.fromRGB(255, 255, 255)
+            stroke.Transparency = 0.9
+
+            local mb = Instance.new("TextButton", df)
+            mb.Size = UDim2.new(1, 0, 0, 42)
+            mb.BackgroundTransparency = 1
+            
+            local initialVal = cfg.CurrentValue or cfg.Default or ""
+            mb.Text = "  " .. (cfg.Name or "Dropdown") .. (initialVal ~= "" and (" : " .. tostring(initialVal)) or "")
+            mb.TextColor3 = Color3.new(1, 1, 1)
+            mb.Font = Enum.Font.GothamBold
+            mb.TextSize = 13
+            mb.TextXAlignment = Enum.TextXAlignment.Left
+            mb.ZIndex = 16
+
+            local Arrow = Instance.new("TextLabel", mb)
+            Arrow.Size = UDim2.new(0, 40, 0, 42)
+            Arrow.Position = UDim2.new(1, -40, 0, 0)
+            Arrow.BackgroundTransparency = 1
+            Arrow.Text = "▼"
+            Arrow.TextColor3 = Color3.fromRGB(180, 180, 185)
+            Arrow.TextSize = 10
+            Arrow.ZIndex = 17
+
+            local DropScroll = Instance.new("ScrollingFrame", df)
+            DropScroll.Size = UDim2.new(1, -8, 1, -46)
+            DropScroll.Position = UDim2.new(0, 4, 0, 44)
+            DropScroll.BackgroundTransparency = 1
+            DropScroll.ScrollBarThickness = 2
+            DropScroll.ScrollBarImageColor3 = CONFIG.NavBtnColor or Color3.new(1,1,1)
+            DropScroll.CanvasSize = UDim2.new(0, 0, 0, optionsCount * itemHeight)
+            DropScroll.ZIndex = 16
+            DropScroll.Visible = false
+
+            local DropList = Instance.new("UIListLayout", DropScroll)
+            DropList.Padding = UDim.new(0, 4)
+            DropList.SortOrder = Enum.SortOrder.LayoutOrder
+
+            df.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
+            df.MouseLeave:Connect(function() CreateTween(stroke, {Transparency = 0.9}) end)
+
+            local function toggleDropdown()
+                open = not open
+                CreateTween(df, {Size = open and openedSize or closedSize}, 0.25, Enum.EasingStyle.Quart)
+                CreateTween(Arrow, {Rotation = open and 180 or 0}, 0.25)
+                if open then DropScroll.Visible = true else task.delay(0.2, function() if not open then DropScroll.Visible = false end end) end
+            end
+
+            mb.MouseButton1Click:Connect(toggleDropdown)
+
+            local function createOptions()
+                for _, child in pairs(DropScroll:GetChildren()) do
+                    if child:IsA("TextButton") then child:Destroy() end
+                end
+                for i, opt in pairs(options) do
+                    local o = Instance.new("TextButton", DropScroll)
+                    o.Size = UDim2.new(1, -8, 0, 28)
+                    o.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+                    o.BackgroundTransparency = 0.3
+                    o.Text = tostring(opt)
+                    o.TextColor3 = Color3.fromRGB(200, 200, 205)
+                    o.Font = Enum.Font.GothamSemibold
+                    o.TextSize = 12
+                    o.ZIndex = 17
+                    Instance.new("UICorner", o).CornerRadius = UDim.new(0, 8)
+
+                    o.MouseEnter:Connect(function() CreateTween(o, {BackgroundTransparency = 0, TextColor3 = Color3.new(1, 1, 1)}, 0.1) end)
+                    o.MouseLeave:Connect(function() CreateTween(o, {BackgroundTransparency = 0.3, TextColor3 = Color3.fromRGB(200, 200, 205)}, 0.1) end)
+
+                    o.MouseButton1Click:Connect(function()
+                        mb.Text = "  " .. (cfg.Name or "Dropdown") .. " : " .. tostring(opt)
+                        toggleDropdown()
+                        pcall(cfg.Callback, opt)
+                    end)
+                end
+            end
+            createOptions()
+
+            return {
+                Refresh = function(_, newOptions, _) 
+                    options = newOptions or {}
+                    optionsCount = #options
+                    DropScroll.CanvasSize = UDim2.new(0, 0, 0, optionsCount * itemHeight)
+                    openedSize = UDim2.new(0.96, 0, 0, 42 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
+                    createOptions()
+                end,
+                Set = function(_, Value)
+                    mb.Text = "  " .. (cfg.Name or "Dropdown") .. " : " .. tostring(Value)
+                    pcall(cfg.Callback, Value)
+                end
+            }
+        end
+
+        local function OpenTab()
+            if SearchBox then SearchBox.Text = "" end
+            for _, v in pairs(PageArea:GetChildren()) do 
+                if v.Visible then 
+                    CreateTween(v, {BackgroundTransparency = 1, Position = UDim2.new(0, 20, 0, 0)}, 0.15).Completed:Connect(function() v.Visible = false end) 
+                end
+            end
+            TabPage.Visible = true
+            CreateTween(TabPage, {BackgroundTransparency = 1, Position = UDim2.new(0, 0, 0, 0)}, 0.2, Enum.EasingStyle.Sine)
+            
+            if not TabPage:FindFirstChild("HasRan") then
+                if type(target) == "function" then target(TabPage, TabAPI)
+                elseif type(target) == "string" and target:find("http") then
+                    local lb = Instance.new("TextButton", TabPage)
+                    lb.Size = UDim2.new(0.96, 0, 0, 42)
+                    lb.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+                    lb.Text = " Load String: " .. name
+                    lb.TextColor3 = Color3.new(1, 1, 1)
+                    lb.Font = Enum.Font.GothamBold
+                    Instance.new("UICorner", lb).CornerRadius = UDim.new(0, 12)
+                    lb.ZIndex = 15
+                    lb.MouseButton1Click:Connect(function() pcall(function() loadstring(game:HttpGet(target))() end) end)
+                end
+                Instance.new("BoolValue", TabPage).Name = "HasRan"
+            end
+        end
         
-        return {Set = function(_, Value) updateSlider(Value) end}
-    end
-
-    function TabAPI:CreateDropdown(cfg)
-        local open = false
-        local options = cfg.Options or {}
-        local optionsCount = #options
-        local itemHeight = 32
-        local maxDisplayItems = 4
-        local closedSize = UDim2.new(0.96, 0, 0, 42)
-        local openedSize = UDim2.new(0.96, 0, 0, 42 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
-
-        local df = Instance.new("Frame", TabPage)
-        df.Size = closedSize
-        df.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-        df.BackgroundTransparency = 0.5
-        df.ClipsDescendants = true
-        df.ZIndex = 15
-        Instance.new("UICorner", df).CornerRadius = UDim.new(0, 12)
-
-        local stroke = Instance.new("UIStroke", df)
-        stroke.Color = Color3.fromRGB(255, 255, 255)
-        stroke.Transparency = 0.9
-
-        local mb = Instance.new("TextButton", df)
-        mb.Size = UDim2.new(1, 0, 0, 42)
-        mb.BackgroundTransparency = 1
+        b.MouseButton1Click:Connect(OpenTab)
+        if isAuto then OpenTab() end
         
-        local initialVal = cfg.CurrentValue or cfg.Default or ""
-        mb.Text = "  " .. (cfg.Name or "Dropdown") .. (initialVal ~= "" and (" : " .. tostring(initialVal)) or "")
-        mb.TextColor3 = Color3.new(1, 1, 1)
-        mb.Font = Enum.Font.GothamBold
-        mb.TextSize = 13
-        mb.TextXAlignment = Enum.TextXAlignment.Left
-        mb.ZIndex = 16
-
-        local Arrow = Instance.new("TextLabel", mb)
-        Arrow.Size = UDim2.new(0, 40, 0, 42)
-        Arrow.Position = UDim2.new(1, -40, 0, 0)
-        Arrow.BackgroundTransparency = 1
-        Arrow.Text = "▼"
-        Arrow.TextColor3 = Color3.fromRGB(180, 180, 185)
-        Arrow.TextSize = 10
-        Arrow.ZIndex = 17
-
-        local DropScroll = Instance.new("ScrollingFrame", df)
-        DropScroll.Size = UDim2.new(1, -8, 1, -46)
-        DropScroll.Position = UDim2.new(0, 4, 0, 44)
-        DropScroll.BackgroundTransparency = 1
-        DropScroll.ScrollBarThickness = 2
-        DropScroll.ScrollBarImageColor3 = CONFIG.NavBtnColor or Color3.new(1,1,1)
-        DropScroll.CanvasSize = UDim2.new(0, 0, 0, optionsCount * itemHeight)
-        DropScroll.ZIndex = 16
-        DropScroll.Visible = false
-
-        local DropList = Instance.new("UIListLayout", DropScroll)
-        DropList.Padding = UDim.new(0, 4)
-        DropList.SortOrder = Enum.SortOrder.LayoutOrder
-
-        df.MouseEnter:Connect(function() CreateTween(stroke, {Transparency = 0.5}) end)
-        df.MouseLeave:Connect(function() CreateTween(stroke, {Transparency = 0.9}) end)
-
-        local function toggleDropdown()
-            open = not open
-            CreateTween(df, {Size = open and openedSize or closedSize}, 0.25, Enum.EasingStyle.Quart)
-            CreateTween(Arrow, {Rotation = open and 180 or 0}, 0.25)
-            if open then DropScroll.Visible = true else task.delay(0.2, function() if not open then DropScroll.Visible = false end end) end
-        end
-
-        mb.MouseButton1Click:Connect(toggleDropdown)
-
-        local function createOptions()
-            for _, child in pairs(DropScroll:GetChildren()) do
-                if child:IsA("TextButton") then child:Destroy() end
-            end
-            for i, opt in pairs(options) do
-                local o = Instance.new("TextButton", DropScroll)
-                o.Size = UDim2.new(1, -8, 0, 28)
-                o.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-                o.BackgroundTransparency = 0.3
-                o.Text = tostring(opt)
-                o.TextColor3 = Color3.fromRGB(200, 200, 205)
-                o.Font = Enum.Font.GothamSemibold
-                o.TextSize = 12
-                o.ZIndex = 17
-                Instance.new("UICorner", o).CornerRadius = UDim.new(0, 8)
-
-                o.MouseEnter:Connect(function() CreateTween(o, {BackgroundTransparency = 0, TextColor3 = Color3.new(1, 1, 1)}, 0.1) end)
-                o.MouseLeave:Connect(function() CreateTween(o, {BackgroundTransparency = 0.3, TextColor3 = Color3.fromRGB(200, 200, 205)}, 0.1) end)
-
-                o.MouseButton1Click:Connect(function()
-                    mb.Text = "  " .. (cfg.Name or "Dropdown") .. " : " .. tostring(opt)
-                    toggleDropdown()
-                    pcall(cfg.Callback, opt)
-                end)
-            end
-        end
-        createOptions()
-
-        return {
-            Refresh = function(_, newOptions, _) 
-                options = newOptions or {}
-                optionsCount = #options
-                DropScroll.CanvasSize = UDim2.new(0, 0, 0, optionsCount * itemHeight)
-                openedSize = UDim2.new(0.96, 0, 0, 42 + math.min(optionsCount * itemHeight, maxDisplayItems * itemHeight))
-                createOptions()
-            end,
-            Set = function(_, Value)
-                mb.Text = "  " .. (cfg.Name or "Dropdown") .. " : " .. tostring(Value)
-                pcall(cfg.Callback, Value)
-            end
-        }
+        return TabAPI 
     end
-
-    local function OpenTab()
-        if SearchBox then SearchBox.Text = "" end
-        for _, v in pairs(PageArea:GetChildren()) do 
-            if v.Visible then 
-                CreateTween(v, {BackgroundTransparency = 1, Position = UDim2.new(0, 20, 0, 0)}, 0.15).Completed:Connect(function() v.Visible = false end) 
-            end
-        end
-        TabPage.Visible = true
-        CreateTween(TabPage, {BackgroundTransparency = 1, Position = UDim2.new(0, 0, 0, 0)}, 0.2, Enum.EasingStyle.Sine)
-        
-        if not TabPage:FindFirstChild("HasRan") then
-            if type(target) == "function" then target(TabPage, TabAPI)
-            elseif type(target) == "string" and target:find("http") then
-                local lb = Instance.new("TextButton", TabPage)
-                lb.Size = UDim2.new(0.96, 0, 0, 42)
-                lb.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-                lb.Text = " Load String: " .. name
-                lb.TextColor3 = Color3.new(1, 1, 1)
-                lb.Font = Enum.Font.GothamBold
-                Instance.new("UICorner", lb).CornerRadius = UDim.new(0, 12)
-                lb.ZIndex = 15
-                lb.MouseButton1Click:Connect(function() pcall(function() loadstring(game:HttpGet(target))() end) end)
-            end
-            Instance.new("BoolValue", TabPage).Name = "HasRan"
-        end
-    end
-    
-    b.MouseButton1Click:Connect(OpenTab)
-    if isAuto then OpenTab() end
-    
-    return TabAPI 
-end
 
     local SettingPage = Instance.new("ScrollingFrame", PageArea)
     SettingPage.Size = UDim2.new(1, 0, 1, 0)
@@ -1614,96 +1616,6 @@ end
     SettingPage.ScrollBarThickness = 3
     SettingPage.AutomaticCanvasSize = "Y"
     SettingPage.ZIndex = 11
-    
-    CONFIG.SaveFileName = "DefaultConfig"
-    CONFIG.ConfigFolderName = "Configs" 
-    CONFIG.AutoLoad = false
-
-    local HttpService = game:GetService("HttpService")
-
-    -- ฟังก์ชันจัดการ Path ใหม่อิงตามช่องที่ 4 (Target Folder)
-    local function GetConfigPath(fileName, folderName)
-        local target = CONFIG.BgFolder or "VeridianConfig"
-        local folder = (folderName == "" or not folderName) and CONFIG.ConfigFolderName or folderName
-        local file = (fileName == "" or not fileName) and CONFIG.SaveFileName or fileName
-        if not file:match("%.json$") then file = file .. ".json" end
-        return target .. "/" .. folder .. "/" .. file
-    end
-
-    local function CheckFolders(folderName)
-        local target = CONFIG.BgFolder or "VeridianConfig"
-        local folder = (folderName == "" or not folderName) and CONFIG.ConfigFolderName or folderName
-        
-        if not isfolder(target) then pcall(function() makefolder(target) end) end
-        if not isfolder(target .. "/" .. folder) then pcall(function() makefolder(target .. "/" .. folder) end) end
-    end
-
-    -- 💾 ระบบกวาดล้างเซฟทุกสรรพสิ่งใน CONFIG
-    local function SaveConfiguration(fileName, folderName)
-        CheckFolders(folderName)
-        local path = GetConfigPath(fileName, folderName)
-        local dataToSave = {}
-        
-        -- ดูดทุกอย่างจาก CONFIG มาแปลงสภาพให้ JSON เข้าใจ
-        for key, value in pairs(CONFIG) do
-            local valType = typeof(value)
-            
-            if valType == "string" or valType == "number" or valType == "boolean" or valType == "table" then
-                dataToSave[key] = value
-            elseif valType == "Color3" then
-                -- แปลงสีเป็นตาราง เพราะ JSON เซฟ Color3 ตรงๆ ไม่ได้เว้ยสัส!
-                dataToSave[key] = {R = value.R, G = value.G, B = value.B, _isColor = true}
-            elseif valType == "EnumItem" then
-                -- แปลงปุ่มเป็นชื่อ
-                dataToSave[key] = {Name = value.Name, _isEnum = true}
-            end
-        end
-        
-        local success, err = pcall(function()
-            writefile(path, HttpService:JSONEncode(dataToSave))
-        end)
-        
-        if success then
-            print("[✅ VERIDIAN] กวาดข้อมูลเซฟหมดตูดแล้วที่: " .. path)
-            return true
-        else
-            warn("[❌ VERIDIAN] บึ้มตอนเซฟ: " .. tostring(err))
-            return false
-        end
-    end
-
-    -- 📂 ระบบโหลดและอัปเดตกลับ
-    local function LoadConfiguration(fileName, folderName)
-        local path = GetConfigPath(fileName, folderName)
-        
-        if isfile(path) then
-            local success, data = pcall(function()
-                return HttpService:JSONDecode(readfile(path))
-            end)
-            
-            if success and type(data) == "table" then
-                -- โหลดทุกอย่างกลับเข้า CONFIG
-                for key, value in pairs(data) do
-                    if type(value) == "table" and value._isColor then
-                        CONFIG[key] = Color3.new(value.R, value.G, value.B) -- แปลงกลับเป็นสีให้ UI
-                    elseif type(value) == "table" and value._isEnum then
-                        pcall(function() CONFIG[key] = Enum.KeyCode[value.Name] end) -- แปลงกลับเป็นปุ่ม
-                    else
-                        CONFIG[key] = value
-                    end
-                end
-                
-                print("[✅ VERIDIAN] โหลดคอนฟิกกลับมาครบทุกรูขุมขน!: " .. path)
-                
-                -- [!] ตรงนี้มึงต้องเรียกฟังก์ชันอัปเดต UI ของมึงนะ!
-                -- เช่น UpdateAllColors(), RefreshToggles() บลาๆ
-                
-                return true
-            end
-        end
-        warn("[⚠️ VERIDIAN] หาไฟล์ไม่เจอ!: " .. path)
-        return false
-    end
 
     local function RenderSettings()
         SettingPage:ClearAllChildren()
@@ -1735,6 +1647,7 @@ end
         title.Size = UDim2.new(1, -60, 1, 0)
         title.Position = UDim2.new(0, 10, 0, 0)
         title.BackgroundTransparency = 1
+        -- Dynamic text based on current configuration
         title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")"
         title.TextColor3 = Color3.new(1, 1, 1)
         title.Font = Enum.Font.GothamBold
@@ -1742,6 +1655,7 @@ end
         title.TextXAlignment = Enum.TextXAlignment.Left
         title.ZIndex = 16
 
+        -- Transformed from Frame to TextButton to isolate toggle clicks
         local switchBg = Instance.new("TextButton", kb)
         switchBg.Size = UDim2.new(0, 40, 0, 20)
         switchBg.Position = UDim2.new(1, -50, 0.5, -10)
@@ -1758,43 +1672,46 @@ end
         Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
         knob.ZIndex = 17
 
+        -- Independent Master Toggle Event Listener
         switchBg.MouseButton1Click:Connect(function()
             CONFIG.KeybindEnabled = not CONFIG.KeybindEnabled
             CreateTween(switchBg, {BackgroundColor3 = CONFIG.KeybindEnabled and ColorOn or ColorOff}, 0.2)
             CreateTween(knob, {Position = CONFIG.KeybindEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         end)
 
-        local bindConnection = nil
-        local isListening = false
+        -- Premium Garbage-Cleaned Keybind Selector Logic
+       local bindConnection = nil
+local isListening = false
 
-        kb.MouseButton1Click:Connect(function()
-            if isListening then return end
-            isListening = true
-            title.Text = "Press any key..."
+kb.MouseButton1Click:Connect(function()
+    if isListening then return end
+    isListening = true
+    title.Text = "Press any key..."
 
+    if bindConnection then
+        bindConnection:Disconnect()
+        bindConnection = nil
+    end
+
+    bindConnection = UserInputService.InputBegan:Connect(function(input, gpe)
+        if not gpe and input.UserInputType == Enum.UserInputType.Keyboard then
+            if input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode ~= Enum.KeyCode.Escape then
+                CONFIG.ToggleKey = input.KeyCode
+                title.Text = "Keybind (" .. input.KeyCode.Name .. ")"
+            else
+                title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")"
+            end
+            
+            isListening = false
             if bindConnection then
                 bindConnection:Disconnect()
                 bindConnection = nil
             end
+        end
+    end)
+end)
 
-            bindConnection = UserInputService.InputBegan:Connect(function(input, gpe)
-                if not gpe and input.UserInputType == Enum.UserInputType.Keyboard then
-                    if input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode ~= Enum.KeyCode.Escape then
-                        CONFIG.ToggleKey = input.KeyCode
-                        title.Text = "Keybind (" .. input.KeyCode.Name .. ")"
-                    else
-                        title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")"
-                    end
-                    
-                    isListening = false
-                    if bindConnection then
-                        bindConnection:Disconnect()
-                        bindConnection = nil
-                    end
-                end
-            end)
-        end)
-
+        local HttpService = game:GetService("HttpService")
         local extThemes = {["Default"] = CONFIG.NavBtnColor}
         local urls = {"https://raw.githubusercontent.com/modcreate1641-collab/Veridian/refs/heads/main/theme.json"}
 
@@ -1957,407 +1874,21 @@ end
                 pcall(function() ApplyAutoBackground(s) end)
             end
         end)
-
-        ----------------------------------------------------------------
-        -- ⚡ PREMIUM MOBILE-FRIENDLY CONFIGURATION UI (FIXED 100%) ⚡
-        ----------------------------------------------------------------
-        local configTitle = Instance.new("TextLabel", SettingPage)
-        configTitle.Size = UDim2.new(1, 0, 0, 35)
-        configTitle.Text = "⚡ Advanced Configuration"
-        configTitle.BackgroundTransparency = 1
-        configTitle.TextColor3 = Color3.fromRGB(255, 180, 50) 
-        configTitle.Font = Enum.Font.GothamBlack
-        configTitle.TextSize = 15
-        configTitle.ZIndex = 15
-
-        -- // 1. แถบใส่ชื่อโฟลเดอร์ (Folder Name)
-        local FolderBoxFrame = Instance.new("Frame", SettingPage)
-        FolderBoxFrame.Size = UDim2.new(0.95, 0, 0, 42)
-        FolderBoxFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-        FolderBoxFrame.ZIndex = 10 
-        FolderBoxFrame.Active = true -- ป้องกันนิ้วทะลุ
-        Instance.new("UICorner", FolderBoxFrame).CornerRadius = UDim.new(0, 8)
-        Instance.new("UIStroke", FolderBoxFrame).Color = Color3.fromRGB(50, 50, 55)
-
-        local FolderIcon = Instance.new("TextLabel", FolderBoxFrame)
-        FolderIcon.Size = UDim2.new(0, 40, 1, 0)
-        FolderIcon.BackgroundTransparency = 1
-        FolderIcon.Text = "📁"
-        FolderIcon.TextSize = 18
-        FolderIcon.ZIndex = 11
-
-        local FolderInput = Instance.new("TextBox", FolderBoxFrame)
-        FolderInput.Size = UDim2.new(1, -50, 1, 0)
-        FolderInput.Position = UDim2.new(0, 40, 0, 0)
-        FolderInput.BackgroundTransparency = 1
-        FolderInput.Text = CONFIG.ConfigFolderName or "Configs"
-        FolderInput.PlaceholderText = "ชื่อโฟลเดอร์ (Folder)..."
-        FolderInput.TextColor3 = Color3.new(1, 1, 1)
-        FolderInput.Font = Enum.Font.GothamSemibold
-        FolderInput.TextSize = 14
-        FolderInput.ClearTextOnFocus = false
-        FolderInput.TextXAlignment = Enum.TextXAlignment.Left
-        FolderInput.ZIndex = 11
-
-        -- [!] สำคัญมาก: ระบบดักตอนพิมพ์เสร็จ ไม่งั้นมันไม่จำค่า!
-        FolderInput.FocusLost:Connect(function()
-            if FolderInput.Text == "" then FolderInput.Text = "Configs" end
-            CONFIG.ConfigFolderName = FolderInput.Text
-        end)
-        -- // [ใหม่!] แถบใส่ชื่อ Target Folder (ล็อกเป้าหมายหลัก)
-        local TargetBoxFrame = Instance.new("Frame", SettingPage)
-        TargetBoxFrame.Size = UDim2.new(0.95, 0, 0, 42)
-        TargetBoxFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-        TargetBoxFrame.ZIndex = 10 
-        TargetBoxFrame.Active = true 
-        Instance.new("UICorner", TargetBoxFrame).CornerRadius = UDim.new(0, 8)
-        Instance.new("UIStroke", TargetBoxFrame).Color = Color3.fromRGB(50, 50, 55)
-
-        local TargetIcon = Instance.new("TextLabel", TargetBoxFrame)
-        TargetIcon.Size = UDim2.new(0, 40, 1, 0)
-        TargetIcon.BackgroundTransparency = 1
-        TargetIcon.Text = "🎯"
-        TargetIcon.TextSize = 18
-        TargetIcon.ZIndex = 11
-
-        local TargetInput = Instance.new("TextBox", TargetBoxFrame)
-        TargetInput.Size = UDim2.new(1, -50, 1, 0)
-        TargetInput.Position = UDim2.new(0, 40, 0, 0)
-        TargetInput.BackgroundTransparency = 1
-        TargetInput.Text = CONFIG.BgFolder or "VeridianConfig"
-        TargetInput.PlaceholderText = "Target Folder (ล็อกเป้าหมาย)..."
-        TargetInput.TextColor3 = Color3.new(1, 1, 1)
-        TargetInput.Font = Enum.Font.GothamSemibold
-        TargetInput.TextSize = 14
-        TargetInput.ClearTextOnFocus = false
-        TargetInput.TextXAlignment = Enum.TextXAlignment.Left
-        TargetInput.ZIndex = 11
-
-        TargetInput.FocusLost:Connect(function()
-            if TargetInput.Text == "" then TargetInput.Text = "VeridianConfig" end
-            CONFIG.BgFolder = TargetInput.Text -- ล็อกเป้าหมายลงระบบหลังบ้าน
-        end)
-
-        -- // 2. แถบใส่ชื่อไฟล์ (File Name)
-        local FileBoxFrame = Instance.new("Frame", SettingPage)
-        FileBoxFrame.Size = UDim2.new(0.95, 0, 0, 42)
-        FileBoxFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-        FileBoxFrame.ZIndex = 10 
-        FileBoxFrame.Active = true -- ป้องกันนิ้วทะลุ
-        Instance.new("UICorner", FileBoxFrame).CornerRadius = UDim.new(0, 8)
-        Instance.new("UIStroke", FileBoxFrame).Color = Color3.fromRGB(50, 50, 55)
-
-        local FileIcon = Instance.new("TextLabel", FileBoxFrame)
-        FileIcon.Size = UDim2.new(0, 40, 1, 0)
-        FileIcon.BackgroundTransparency = 1
-        FileIcon.Text = "📄"
-        FileIcon.TextSize = 18
-        FileIcon.ZIndex = 11
-
-        local FileNameInput = Instance.new("TextBox", FileBoxFrame)
-        FileNameInput.Size = UDim2.new(1, -50, 1, 0)
-        FileNameInput.Position = UDim2.new(0, 40, 0, 0)
-        FileNameInput.BackgroundTransparency = 1
-        FileNameInput.Text = CONFIG.SaveFileName or "DefaultConfig"
-        FileNameInput.PlaceholderText = "ตั้งชื่อไฟล์เซฟ (File)..."
-        FileNameInput.TextColor3 = Color3.new(1, 1, 1)
-        FileNameInput.Font = Enum.Font.GothamSemibold
-        FileNameInput.TextSize = 14
-        FileNameInput.ClearTextOnFocus = false
-        FileNameInput.TextXAlignment = Enum.TextXAlignment.Left
-        FileNameInput.ZIndex = 11
-
-        -- [!] สำคัญมาก: ระบบดักตอนพิมพ์เสร็จ
-        FileNameInput.FocusLost:Connect(function()
-            if FileNameInput.Text == "" then FileNameInput.Text = "DefaultConfig" end
-            CONFIG.SaveFileName = FileNameInput.Text
-        end)
-
-        -- // 3. Dropdown เลือกไฟล์เซฟ (File Selector)
-        local DropOpen = false
-        local DropFrame = Instance.new("Frame", SettingPage)
-        DropFrame.Size = UDim2.new(0.95, 0, 0, 42)
-        DropFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-        DropFrame.ClipsDescendants = true
-        DropFrame.ZIndex = 100 -- [!] อัด Z-Index ให้ทะลุเพดาน บังปุ่มอื่นมิดเวลาเปิด!
-        DropFrame.Active = true 
-        Instance.new("UICorner", DropFrame).CornerRadius = UDim.new(0, 8)
-        Instance.new("UIStroke", DropFrame).Color = Color3.fromRGB(60, 60, 65)
-
-        local DropBtn = Instance.new("TextButton", DropFrame)
-        DropBtn.Size = UDim2.new(1, 0, 0, 42)
-        DropBtn.BackgroundTransparency = 1
-        DropBtn.Text = "   ▼  Select Existing Config..."
-        DropBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-        DropBtn.Font = Enum.Font.GothamBold
-        DropBtn.TextSize = 13
-        DropBtn.TextXAlignment = Enum.TextXAlignment.Left
-        DropBtn.ZIndex = 101
-
-        local RefreshListBtn = Instance.new("TextButton", DropBtn)
-        RefreshListBtn.Size = UDim2.new(0, 40, 0, 42)
-        RefreshListBtn.Position = UDim2.new(1, -40, 0, 0)
-        RefreshListBtn.BackgroundTransparency = 1
-        RefreshListBtn.Text = "🔄"
-        RefreshListBtn.TextSize = 16
-        RefreshListBtn.ZIndex = 102
-
-        local ConfigScroll = Instance.new("ScrollingFrame", DropFrame)
-        ConfigScroll.Size = UDim2.new(1, -8, 1, -46)
-        ConfigScroll.Position = UDim2.new(0, 4, 0, 42)
-        ConfigScroll.BackgroundTransparency = 1
-        ConfigScroll.ScrollBarThickness = 3
-        ConfigScroll.Visible = false
-        ConfigScroll.ZIndex = 101 -- ให้สูงกว่าพื้น DropFrame
-
-        local ConfigListLayout = Instance.new("UIListLayout", ConfigScroll)
-        ConfigListLayout.Padding = UDim.new(0, 4)
-        ConfigListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-        local function GetCurrentFolderPath()
-            local fName = FolderInput.Text
-            if fName == "" then fName = "Configs" end
-            return CONFIG.BgFolder .. "/" .. fName
-        end
-
-        local function RefreshFileList()
-            for _, child in pairs(ConfigScroll:GetChildren()) do
-                if child:IsA("TextButton") then child:Destroy() end
-            end
-
-            local targetFolder = GetCurrentFolderPath()
-            if not isfolder(targetFolder) then return end
-
-            local ySize = 0
-            local success, files = pcall(function() return listfiles(targetFolder) end)
-            
-            if success and files then
-                for _, file in pairs(files) do
-                    local nameOnly = file:match("([^/\\]+)%.json$")
-                    if nameOnly then
-                        local btn = Instance.new("TextButton", ConfigScroll)
-                        btn.Size = UDim2.new(1, -4, 0, 32)
-                        btn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-                        btn.Text = "  📄 " .. nameOnly
-                        btn.TextColor3 = Color3.new(1, 1, 1)
-                        btn.Font = Enum.Font.GothamSemibold
-                        btn.TextSize = 13
-                        btn.TextXAlignment = Enum.TextXAlignment.Left
-                        btn.ZIndex = 102
-                        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-
-                        btn.MouseButton1Click:Connect(function()
-                            FileNameInput.Text = nameOnly
-                            CONFIG.SaveFileName = nameOnly
-                            DropBtn.Text = "   ▼  Selected: " .. nameOnly
-                            DropOpen = false
-                            CreateTween(DropFrame, {Size = UDim2.new(0.95, 0, 0, 42)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-                            task.delay(0.2, function() ConfigScroll.Visible = false end)
-                        end)
-                        ySize = ySize + 36
-                    end
-                end
-            end
-            ConfigScroll.CanvasSize = UDim2.new(0, 0, 0, ySize)
-        end
-
-        DropBtn.MouseButton1Click:Connect(function()
-            DropOpen = not DropOpen
-            if DropOpen then
-                RefreshFileList()
-                CreateTween(DropFrame, {Size = UDim2.new(0.95, 0, 0, 180)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-                ConfigScroll.Visible = true
-            else
-                CreateTween(DropFrame, {Size = UDim2.new(0.95, 0, 0, 42)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-                task.delay(0.2, function() ConfigScroll.Visible = false end)
-            end
-        end)
-
-        RefreshListBtn.MouseButton1Click:Connect(function()
-            RefreshFileList()
-            if not DropOpen then
-                DropOpen = true
-                CreateTween(DropFrame, {Size = UDim2.new(0.95, 0, 0, 180)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-                ConfigScroll.Visible = true
-            end
-        end)
-
-        -- // 4. ปุ่ม Action
-        local ActionRow1 = Instance.new("Frame", SettingPage)
-        ActionRow1.Size = UDim2.new(0.95, 0, 0, 40)
-        ActionRow1.BackgroundTransparency = 1
-        ActionRow1.ZIndex = 10 
-        ActionRow1.Active = true
-        
-        local SaveBtn = Instance.new("TextButton", ActionRow1)
-        SaveBtn.Size = UDim2.new(0.48, 0, 1, 0)
-        SaveBtn.Position = UDim2.new(0, 0, 0, 0)
-        SaveBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
-        SaveBtn.Text = "💾 SAVE"
-        SaveBtn.TextColor3 = Color3.new(0, 0, 0)
-        SaveBtn.Font = Enum.Font.GothamBold
-        SaveBtn.TextSize = 14
-        SaveBtn.ZIndex = 11
-        Instance.new("UICorner", SaveBtn).CornerRadius = UDim.new(0, 6)
-
-        local LoadBtn = Instance.new("TextButton", ActionRow1)
-        LoadBtn.Size = UDim2.new(0.48, 0, 1, 0)
-        LoadBtn.Position = UDim2.new(1, 0, 0, 0)
-        LoadBtn.AnchorPoint = Vector2.new(1, 0)
-        LoadBtn.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
-        LoadBtn.Text = "📂 LOAD"
-        LoadBtn.TextColor3 = Color3.new(0, 0, 0)
-        LoadBtn.Font = Enum.Font.GothamBold
-        LoadBtn.TextSize = 14
-        LoadBtn.ZIndex = 11
-        Instance.new("UICorner", LoadBtn).CornerRadius = UDim.new(0, 6)
-
-        local ActionRow2 = Instance.new("Frame", SettingPage)
-        ActionRow2.Size = UDim2.new(0.95, 0, 0, 40)
-        ActionRow2.BackgroundTransparency = 1
-        ActionRow2.ZIndex = 10 
-        ActionRow2.Active = true
-
-        local DeleteBtn = Instance.new("TextButton", ActionRow2)
-        DeleteBtn.Size = UDim2.new(1, 0, 1, 0)
-        DeleteBtn.BackgroundColor3 = Color3.fromRGB(231, 76, 60)
-        DeleteBtn.Text = "🗑️ DELETE CONFIG"
-        DeleteBtn.TextColor3 = Color3.new(1, 1, 1)
-        DeleteBtn.Font = Enum.Font.GothamBold
-        DeleteBtn.TextSize = 14
-        DeleteBtn.ZIndex = 11
-        Instance.new("UICorner", DeleteBtn).CornerRadius = UDim.new(0, 6)
-
-        SaveBtn.MouseButton1Click:Connect(function()
-            local success = SaveConfiguration(FileNameInput.Text, FolderInput.Text)
-            if success then
-                SaveBtn.Text = "✅ SAVED!"
-                if RefreshFileList then RefreshFileList() end
-            else
-                SaveBtn.Text = "❌ ERROR"
-            end
-            task.delay(1, function() SaveBtn.Text = "💾 SAVE" end)
-        end)
-
-        LoadBtn.MouseButton1Click:Connect(function()
-            local success = LoadConfiguration(FileNameInput.Text, FolderInput.Text)
-            if success then
-                -- อัปเดต Toggle Keybind UI ถ้ามี
-                if switchBg and knob then
-                    CreateTween(switchBg, {BackgroundColor3 = CONFIG.KeybindEnabled and ColorOn or ColorOff}, 0.2)
-                    CreateTween(knob, {Position = CONFIG.KeybindEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2)
-                end
-                if title then title.Text = "Keybind (" .. CONFIG.ToggleKey.Name .. ")" end
-
-                -- อัปเดต Toggle AutoLoad UI 
-                local autoSwitchBg = SettingPage:FindFirstChild("AutoLoadSwitchBg", true)
-                local autoKnob = SettingPage:FindFirstChild("AutoLoadKnob", true)
-                if autoSwitchBg and autoKnob then
-                    CreateTween(autoSwitchBg, {BackgroundColor3 = CONFIG.AutoLoad and ColorOn or ColorOff}, 0.2)
-                    CreateTween(autoKnob, {Position = CONFIG.AutoLoad and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)}, 0.2)
-                end
-                LoadBtn.Text = "✅ LOADED!"
-            else
-                LoadBtn.Text = "⚠️ NOT FOUND"
-            end
-            task.delay(1, function() LoadBtn.Text = "📂 LOAD" end)
-        end)
-
-        DeleteBtn.MouseButton1Click:Connect(function()
-            local fName = (FolderInput.Text == "") and "Configs" or FolderInput.Text
-            local file = (FileNameInput.Text == "") and CONFIG.SaveFileName or FileNameInput.Text
-            if not file:match("%.json$") then file = file .. ".json" end
-            local filePath = CONFIG.BgFolder .. "/" .. fName .. "/" .. file
-
-            if isfile(filePath) then
-                local success = pcall(function() delfile(filePath) end)
-                if success then
-                    DeleteBtn.Text = "💀 DELETED!"
-                    FileNameInput.Text = "" 
-                    CONFIG.SaveFileName = "DefaultConfig"
-                    DropBtn.Text = "   ▼  Select Existing Config..."
-                    if RefreshFileList then RefreshFileList() end
-                end
-            else
-                DeleteBtn.Text = "⚠️ NOT FOUND"
-            end
-            task.delay(1.5, function() DeleteBtn.Text = "🗑️ DELETE CONFIG" end)
-        end)
-
-        -- // 5. Toggle Auto Load
-        local autoLoadFrame = Instance.new("TextButton", SettingPage)
-        autoLoadFrame.Size = UDim2.new(0.95, 0, 0, 48) 
-        autoLoadFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-        autoLoadFrame.Text = ""
-        autoLoadFrame.AutoButtonColor = false
-        autoLoadFrame.ZIndex = 10
-        autoLoadFrame.Active = true
-        Instance.new("UICorner", autoLoadFrame).CornerRadius = UDim.new(0, 8)
-        Instance.new("UIStroke", autoLoadFrame).Color = Color3.fromRGB(60, 60, 65)
-
-        local autoLoadTitle = Instance.new("TextLabel", autoLoadFrame)
-        autoLoadTitle.Size = UDim2.new(1, -70, 1, 0)
-        autoLoadTitle.Position = UDim2.new(0, 15, 0, 0)
-        autoLoadTitle.BackgroundTransparency = 1
-        autoLoadTitle.Text = "Auto Load Config"
-        autoLoadTitle.TextColor3 = Color3.new(1, 1, 1)
-        autoLoadTitle.Font = Enum.Font.GothamBold
-        autoLoadTitle.TextSize = 14
-        autoLoadTitle.TextXAlignment = Enum.TextXAlignment.Left
-        autoLoadTitle.ZIndex = 11
-
-        local autoSwitchBg = Instance.new("TextButton", autoLoadFrame)
-        autoSwitchBg.Name = "AutoLoadSwitchBg"
-        autoSwitchBg.Size = UDim2.new(0, 40, 0, 22)
-        autoSwitchBg.Position = UDim2.new(1, -50, 0.5, -11)
-        autoSwitchBg.BackgroundColor3 = CONFIG.AutoLoad and ColorOn or ColorOff
-        autoSwitchBg.Text = ""
-        autoSwitchBg.AutoButtonColor = false
-        autoSwitchBg.ZIndex = 11
-        Instance.new("UICorner", autoSwitchBg).CornerRadius = UDim.new(1, 0)
-
-        local autoKnob = Instance.new("Frame", autoSwitchBg)
-        autoKnob.Name = "AutoLoadKnob"
-        autoKnob.Size = UDim2.new(0, 18, 0, 18)
-        autoKnob.Position = CONFIG.AutoLoad and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
-        autoKnob.BackgroundColor3 = Color3.new(1, 1, 1)
-        autoKnob.ZIndex = 12
-        Instance.new("UICorner", autoKnob).CornerRadius = UDim.new(1, 0)
-
-        autoSwitchBg.MouseButton1Click:Connect(function()
-            CONFIG.AutoLoad = not CONFIG.AutoLoad
-            CreateTween(autoSwitchBg, {BackgroundColor3 = CONFIG.AutoLoad and ColorOn or ColorOff}, 0.2)
-            CreateTween(autoKnob, {Position = CONFIG.AutoLoad and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-        end)
-    end -- [ปิด RenderSettings]
-
+    end
+    
     RenderSettings()
     
     TopSettingBtn.MouseButton1Click:Connect(function() 
         for _, v in pairs(PageArea:GetChildren()) do 
-            if v:IsA("ScrollingFrame") or v:IsA("Frame") then
-                if v.Visible then 
-                    CreateTween(v, {Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) 
-                end
+            if v.Visible then 
+                CreateTween(v, {Position = UDim2.new(0, 20, 0, 0)}, 0.2).Completed:Connect(function() v.Visible = false end) 
             end
         end
         SettingPage.Visible = true
         CreateTween(SettingPage, {Position = UDim2.new(0, 0, 0, 0)}, 0.3, Enum.EasingStyle.Sine)
     end)
 
-    task.spawn(function()
-        local path = CONFIG.BgFolder .. "/Configs/" .. CONFIG.SaveFileName .. ".json"
-        if isfile(path) then
-            local success, data = pcall(function()
-                return HttpService:JSONDecode(readfile(path))
-            end)
-            if success and data and data.AutoLoad then
-                LoadConfiguration(CONFIG.SaveFileName)
-            end
-        end
-    end)
-
-    return WindowAPI 
+    return WindowAPI
 end 
 
 return Veridianhub
